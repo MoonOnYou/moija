@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../data/filter_storage.dart';
 import '../../data/meeting_repository.dart';
 import '../../models/meeting_filter.dart';
 import '../../theme/app_colors.dart';
@@ -22,9 +23,21 @@ class _HomeScreenState extends State<HomeScreen> {
   static final DateTime _today = DateTime(2026, 5, 16);
 
   final MeetingRepository _repository = MeetingRepository();
+  final FilterStorage _storage = FilterStorage();
   late DateTime _windowStart = weekStartOf(_today);
   late DateTime _selectedDay = _today;
   MeetingFilter _filter = const MeetingFilter.empty();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFilter();
+  }
+
+  Future<void> _loadFilter() async {
+    final loaded = await _storage.load();
+    if (mounted) setState(() => _filter = loaded);
+  }
 
   void _goToDay(DateTime day) {
     setState(() {
@@ -38,7 +51,10 @@ class _HomeScreenState extends State<HomeScreen> {
       context,
       MaterialPageRoute(builder: (_) => FilterScreen(initial: _filter)),
     );
-    if (result != null) setState(() => _filter = result);
+    if (result != null) {
+      setState(() => _filter = result);
+      await _storage.save(result);
+    }
   }
 
   String _monthLabel() {
@@ -77,6 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
             SelectedDaySummary(
               selectedDay: _selectedDay,
               meetingCount: dayMeetings.length,
+              filterCount: _filter.activeCount,
             ),
             Expanded(
               child: DayMeetingsPager(

@@ -7,10 +7,12 @@ class SelectedDaySummary extends StatelessWidget {
     super.key,
     required this.selectedDay,
     required this.meetingCount,
+    required this.filterCount,
   });
 
   final DateTime selectedDay;
   final int meetingCount;
+  final int filterCount;
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +33,7 @@ class SelectedDaySummary extends StatelessWidget {
               style:
                   const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
           const SizedBox(height: 2),
-          Text('모임 $meetingCount개',
+          Text('필터 $filterCount개 · 모임 $meetingCount개',
               style: const TextStyle(
                   fontSize: 12, color: AppColors.textSecondary)),
         ],
