@@ -22,3 +22,18 @@ List<DateTime> buildTwoWeekGrid(DateTime today) =>
 /// 두 날짜가 같은 '날'(연/월/일)인지.
 bool isSameDay(DateTime a, DateTime b) =>
     a.year == b.year && a.month == b.month && a.day == b.day;
+
+/// 선택일이 2주 창 [windowStart, windowStart+13] 안에 들어오도록
+/// windowStart를 7일 단위로 이동시켜 반환한다. windowStart가 일요일이면
+/// 결과도 항상 일요일을 유지한다.
+DateTime windowFollowing(DateTime windowStart, DateTime selectedDay) {
+  var w = DateTime(windowStart.year, windowStart.month, windowStart.day);
+  final d = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
+  while (d.isBefore(w)) {
+    w = w.subtract(const Duration(days: 7));
+  }
+  while (d.isAfter(w.add(const Duration(days: 13)))) {
+    w = w.add(const Duration(days: 7));
+  }
+  return w;
+}

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:moija/features/home/home_screen.dart';
+import 'package:moija/features/home/widgets/day_meetings_pager.dart';
 import 'package:moija/features/home/widgets/two_week_calendar.dart';
 
 void main() {
@@ -40,7 +41,8 @@ void main() {
     expect(find.text('이 날에는 모임이 없어요'), findsOneWidget);
   });
 
-  testWidgets('swiping pages the window by two weeks', (tester) async {
+  testWidgets('swiping the calendar pages the window by two weeks',
+      (tester) async {
     await pump(tester);
     await tester.fling(
         find.byType(TwoWeekCalendar), const Offset(-300, 0), 1000);
@@ -54,5 +56,18 @@ void main() {
       find.byWidgetPredicate((w) => w is Opacity && w.opacity == 0.45),
       findsWidgets,
     );
+  });
+
+  testWidgets('swiping the meeting list moves to the next day',
+      (tester) async {
+    await pump(tester);
+    expect(find.text('퇴근 후 볼링'), findsOneWidget);
+
+    await tester.fling(
+        find.byType(DayMeetingsPager), const Offset(-400, 0), 1000);
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('5월 17일'), findsOneWidget);
+    expect(find.text('주말 관악산 등반'), findsOneWidget);
   });
 }
