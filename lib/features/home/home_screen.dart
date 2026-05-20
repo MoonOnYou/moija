@@ -3,9 +3,9 @@ import 'package:intl/intl.dart';
 import '../../data/meeting_repository.dart';
 import '../../theme/app_colors.dart';
 import 'calendar_grid.dart';
+import 'widgets/day_meetings_pager.dart';
 import 'widgets/filter_bar.dart';
 import 'widgets/home_header.dart';
-import 'widgets/meeting_card.dart';
 import 'widgets/selected_day_summary.dart';
 import 'widgets/two_week_calendar.dart';
 
@@ -24,8 +24,12 @@ class _HomeScreenState extends State<HomeScreen> {
   late DateTime _windowStart = weekStartOf(_today);
   late DateTime _selectedDay = _today;
 
-  void _selectDay(DateTime day) {
-    setState(() => _selectedDay = day);
+  /// 달력 탭과 리스트 스와이프 공통 진입점.
+  void _goToDay(DateTime day) {
+    setState(() {
+      _selectedDay = day;
+      _windowStart = windowFollowing(_windowStart, day);
+    });
   }
 
   void _shiftWindow(int days) {
@@ -61,7 +65,7 @@ class _HomeScreenState extends State<HomeScreen> {
               selectedDay: _selectedDay,
               today: _today,
               repository: _repository,
-              onDaySelected: _selectDay,
+              onDaySelected: _goToDay,
               onWindowDelta: _shiftWindow,
             ),
             SelectedDaySummary(
@@ -69,14 +73,11 @@ class _HomeScreenState extends State<HomeScreen> {
               meetingCount: dayMeetings.length,
             ),
             Expanded(
-              child: dayMeetings.isEmpty
-                  ? const _EmptyState()
-                  : ListView(
-                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-                      children: [
-                        for (final m in dayMeetings) MeetingCard(meeting: m),
-                      ],
-                    ),
+              child: DayMeetingsPager(
+                selectedDay: _selectedDay,
+                repository: _repository,
+                onDayChanged: _goToDay,
+              ),
             ),
           ],
         ),
@@ -86,20 +87,6 @@ class _HomeScreenState extends State<HomeScreen> {
         foregroundColor: AppColors.bgPrimary,
         onPressed: () {},
         child: const Icon(Icons.add),
-      ),
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  const _EmptyState();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        '이 날에는 모임이 없어요',
-        style: TextStyle(fontSize: 13, color: AppColors.textTertiary),
       ),
     );
   }

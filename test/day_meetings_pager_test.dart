@@ -9,7 +9,7 @@ void main() {
     await initializeDateFormatting('ko_KR');
   });
 
-  Future<DateTime?> _swipe(WidgetTester tester, Offset offset) async {
+  Future<DateTime?> swipe(WidgetTester tester, Offset offset) async {
     DateTime? changed;
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(
@@ -26,12 +26,12 @@ void main() {
   }
 
   testWidgets('swiping left advances to the next day', (tester) async {
-    final changed = await _swipe(tester, const Offset(-400, 0));
+    final changed = await swipe(tester, const Offset(-400, 0));
     expect(changed, DateTime(2026, 5, 17));
   });
 
   testWidgets('swiping right goes to the previous day', (tester) async {
-    final changed = await _swipe(tester, const Offset(400, 0));
+    final changed = await swipe(tester, const Offset(400, 0));
     expect(changed, DateTime(2026, 5, 15));
   });
 }
