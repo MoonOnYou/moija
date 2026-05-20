@@ -26,6 +26,8 @@ class _HomeScreenState extends State<HomeScreen> {
   void _selectDay(DateTime day) {
     setState(() {
       _selectedDay = day;
+      // 인접 달의 (흐린) 셀을 탭하면 그 달로 포커스를 이동시켜
+      // 선택일이 항상 보이는 그리드 안에 있도록 한다.
       _focusedMonth = DateTime(day.year, day.month);
     });
   }

@@ -42,4 +42,14 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('2026년 6월'), findsOneWidget);
   });
+
+  testWidgets('selecting a day with no meetings shows the empty state',
+      (tester) async {
+    await pump(tester);
+    // 5월 11일에는 모임이 없다.
+    await tester.tap(find.text('11'));
+    await tester.pumpAndSettle();
+    expect(find.text('모임 0개'), findsOneWidget);
+    expect(find.text('이 날에는 모임이 없어요'), findsOneWidget);
+  });
 }
