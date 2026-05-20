@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../data/meeting_repository.dart';
 import '../../../models/meeting_filter.dart';
 import '../../../theme/app_colors.dart';
+import '../../meeting/meeting_detail_screen.dart';
 import '../calendar_grid.dart';
 import 'meeting_card.dart';
 
@@ -87,7 +88,19 @@ class _DayMeetingsPagerState extends State<DayMeetingsPager> {
             : ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-                children: [for (final m in meetings) MeetingCard(meeting: m)],
+                children: [
+                  for (final m in meetings)
+                    MeetingCard(
+                      meeting: m,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => MeetingDetailScreen(
+                              meeting: m, repository: widget.repository),
+                        ),
+                      ),
+                    ),
+                ],
               );
 
         final onRefresh = widget.onRefresh;

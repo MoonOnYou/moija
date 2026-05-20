@@ -4,14 +4,18 @@ import '../../../models/meeting.dart';
 import '../../../theme/app_colors.dart';
 
 class MeetingCard extends StatelessWidget {
-  const MeetingCard({super.key, required this.meeting});
+  const MeetingCard({super.key, required this.meeting, this.onTap});
 
   final Meeting meeting;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final time = DateFormat('HH:mm').format(meeting.startTime);
-    return Container(
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -79,6 +83,7 @@ class MeetingCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
       ),
     );
   }
