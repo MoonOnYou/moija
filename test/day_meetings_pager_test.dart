@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:moija/data/meeting_repository.dart';
 import 'package:moija/features/home/widgets/day_meetings_pager.dart';
+import 'package:moija/features/meeting/meeting_detail_screen.dart';
 
 class _Host extends StatefulWidget {
   const _Host({required this.onDayChanged});
@@ -101,5 +102,24 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(called, isTrue);
+  });
+
+  testWidgets('tapping a meeting card opens the detail screen',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: DayMeetingsPager(
+          selectedDay: DateTime(2026, 5, 16),
+          today: DateTime(2026, 5, 16),
+          repository: MeetingRepository(),
+          onDayChanged: (_) {},
+        ),
+      ),
+    ));
+
+    await tester.tap(find.text('퇴근 후 볼링'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MeetingDetailScreen), findsOneWidget);
   });
 }
