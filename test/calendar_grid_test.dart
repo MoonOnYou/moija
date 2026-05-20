@@ -45,7 +45,6 @@ void main() {
   });
 
   group('windowFollowing', () {
-    // 초기 창: 2026-05-10(일) ~ 2026-05-23(토)
     final start = DateTime(2026, 5, 10);
 
     test('keeps the window when the day is inside it', () {
@@ -53,21 +52,20 @@ void main() {
       expect(windowFollowing(start, DateTime(2026, 5, 23)), start);
     });
 
-    test('shifts forward by a week when the day is past the end', () {
+    test('shifts forward by two weeks when the day is past the end', () {
       final w = windowFollowing(start, DateTime(2026, 5, 24));
-      expect(w, DateTime(2026, 5, 17));
+      expect(w, DateTime(2026, 5, 24));
       expect(w.weekday, DateTime.sunday);
     });
 
-    test('shifts backward by a week when the day is before the start', () {
-      final w = windowFollowing(start, DateTime(2026, 5, 9));
-      expect(w, DateTime(2026, 5, 3));
+    test('shifts backward by two weeks when the day is before the start', () {
+      final w = windowFollowing(DateTime(2026, 5, 24), DateTime(2026, 5, 23));
+      expect(w, DateTime(2026, 5, 10));
       expect(w.weekday, DateTime.sunday);
     });
 
-    test('shifts multiple weeks when the day is far outside', () {
-      final w = windowFollowing(start, DateTime(2026, 6, 7));
-      expect(w, DateTime(2026, 5, 31));
+    test('shifts multiple windows when the day is far ahead', () {
+      expect(windowFollowing(start, DateTime(2026, 6, 7)), DateTime(2026, 6, 7));
     });
   });
 }
