@@ -7,6 +7,7 @@ class Meeting {
     required this.category,
     required this.startTime,
     required this.location,
+    required this.region,
     required this.currentMembers,
     required this.maxMembers,
   });
@@ -16,6 +17,10 @@ class Meeting {
   final MeetingCategory category;
   final DateTime startTime;
   final String location;
+
+  /// 달력 칩에 쓰는 짧은 지역명(예: "신림").
+  final String region;
+
   final int currentMembers;
   final int maxMembers;
 
