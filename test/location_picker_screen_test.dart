@@ -74,4 +74,37 @@ void main() {
 
     expect(result, containsAll(<String>['seoul-line1', 'seoul-line2']));
   });
+
+  testWidgets('system back from region detail returns to the region list',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Builder(
+        builder: (context) => Scaffold(
+          body: Center(
+            child: ElevatedButton(
+              onPressed: () => Navigator.push<Set<String>>(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const LocationPickerScreen(initial: {}),
+                ),
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    ));
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('대구'));
+    await tester.pumpAndSettle();
+    expect(find.text('대구1호선'), findsOneWidget);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(find.text('대구1호선'), findsNothing);
+    expect(find.text('장소 선택'), findsOneWidget);
+  });
 }
