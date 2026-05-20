@@ -18,7 +18,7 @@ class DayCell extends StatelessWidget {
   final bool isPast;
   final bool isToday;
   final bool isSelected;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   static const double _numberRow = 22;
   static const double _gapAfterNumber = 3;

@@ -23,7 +23,7 @@ void main() {
     expect(find.text('2026년 5월'), findsOneWidget);
   });
 
-  testWidgets('tapping a day updates the meeting list', (tester) async {
+  testWidgets('tapping a future day updates the meeting list', (tester) async {
     await pump(tester);
     expect(find.text('퇴근 후 볼링'), findsOneWidget);
 
@@ -33,7 +33,8 @@ void main() {
     expect(find.text('퇴근 후 볼링'), findsNothing);
   });
 
-  testWidgets('selecting an empty day shows the empty state', (tester) async {
+  testWidgets('selecting an empty future day shows the empty state',
+      (tester) async {
     await pump(tester);
     await tester.tap(find.text('18'));
     await tester.pumpAndSettle();
@@ -41,13 +42,29 @@ void main() {
     expect(find.text('이 날에는 모임이 없어요'), findsOneWidget);
   });
 
-  testWidgets('swiping the calendar pages the window by two weeks',
+  testWidgets('tapping a past day does nothing', (tester) async {
+    await pump(tester);
+    await tester.tap(find.text('14'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('5월 16일'), findsOneWidget);
+    expect(find.text('퇴근 후 볼링'), findsOneWidget);
+  });
+
+  testWidgets('swiping the calendar left pages two weeks forward',
       (tester) async {
     await pump(tester);
     await tester.fling(
         find.byType(TwoWeekCalendar), const Offset(-300, 0), 1000);
     await tester.pumpAndSettle();
     expect(find.text('2026년 5–6월'), findsOneWidget);
+  });
+
+  testWidgets('cannot swipe the calendar into a past window', (tester) async {
+    await pump(tester);
+    await tester.fling(
+        find.byType(TwoWeekCalendar), const Offset(300, 0), 1000);
+    await tester.pumpAndSettle();
+    expect(find.text('2026년 5월'), findsOneWidget);
   });
 
   testWidgets('past days are dimmed', (tester) async {

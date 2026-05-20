@@ -24,16 +24,12 @@ class _HomeScreenState extends State<HomeScreen> {
   late DateTime _windowStart = weekStartOf(_today);
   late DateTime _selectedDay = _today;
 
-  /// 달력 탭과 리스트 스와이프 공통 진입점.
+  /// 달력 탭(미래/오늘 날짜)과 리스트 스와이프 공통 진입점.
   void _goToDay(DateTime day) {
     setState(() {
       _selectedDay = day;
       _windowStart = windowFollowing(_windowStart, day);
     });
-  }
-
-  void _shiftWindow(int days) {
-    setState(() => _windowStart = _windowStart.add(Duration(days: days)));
   }
 
   String _monthLabel() {
@@ -66,7 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
               today: _today,
               repository: _repository,
               onDaySelected: _goToDay,
-              onWindowDelta: _shiftWindow,
+              onWindowChanged: (ws) => setState(() => _windowStart = ws),
             ),
             SelectedDaySummary(
               selectedDay: _selectedDay,
@@ -75,6 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(
               child: DayMeetingsPager(
                 selectedDay: _selectedDay,
+                today: _today,
                 repository: _repository,
                 onDayChanged: _goToDay,
               ),
