@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../data/meeting_repository.dart';
+import '../../../models/meeting_filter.dart';
 import '../../../theme/app_colors.dart';
 import '../calendar_grid.dart';
 import 'meeting_card.dart';
@@ -12,12 +13,14 @@ class DayMeetingsPager extends StatefulWidget {
     required this.selectedDay,
     required this.today,
     required this.repository,
+    this.filter = const MeetingFilter.empty(),
     required this.onDayChanged,
   });
 
   final DateTime selectedDay;
   final DateTime today;
   final MeetingRepository repository;
+  final MeetingFilter filter;
   final ValueChanged<DateTime> onDayChanged;
 
   @override
@@ -68,7 +71,10 @@ class _DayMeetingsPagerState extends State<DayMeetingsPager> {
       controller: _controller,
       onPageChanged: _onPageChanged,
       itemBuilder: (context, page) {
-        final meetings = widget.repository.meetingsOn(_dateOf(page));
+        final meetings = widget.repository
+            .meetingsOn(_dateOf(page))
+            .where(widget.filter.matches)
+            .toList();
         if (meetings.isEmpty) return const _EmptyDay();
         return ListView(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),

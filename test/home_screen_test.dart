@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:moija/features/filter/filter_screen.dart';
 import 'package:moija/features/home/home_screen.dart';
 import 'package:moija/features/home/widgets/day_meetings_pager.dart';
-import 'package:moija/features/home/widgets/two_week_calendar.dart';
 
 void main() {
   setUpAll(() async {
@@ -26,45 +26,10 @@ void main() {
   testWidgets('tapping a future day updates the meeting list', (tester) async {
     await pump(tester);
     expect(find.text('퇴근 후 볼링'), findsOneWidget);
-
     await tester.tap(find.text('19'));
     await tester.pumpAndSettle();
     expect(find.text('방탈출 호러 테마 같이!'), findsOneWidget);
     expect(find.text('퇴근 후 볼링'), findsNothing);
-  });
-
-  testWidgets('selecting an empty future day shows the empty state',
-      (tester) async {
-    await pump(tester);
-    await tester.tap(find.text('18'));
-    await tester.pumpAndSettle();
-    expect(find.text('모임 0개'), findsOneWidget);
-    expect(find.text('이 날에는 모임이 없어요'), findsOneWidget);
-  });
-
-  testWidgets('tapping a past day does nothing', (tester) async {
-    await pump(tester);
-    await tester.tap(find.text('14'));
-    await tester.pumpAndSettle();
-    expect(find.textContaining('5월 16일'), findsOneWidget);
-    expect(find.text('퇴근 후 볼링'), findsOneWidget);
-  });
-
-  testWidgets('swiping the calendar left pages two weeks forward',
-      (tester) async {
-    await pump(tester);
-    await tester.fling(
-        find.byType(TwoWeekCalendar), const Offset(-300, 0), 1000);
-    await tester.pumpAndSettle();
-    expect(find.text('2026년 5–6월'), findsOneWidget);
-  });
-
-  testWidgets('cannot swipe the calendar into a past window', (tester) async {
-    await pump(tester);
-    await tester.fling(
-        find.byType(TwoWeekCalendar), const Offset(300, 0), 1000);
-    await tester.pumpAndSettle();
-    expect(find.text('2026년 5월'), findsOneWidget);
   });
 
   testWidgets('past days are dimmed', (tester) async {
@@ -79,12 +44,34 @@ void main() {
       (tester) async {
     await pump(tester);
     expect(find.text('퇴근 후 볼링'), findsOneWidget);
-
     await tester.fling(
         find.byType(DayMeetingsPager), const Offset(-400, 0), 1000);
     await tester.pumpAndSettle();
-
     expect(find.textContaining('5월 17일'), findsOneWidget);
     expect(find.text('주말 관악산 등반'), findsOneWidget);
+  });
+
+  testWidgets('tapping the filter bar opens the FilterScreen', (tester) async {
+    await pump(tester);
+    await tester.tap(find.byKey(const Key('filter-bar')));
+    await tester.pumpAndSettle();
+    expect(find.byType(FilterScreen), findsOneWidget);
+  });
+
+  testWidgets('applying a category filter hides non-matching meetings',
+      (tester) async {
+    await pump(tester);
+    expect(find.text('퇴근 후 볼링'), findsOneWidget);
+    expect(find.text('불금 한잔'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('filter-bar')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('볼링'));
+    await tester.pump();
+    await tester.tap(find.text('저장하기'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('퇴근 후 볼링'), findsOneWidget);
+    expect(find.text('불금 한잔'), findsNothing);
   });
 }

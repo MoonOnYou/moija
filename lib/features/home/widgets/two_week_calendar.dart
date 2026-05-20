@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../data/meeting_repository.dart';
+import '../../../models/meeting_filter.dart';
 import '../../../theme/app_colors.dart';
 import '../calendar_grid.dart';
 import 'day_cell.dart';
@@ -13,6 +14,7 @@ class TwoWeekCalendar extends StatefulWidget {
     required this.selectedDay,
     required this.today,
     required this.repository,
+    this.filter = const MeetingFilter.empty(),
     required this.onDaySelected,
     required this.onWindowChanged,
   });
@@ -21,6 +23,7 @@ class TwoWeekCalendar extends StatefulWidget {
   final DateTime selectedDay;
   final DateTime today;
   final MeetingRepository repository;
+  final MeetingFilter filter;
   final ValueChanged<DateTime> onDaySelected;
   final ValueChanged<DateTime> onWindowChanged;
 
@@ -111,7 +114,10 @@ class _TwoWeekCalendarState extends State<TwoWeekCalendar> {
                   padding: const EdgeInsets.all(1.5),
                   child: DayCell(
                     date: date,
-                    meetings: widget.repository.meetingsOn(date),
+                    meetings: widget.repository
+                        .meetingsOn(date)
+                        .where(widget.filter.matches)
+                        .toList(),
                     isPast: _isPast(date),
                     isToday: isSameDay(date, widget.today),
                     isSelected: isSameDay(date, widget.selectedDay),
