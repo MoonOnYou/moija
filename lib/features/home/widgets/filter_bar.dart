@@ -20,21 +20,7 @@ class FilterBar extends StatelessWidget {
           _filterButton(),
           _chip('방탈출', AppColors.bgInfo, AppColors.textInfo),
           _chip('볼링', AppColors.bgInfo, AppColors.textInfo),
-          _chip('강남', AppColors.bgSuccess, AppColors.textSuccess),
-          _chip('이번 주', AppColors.bgWarning, AppColors.textWarning),
-          const Center(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8),
-              child: Text(
-                '모두 지우기',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textSecondary,
-                  decoration: TextDecoration.underline,
-                ),
-              ),
-            ),
-          ),
+          _chip('신림', AppColors.bgSuccess, AppColors.textSuccess),
         ],
       ),
     );
@@ -91,7 +77,7 @@ class _Badge extends StatelessWidget {
         color: AppColors.bgPrimary,
         borderRadius: BorderRadius.circular(8),
       ),
-      child: const Text('4',
+      child: const Text('3',
           style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
