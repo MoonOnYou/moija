@@ -12,6 +12,9 @@ class ParticipantCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final initial =
         member.nickname.isNotEmpty ? member.nickname.substring(0, 1) : '?';
+    final isMale = member.gender == Gender.male;
+    final avatarBg = isMale ? AppColors.bgInfo : AppColors.bgPink;
+    final avatarFg = isMale ? AppColors.textInfo : AppColors.textPink;
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
@@ -27,13 +30,13 @@ class ParticipantCard extends StatelessWidget {
             width: 44,
             height: 44,
             alignment: Alignment.center,
-            decoration: const BoxDecoration(
-                color: AppColors.bgInfo, shape: BoxShape.circle),
+            decoration: BoxDecoration(
+                color: avatarBg, shape: BoxShape.circle),
             child: Text(initial,
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textInfo)),
+                    color: avatarFg)),
           ),
           const SizedBox(width: 12),
           Expanded(

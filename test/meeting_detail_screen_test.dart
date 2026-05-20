@@ -20,7 +20,7 @@ void main() {
 
     expect(find.text('퇴근 후 볼링'), findsOneWidget);
     expect(find.text('참가 신청하기'), findsOneWidget);
-    expect(find.text('수락 시 50 다이아 사용'), findsOneWidget);
+    expect(find.text('방장이 수락할 경우 다이아 50개 차감'), findsOneWidget);
     expect(find.text('참가자 4명'), findsOneWidget);
     expect(find.text('모집중'), findsOneWidget);
     expect(find.text('HOST'), findsOneWidget);
