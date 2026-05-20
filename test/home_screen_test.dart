@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:moija/features/filter/filter_screen.dart';
 import 'package:moija/features/home/home_screen.dart';
 import 'package:moija/features/home/widgets/day_meetings_pager.dart';
@@ -10,17 +13,25 @@ void main() {
     await initializeDateFormatting('ko_KR');
   });
 
+  setUp(() => SharedPreferences.setMockInitialValues({}));
+
   Future<void> pump(WidgetTester tester) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+    await tester.pumpAndSettle();
   }
 
   testWidgets('shows the single-month label for the initial window',
       (tester) async {
     await pump(tester);
     expect(find.text('2026년 5월'), findsOneWidget);
+  });
+
+  testWidgets('summary shows filter and meeting counts', (tester) async {
+    await pump(tester);
+    expect(find.text('필터 0개 · 모임 2개'), findsOneWidget);
   });
 
   testWidgets('tapping a future day updates the meeting list', (tester) async {
@@ -71,6 +82,17 @@ void main() {
     await tester.tap(find.text('저장하기'));
     await tester.pumpAndSettle();
 
+    expect(find.text('퇴근 후 볼링'), findsOneWidget);
+    expect(find.text('불금 한잔'), findsNothing);
+  });
+
+  testWidgets('restores a persisted filter on launch', (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'meeting_filter': jsonEncode({
+        'categories': ['bowling'],
+      }),
+    });
+    await pump(tester);
     expect(find.text('퇴근 후 볼링'), findsOneWidget);
     expect(find.text('불금 한잔'), findsNothing);
   });

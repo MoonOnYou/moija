@@ -24,41 +24,53 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.bgPrimary,
-      appBar: AppBar(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (_region != null) {
+          setState(() => _region = null);
+        } else {
+          Navigator.pop(context, _selected);
+        }
+      },
+      child: Scaffold(
         backgroundColor: AppColors.bgPrimary,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            if (_region != null) {
-              setState(() => _region = null);
-            } else {
-              Navigator.pop(context, _selected);
-            }
-          },
+        appBar: AppBar(
+          backgroundColor: AppColors.bgPrimary,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (_region != null) {
+                setState(() => _region = null);
+              } else {
+                Navigator.pop(context, _selected);
+              }
+            },
+          ),
+          title: Text(_region ?? '장소 선택'),
         ),
-        title: Text(_region ?? '장소 선택'),
-      ),
-      body: Column(
-        children: [
-          if (_selected.isNotEmpty) _selectedChips(),
-          Expanded(child: _region == null ? _regionList() : _nodeList(_region!)),
-        ],
-      ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.textPrimary,
-                foregroundColor: AppColors.bgPrimary,
-                padding: const EdgeInsets.symmetric(vertical: 14),
+        body: Column(
+          children: [
+            if (_selected.isNotEmpty) _selectedChips(),
+            Expanded(
+                child: _region == null ? _regionList() : _nodeList(_region!)),
+          ],
+        ),
+        bottomNavigationBar: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.textPrimary,
+                  foregroundColor: AppColors.bgPrimary,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                onPressed: () => Navigator.pop(context, _selected),
+                child: const Text('완료'),
               ),
-              onPressed: () => Navigator.pop(context, _selected),
-              child: const Text('완료'),
             ),
           ),
         ),

@@ -50,4 +50,38 @@ class MeetingFilter {
     }
     return true;
   }
+
+  Map<String, dynamic> toMap() => {
+        'categories': categories.map((c) => c.name).toList(),
+        'locationIds': locationIds.toList(),
+        'timeBands': timeBands.map((b) => b.name).toList(),
+        'customCategories': customCategories.toList(),
+      };
+
+  /// 관대한 파싱: 알 수 없는 enum name은 건너뛴다.
+  factory MeetingFilter.fromMap(Map<String, dynamic> map) {
+    Set<E> parseEnum<E extends Enum>(Object? raw, List<E> values) {
+      final names = (raw as List?)?.cast<String>() ?? const <String>[];
+      final out = <E>{};
+      for (final name in names) {
+        for (final v in values) {
+          if (v.name == name) {
+            out.add(v);
+            break;
+          }
+        }
+      }
+      return out;
+    }
+
+    Set<String> parseStrings(Object? raw) =>
+        ((raw as List?)?.cast<String>() ?? const <String>[]).toSet();
+
+    return MeetingFilter(
+      categories: parseEnum(map['categories'], MeetingCategory.values),
+      locationIds: parseStrings(map['locationIds']),
+      timeBands: parseEnum(map['timeBands'], TimeBand.values),
+      customCategories: parseStrings(map['customCategories']),
+    );
+  }
 }
