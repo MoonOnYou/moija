@@ -1,3 +1,92 @@
+# 전국 장소 카탈로그 확장 Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** `LocationCatalog`를 전국 17개 시/도 + 모든 시·군(도) / 지하철 호선·구(광역시)로 확장한다.
+
+**Architecture:** 순수 데이터 파일 `lib/data/location_catalog.dart`만 교체. API(regions/nodesIn/nodeById)와 모델/화면은 불변. 기존 모임 태그 `seoul-line2`는 서울에 그대로 유지되어 재매핑 불필요.
+
+**Tech Stack:** Flutter 3.38 / Dart 3.10, `flutter_test`.
+
+**참조 스펙:** `docs/superpowers/specs/2026-05-20-full-location-catalog-design.md`
+
+---
+
+## Task 1: 전국 카탈로그 데이터 교체 (`location_catalog.dart`)
+
+**Files:**
+- Modify: `lib/data/location_catalog.dart` (전체 교체)
+- Modify: `test/location_catalog_test.dart` (전체 교체)
+
+- [ ] **Step 1: 테스트 전체 교체(실패 유도)**
+
+`test/location_catalog_test.dart`:
+
+```dart
+import 'package:flutter_test/flutter_test.dart';
+import 'package:moija/data/location_catalog.dart';
+
+void main() {
+  test('regions are the 17 시/도 in order', () {
+    expect(LocationCatalog.regions.length, 17);
+    expect(LocationCatalog.regions.first, '서울');
+    expect(LocationCatalog.regions, contains('전북'));
+    expect(LocationCatalog.regions, contains('전남'));
+    expect(LocationCatalog.regions, contains('강원'));
+    expect(LocationCatalog.regions, contains('경남'));
+    expect(LocationCatalog.regions, contains('충북'));
+    expect(LocationCatalog.regions, isNot(contains('전라')));
+  });
+
+  test('서울 has 9 subway lines', () {
+    final seoul = LocationCatalog.nodesIn('서울');
+    expect(seoul.length, 9);
+    expect(seoul.any((n) => n.id == 'seoul-line2'), isTrue);
+  });
+
+  test('제주 has 2 cities', () {
+    final jeju = LocationCatalog.nodesIn('제주');
+    expect(jeju.length, 2);
+    expect(jeju.map((n) => n.label), containsAll(['제주시', '서귀포시']));
+  });
+
+  test('경기 includes all listed 시·군', () {
+    final gg = LocationCatalog.nodesIn('경기');
+    expect(gg.length, greaterThanOrEqualTo(31));
+    expect(gg.map((n) => n.label), containsAll(['수원시', '양평군']));
+  });
+
+  test('울산 uses 구/군 (no subway)', () {
+    final ulsan = LocationCatalog.nodesIn('울산');
+    expect(ulsan.map((n) => n.label), containsAll(['중구', '울주군']));
+  });
+
+  test('nodeById resolves labels', () {
+    expect(LocationCatalog.nodeById('seoul-line2')?.label, '2호선');
+    expect(LocationCatalog.nodeById('busan-line4')?.label, '4호선');
+    expect(LocationCatalog.nodeById('경기-수원시')?.label, '수원시');
+    expect(LocationCatalog.nodeById('nope'), isNull);
+  });
+
+  test('same 군 name in different 도 are distinct nodes', () {
+    final gangwon = LocationCatalog.nodeById('강원-고성군');
+    final gyeongnam = LocationCatalog.nodeById('경남-고성군');
+    expect(gangwon?.region, '강원');
+    expect(gyeongnam?.region, '경남');
+  });
+}
+```
+
+- [ ] **Step 2: 실패 확인**
+
+Run: `flutter test test/location_catalog_test.dart`
+Expected: FAIL — 기존 8개 시/도/서브셋과 불일치.
+
+- [ ] **Step 3: 카탈로그 전체 교체**
+
+`lib/data/location_catalog.dart` 전체를 다음으로 교체:
+
+```dart
 import '../models/location_node.dart';
 
 /// 전국 시/도 + 시·군(도) / 지하철 호선·구(광역시) 카탈로그.
@@ -8,7 +97,8 @@ class LocationCatalog {
   ];
 
   /// 도(道)의 시·군 라벨 목록으로 `<도>-<라벨>` id의 노드를 만든다.
-  static List<LocationNode> _province(String region, List<String> labels) => [
+  static List<LocationNode> _province(String region, List<String> labels) =>
+      [
         for (final label in labels)
           LocationNode(id: '$region-$label', label: label, region: region),
       ];
@@ -26,15 +116,15 @@ class LocationCatalog {
       LocationNode(id: 'seoul-line9', label: '9호선', region: '서울'),
     ],
     '부산': const [
-      LocationNode(id: 'busan-line1', label: '부산1호선', region: '부산'),
-      LocationNode(id: 'busan-line2', label: '부산2호선', region: '부산'),
-      LocationNode(id: 'busan-line3', label: '부산3호선', region: '부산'),
-      LocationNode(id: 'busan-line4', label: '부산4호선', region: '부산'),
+      LocationNode(id: 'busan-line1', label: '1호선', region: '부산'),
+      LocationNode(id: 'busan-line2', label: '2호선', region: '부산'),
+      LocationNode(id: 'busan-line3', label: '3호선', region: '부산'),
+      LocationNode(id: 'busan-line4', label: '4호선', region: '부산'),
     ],
     '대구': const [
-      LocationNode(id: 'daegu-line1', label: '대구1호선', region: '대구'),
-      LocationNode(id: 'daegu-line2', label: '대구2호선', region: '대구'),
-      LocationNode(id: 'daegu-line3', label: '대구3호선', region: '대구'),
+      LocationNode(id: 'daegu-line1', label: '1호선', region: '대구'),
+      LocationNode(id: 'daegu-line2', label: '2호선', region: '대구'),
+      LocationNode(id: 'daegu-line3', label: '3호선', region: '대구'),
     ],
     '인천': const [
       LocationNode(id: 'incheon-line1', label: '인천1호선', region: '인천'),
@@ -113,3 +203,29 @@ class LocationCatalog {
     return null;
   }
 }
+```
+
+- [ ] **Step 4: 통과 확인**
+
+Run: `flutter test test/location_catalog_test.dart`
+Expected: PASS (7 tests).
+
+- [ ] **Step 5: 전체 분석 & 전체 테스트**
+
+Run: `flutter analyze && flutter test`
+Expected: 분석 No issues, 전체 PASS. (서울에 line2가 그대로 있어 기존 필터/모임 테스트 영향 없음)
+
+- [ ] **Step 6: 커밋**
+
+```bash
+git add lib/data/location_catalog.dart test/location_catalog_test.dart && git commit -m "feat: expand location catalog to full nationwide 시·군"
+```
+(커밋 본문 끝에: `Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>`)
+
+---
+
+## 최종 검증
+
+- [ ] `flutter analyze` → No issues
+- [ ] `flutter test` → 전부 PASS
+- [ ] `flutter run`(가능 시): 필터 → 장소에서 17개 시/도, 도 선택 시 모든 시·군 표시.
