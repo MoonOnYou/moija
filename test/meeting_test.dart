@@ -10,9 +10,11 @@ void main() {
       category: MeetingCategory.escapeRoom,
       startTime: DateTime(2026, 5, 19, 20, 0),
       location: '강남 비밀의방',
+      region: '강남',
       currentMembers: 2,
       maxMembers: 4,
     );
     expect(m.spotsLeft, 2);
+    expect(m.region, '강남');
   });
 }

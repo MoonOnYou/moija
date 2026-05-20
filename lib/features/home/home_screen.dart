@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../data/meeting_repository.dart';
 import '../../theme/app_colors.dart';
+import 'calendar_grid.dart';
 import 'widgets/filter_bar.dart';
 import 'widgets/home_header.dart';
 import 'widgets/meeting_card.dart';
-import 'widgets/month_calendar.dart';
 import 'widgets/selected_day_summary.dart';
+import 'widgets/two_week_calendar.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,29 +21,30 @@ class _HomeScreenState extends State<HomeScreen> {
   static final DateTime _today = DateTime(2026, 5, 16);
 
   final MeetingRepository _repository = MeetingRepository();
-  late DateTime _focusedMonth = DateTime(_today.year, _today.month);
+  late DateTime _windowStart = weekStartOf(_today);
   late DateTime _selectedDay = _today;
 
   void _selectDay(DateTime day) {
-    setState(() {
-      _selectedDay = day;
-      // 인접 달의 (흐린) 셀을 탭하면 그 달로 포커스를 이동시켜
-      // 선택일이 항상 보이는 그리드 안에 있도록 한다.
-      _focusedMonth = DateTime(day.year, day.month);
-    });
+    setState(() => _selectedDay = day);
   }
 
-  void _changeMonth(int delta) {
-    setState(() {
-      _focusedMonth =
-          DateTime(_focusedMonth.year, _focusedMonth.month + delta);
-    });
+  void _shiftWindow(int days) {
+    setState(() => _windowStart = _windowStart.add(Duration(days: days)));
+  }
+
+  String _monthLabel() {
+    final days = twoWeekGridFrom(_windowStart);
+    final first = days.first;
+    final last = days.last;
+    if (first.month == last.month) {
+      return DateFormat('y년 M월', 'ko_KR').format(first);
+    }
+    // 두 달에 걸치면 "2026년 5–6월" 형태.
+    return '${first.year}년 ${first.month}–${last.month}월';
   }
 
   @override
   Widget build(BuildContext context) {
-    final monthLabel =
-        DateFormat('y년 M월', 'ko_KR').format(_focusedMonth);
     final dayMeetings = _repository.meetingsOn(_selectedDay);
 
     return Scaffold(
@@ -51,16 +53,16 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            HomeHeader(monthLabel: monthLabel),
+            HomeHeader(monthLabel: _monthLabel()),
             const SizedBox(height: 8),
             const FilterBar(),
-            MonthCalendar(
-              focusedMonth: _focusedMonth,
+            TwoWeekCalendar(
+              windowStart: _windowStart,
               selectedDay: _selectedDay,
               today: _today,
               repository: _repository,
               onDaySelected: _selectDay,
-              onMonthDelta: _changeMonth,
+              onWindowDelta: _shiftWindow,
             ),
             SelectedDaySummary(
               selectedDay: _selectedDay,

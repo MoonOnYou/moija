@@ -1,16 +1,23 @@
-/// [month]가 속한 달을 그리는 6주(42칸) 그리드를 생성한다.
-/// 주 시작은 일요일. 앞뒤로 이웃 달 날짜가 채워진다.
+/// [day]가 속한 주의 일요일(00:00)을 반환한다.
+/// Dart weekday: Mon=1..Sun=7. 일요일 시작이므로 Sun→0 으로 변환.
+DateTime weekStartOf(DateTime day) {
+  final d = DateTime(day.year, day.month, day.day);
+  return d.subtract(Duration(days: d.weekday % 7));
+}
+
+/// [weekStart](일요일)부터 14일(2주) 그리드를 생성한다.
 /// 반환되는 각 DateTime은 시각이 00:00인 날짜 키다.
-List<DateTime> buildMonthGrid(DateTime month) {
-  final firstOfMonth = DateTime(month.year, month.month, 1);
-  // Dart weekday: Mon=1..Sun=7. 일요일 시작이므로 Sun→0 으로 변환.
-  final leading = firstOfMonth.weekday % 7;
-  final start = firstOfMonth.subtract(Duration(days: leading));
+List<DateTime> twoWeekGridFrom(DateTime weekStart) {
+  final s = DateTime(weekStart.year, weekStart.month, weekStart.day);
   return List.generate(
-    42,
-    (i) => DateTime(start.year, start.month, start.day + i),
+    14,
+    (i) => DateTime(s.year, s.month, s.day + i),
   );
 }
+
+/// 오늘이 포함된 주를 첫째 줄로 하는 2주 그리드.
+List<DateTime> buildTwoWeekGrid(DateTime today) =>
+    twoWeekGridFrom(weekStartOf(today));
 
 /// 두 날짜가 같은 '날'(연/월/일)인지.
 bool isSameDay(DateTime a, DateTime b) =>

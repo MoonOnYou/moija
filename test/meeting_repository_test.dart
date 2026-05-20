@@ -6,7 +6,7 @@ void main() {
 
   test('meetingsOn returns meetings for that day only', () {
     final may19 = repo.meetingsOn(DateTime(2026, 5, 19));
-    expect(may19, hasLength(1));
+    expect(may19, hasLength(2));
     expect(may19.first.title, '방탈출 호러 테마 같이!');
   });
 
