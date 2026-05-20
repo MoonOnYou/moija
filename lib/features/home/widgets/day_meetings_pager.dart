@@ -7,6 +7,7 @@ import 'meeting_card.dart';
 
 /// 모임 리스트를 가로 스와이프로 날짜 단위 전환하는 페이저.
 /// 왼쪽 스와이프=다음 날, 오른쪽=이전 날(오늘에서 멈춤).
+/// [onRefresh]가 주어지면 각 페이지를 당겨서 새로고침할 수 있다.
 class DayMeetingsPager extends StatefulWidget {
   const DayMeetingsPager({
     super.key,
@@ -14,6 +15,7 @@ class DayMeetingsPager extends StatefulWidget {
     required this.today,
     required this.repository,
     this.filter = const MeetingFilter.empty(),
+    this.onRefresh,
     required this.onDayChanged,
   });
 
@@ -21,6 +23,7 @@ class DayMeetingsPager extends StatefulWidget {
   final DateTime today;
   final MeetingRepository repository;
   final MeetingFilter filter;
+  final Future<void> Function()? onRefresh;
   final ValueChanged<DateTime> onDayChanged;
 
   @override
@@ -75,11 +78,21 @@ class _DayMeetingsPagerState extends State<DayMeetingsPager> {
             .meetingsOn(_dateOf(page))
             .where(widget.filter.matches)
             .toList();
-        if (meetings.isEmpty) return const _EmptyDay();
-        return ListView(
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-          children: [for (final m in meetings) MeetingCard(meeting: m)],
-        );
+
+        final Widget list = meetings.isEmpty
+            ? ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: const [SizedBox(height: 120), _EmptyDay()],
+              )
+            : ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+                children: [for (final m in meetings) MeetingCard(meeting: m)],
+              );
+
+        final onRefresh = widget.onRefresh;
+        if (onRefresh == null) return list;
+        return RefreshIndicator(onRefresh: onRefresh, child: list);
       },
     );
   }

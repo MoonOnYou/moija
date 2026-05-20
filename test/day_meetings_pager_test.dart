@@ -80,4 +80,26 @@ void main() {
         d == DateTime(2026, 5, 19));
     expect(intermediates, isEmpty);
   });
+
+  testWidgets('pull-to-refresh invokes onRefresh', (tester) async {
+    var called = false;
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: DayMeetingsPager(
+          selectedDay: DateTime(2026, 5, 16),
+          today: DateTime(2026, 5, 16),
+          repository: MeetingRepository(),
+          onRefresh: () async {
+            called = true;
+          },
+          onDayChanged: (_) {},
+        ),
+      ),
+    ));
+
+    await tester.fling(find.byType(ListView).first, const Offset(0, 350), 1200);
+    await tester.pumpAndSettle();
+
+    expect(called, isTrue);
+  });
 }

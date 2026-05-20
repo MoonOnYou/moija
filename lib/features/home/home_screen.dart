@@ -57,6 +57,11 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _refresh() async {
+    await Future<void>.delayed(const Duration(milliseconds: 400));
+    if (mounted) setState(() {});
+  }
+
   String _monthLabel() {
     final days = twoWeekGridFrom(_windowStart);
     final first = days.first;
@@ -101,6 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 today: _today,
                 repository: _repository,
                 filter: _filter,
+                onRefresh: _refresh,
                 onDayChanged: _goToDay,
               ),
             ),
