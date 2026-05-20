@@ -62,4 +62,28 @@ void main() {
     );
     expect(f.activeCount, 3);
   });
+
+  test('toMap/fromMap round-trip', () {
+    const f = MeetingFilter(
+      categories: {MeetingCategory.bowling, MeetingCategory.cafe},
+      locationIds: {'seoul-line2'},
+      timeBands: {TimeBand.evening},
+      customCategories: {'플로깅'},
+    );
+    final restored = MeetingFilter.fromMap(f.toMap());
+    expect(restored.categories, f.categories);
+    expect(restored.locationIds, f.locationIds);
+    expect(restored.timeBands, f.timeBands);
+    expect(restored.customCategories, f.customCategories);
+  });
+
+  test('fromMap ignores unknown enum names', () {
+    final f = MeetingFilter.fromMap({
+      'categories': ['bowling', 'unknownCat'],
+      'timeBands': ['evening', 'nope'],
+    });
+    expect(f.categories, {MeetingCategory.bowling});
+    expect(f.timeBands, {TimeBand.evening});
+    expect(f.locationIds, isEmpty);
+  });
 }
