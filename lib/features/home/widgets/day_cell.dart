@@ -7,7 +7,7 @@ class DayCell extends StatelessWidget {
     super.key,
     required this.date,
     required this.meetings,
-    required this.inFocusedMonth,
+    required this.isPast,
     required this.isToday,
     required this.isSelected,
     required this.onTap,
@@ -15,10 +15,15 @@ class DayCell extends StatelessWidget {
 
   final DateTime date;
   final List<Meeting> meetings;
-  final bool inFocusedMonth;
+  final bool isPast;
   final bool isToday;
   final bool isSelected;
   final VoidCallback onTap;
+
+  static const double _numberRow = 22;
+  static const double _gapAfterNumber = 3;
+  static const double _chipHeight = 18;
+  static const double _chipGap = 2;
 
   Color _numberColor() {
     if (isSelected) return Colors.white;
@@ -69,62 +74,86 @@ class DayCell extends StatelessWidget {
       );
     }
 
-    final cell = Opacity(
-      opacity: inFocusedMonth ? 1.0 : 0.45,
-      child: Container(
-        constraints: const BoxConstraints(minHeight: 66),
-        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(6),
-          color: isSelected ? AppColors.bgInfo : null,
-          border: isSelected
-              ? Border.all(color: AppColors.borderInfo)
-              : null,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            SizedBox(height: 22, child: Center(child: numberWidget)),
-            const SizedBox(height: 3),
-            if (meetings.isNotEmpty) _chip(meetings.first),
-            if (meetings.length > 1)
-              Padding(
-                padding: const EdgeInsets.only(top: 2),
-                child: Text(
-                  '+${meetings.length - 1}',
-                  style: const TextStyle(
-                    fontSize: 10,
-                    color: AppColors.textTertiary,
-                  ),
-                ),
-              ),
-          ],
-        ),
+    final content = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(6),
+        color: isSelected ? AppColors.bgInfo : null,
+        border: isSelected ? Border.all(color: AppColors.borderInfo) : null,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(height: _numberRow, child: Center(child: numberWidget)),
+          const SizedBox(height: _gapAfterNumber),
+          Expanded(child: _buildChips()),
+        ],
       ),
     );
 
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: cell,
+      child: Opacity(opacity: isPast ? 0.45 : 1.0, child: content),
+    );
+  }
+
+  Widget _buildChips() {
+    if (meetings.isEmpty) return const SizedBox.shrink();
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final h = constraints.maxHeight;
+        var maxRows = ((h + _chipGap) / (_chipHeight + _chipGap)).floor();
+        if (maxRows < 1) maxRows = 1;
+
+        final n = meetings.length;
+        final int visible = (n <= maxRows) ? n : (maxRows - 1).clamp(0, n);
+        final remaining = n - visible;
+
+        final children = <Widget>[];
+        for (var i = 0; i < visible; i++) {
+          if (i > 0) children.add(const SizedBox(height: _chipGap));
+          children.add(_chip(meetings[i]));
+        }
+        if (remaining > 0) {
+          if (children.isNotEmpty) children.add(const SizedBox(height: _chipGap));
+          children.add(_moreLabel(remaining));
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: children,
+        );
+      },
     );
   }
 
   Widget _chip(Meeting m) {
+    final text = '${m.category.label}·${m.region}·${m.title}';
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      height: _chipHeight,
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      alignment: Alignment.centerLeft,
       decoration: BoxDecoration(
         color: isSelected ? AppColors.bgPrimary : m.category.chipBackground,
         borderRadius: BorderRadius.circular(3),
       ),
       child: Text(
-        m.category.label,
+        text,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          fontSize: 11,
-          height: 1.3,
-          color: m.category.chipForeground,
+        style: TextStyle(fontSize: 11, color: m.category.chipForeground),
+      ),
+    );
+  }
+
+  Widget _moreLabel(int remaining) {
+    return SizedBox(
+      height: _chipHeight,
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Text(
+          '+$remaining',
+          style: const TextStyle(fontSize: 10, color: AppColors.textTertiary),
         ),
       ),
     );
