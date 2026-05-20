@@ -4,7 +4,25 @@
       "Bash(git init *)",
       "Bash(git add *)",
       "Bash(git commit -q -m 'chore: initial Flutter project snapshot *)",
-      "Bash(git checkout *)"
+      "Bash(git checkout *)",
+      "Bash(flutter pub *)",
+      "Bash(flutter analyze *)",
+      "Bash(flutter test *)",
+      "Bash(git commit *)",
+      "Bash(git *)",
+      "Skill(superpowers:finishing-a-development-branch)",
+      "Skill(superpowers:brainstorming)",
+      "Skill(superpowers:writing-plans)",
+      "Skill(superpowers:subagent-driven-development)",
+      "Bash(python3 *)",
+      "Bash(dart analyze *)",
+      "Bash(dart pub *)",
+      "Read(//Users/onyoumoon/.pub-cache/hosted/pub.dev/flutter_lints-6.0.0/lib/**)",
+      "Read(//Users/onyoumoon/.pub-cache/**)",
+      "Bash(dart -e ' *)",
+      "Skill(superpowers:systematic-debugging)",
+      "Bash(grep -v \"^$\")",
+      "Bash(dart *)"
     ]
   }
 }

@@ -7,10 +7,11 @@ import 'package:moija/models/meeting_category.dart';
 Meeting _meeting(int i) => Meeting(
       id: '$i',
       title: '모임$i',
-      category: MeetingCategory.game,
+      category: MeetingCategory.etc,
       startTime: DateTime(2026, 5, 20, 19),
       location: '신림 어딘가',
       region: '신림',
+      locationId: 'seoul-line2',
       currentMembers: 1,
       maxMembers: 4,
     );
