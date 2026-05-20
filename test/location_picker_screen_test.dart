@@ -107,4 +107,43 @@ void main() {
     expect(find.text('대구1호선'), findsNothing);
     expect(find.text('장소 선택'), findsOneWidget);
   });
+
+  testWidgets('selection survives system back and is returned on 완료',
+      (tester) async {
+    Set<String>? result;
+    await tester.pumpWidget(MaterialApp(
+      home: Builder(
+        builder: (context) => Scaffold(
+          body: Center(
+            child: ElevatedButton(
+              onPressed: () async {
+                result = await Navigator.push<Set<String>>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const LocationPickerScreen(initial: {}),
+                  ),
+                );
+              },
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    ));
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('대구'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('대구1호선')); // 체크
+    await tester.pumpAndSettle();
+
+    await tester.binding.handlePopRoute(); // 시스템 back → 시/도 목록
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('완료'));
+    await tester.pumpAndSettle();
+
+    expect(result, contains('daegu-line1'));
+  });
 }

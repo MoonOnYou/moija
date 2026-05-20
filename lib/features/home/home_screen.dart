@@ -51,7 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
       context,
       MaterialPageRoute(builder: (_) => FilterScreen(initial: _filter)),
     );
-    if (result != null) {
+    if (result != null && mounted) {
       setState(() => _filter = result);
       await _storage.save(result);
     }

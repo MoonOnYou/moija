@@ -20,6 +20,7 @@ void main() {
       categories: {MeetingCategory.bowling},
       locationIds: {'seoul-line2'},
       timeBands: {TimeBand.evening},
+      customCategories: {'플로깅'},
     );
     final storage = FilterStorage();
     await storage.save(filter);
@@ -27,5 +28,6 @@ void main() {
     expect(restored.categories, {MeetingCategory.bowling});
     expect(restored.locationIds, {'seoul-line2'});
     expect(restored.timeBands, {TimeBand.evening});
+    expect(restored.customCategories, {'플로깅'});
   });
 }
