@@ -1,5 +1,7 @@
 import '../models/meeting.dart';
 import '../models/meeting_category.dart';
+import '../models/meeting_cost.dart';
+import '../models/member.dart';
 
 /// 인메모리 목 데이터 저장소.
 class MeetingRepository {
@@ -23,6 +25,26 @@ class MeetingRepository {
     return List.unmodifiable(list);
   }
 
+  static const List<Member> _memberPool = [
+    Member(nickname: '재호', birthYear: 1996, gender: Gender.male, mannerScore: 4.8, totalActivities: 32, timesMetWithMe: 3, intro: '주말마다 모임 다니는 걸 좋아해요!'),
+    Member(nickname: '민지', birthYear: 1999, gender: Gender.female, mannerScore: 4.5, totalActivities: 18, timesMetWithMe: 1, intro: '조용히 즐기는 편이에요 :)'),
+    Member(nickname: '수빈', birthYear: 2001, gender: Gender.female, mannerScore: 4.9, totalActivities: 47, timesMetWithMe: 5, intro: '새로운 사람 만나는 거 좋아합니다'),
+    Member(nickname: '도윤', birthYear: 1994, gender: Gender.male, mannerScore: 4.2, totalActivities: 12, timesMetWithMe: 0, intro: '처음이라 조금 떨리네요!'),
+    Member(nickname: '하늘', birthYear: 1998, gender: Gender.female, mannerScore: 5.0, totalActivities: 60, timesMetWithMe: 8, intro: '모임 자주 열어요. 편하게 오세요'),
+    Member(nickname: '준영', birthYear: 1992, gender: Gender.male, mannerScore: 4.6, totalActivities: 25, timesMetWithMe: 2, intro: '맛집·카페 탐방 좋아함'),
+    Member(nickname: '서연', birthYear: 2000, gender: Gender.female, mannerScore: 4.7, totalActivities: 21, timesMetWithMe: 1, intro: '운동 모임 위주로 나가요'),
+    Member(nickname: '태현', birthYear: 1997, gender: Gender.male, mannerScore: 4.3, totalActivities: 9, timesMetWithMe: 0, intro: '게임·보드게임 환영!'),
+  ];
+
+  /// 모임 참가자(결정적). 첫 번째가 호스트.
+  List<Member> participantsOf(Meeting m) {
+    final n = m.currentMembers.clamp(0, _memberPool.length);
+    final offset = m.id.hashCode.abs() % _memberPool.length;
+    return List.unmodifiable([
+      for (var i = 0; i < n; i++) _memberPool[(offset + i) % _memberPool.length],
+    ]);
+  }
+
   static Meeting _m(
     String id,
     String title,
@@ -44,7 +66,25 @@ class MeetingRepository {
         locationId: locationId,
         currentMembers: cur,
         maxMembers: max,
+        description:
+            '$region에서 즐기는 ${c.label} 모임이에요. 부담 없이 신청해 주세요!',
+        nearestStation: '$region 인근',
+        cost: _costFor(c),
       );
+
+  static MeetingCost _costFor(MeetingCategory c) {
+    switch (c) {
+      case MeetingCategory.hiking:
+      case MeetingCategory.swimming:
+        return const MeetingCost(CostType.free);
+      case MeetingCategory.escapeRoom:
+        return const MeetingCost(CostType.paid, amountWon: 22000);
+      case MeetingCategory.etc:
+        return const MeetingCost(CostType.hostPays);
+      default:
+        return const MeetingCost(CostType.split);
+    }
+  }
 
   static final List<Meeting> _seed = [
     // --- 기존 시드 (변경 금지: 5/16·5/17·5/19) ---

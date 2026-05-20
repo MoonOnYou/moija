@@ -21,4 +21,20 @@ void main() {
   test('meetingsOn returns empty list for a day with no meetings', () {
     expect(repo.meetingsOn(DateTime(2026, 5, 11)), isEmpty);
   });
+
+  test('participantsOf returns currentMembers participants, deterministically',
+      () {
+    final t1 = repo.allMeetings.firstWhere((m) => m.id == 't1'); // cur 4
+    final a = repo.participantsOf(t1);
+    final b = repo.participantsOf(t1);
+    expect(a.length, 4);
+    expect(a.map((m) => m.nickname).toList(),
+        b.map((m) => m.nickname).toList());
+  });
+
+  test('repository meetings get a derived cost and description', () {
+    final t1 = repo.allMeetings.firstWhere((m) => m.id == 't1');
+    expect(t1.description, isNotEmpty);
+    expect(t1.nearestStation, isNotEmpty);
+  });
 }

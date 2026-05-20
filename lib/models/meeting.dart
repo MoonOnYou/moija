@@ -1,4 +1,5 @@
 import 'meeting_category.dart';
+import 'meeting_cost.dart';
 
 class Meeting {
   const Meeting({
@@ -11,6 +12,9 @@ class Meeting {
     required this.locationId,
     required this.currentMembers,
     required this.maxMembers,
+    this.description = '',
+    this.nearestStation = '',
+    this.cost = const MeetingCost(CostType.split),
   });
 
   final String id;
@@ -28,5 +32,11 @@ class Meeting {
   final int currentMembers;
   final int maxMembers;
 
+  /// 상세 화면 정보(저장소가 채움).
+  final String description;
+  final String nearestStation;
+  final MeetingCost cost;
+
   int get spotsLeft => maxMembers - currentMembers;
+  bool get isFull => spotsLeft <= 0;
 }
