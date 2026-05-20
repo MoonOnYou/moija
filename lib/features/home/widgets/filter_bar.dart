@@ -1,87 +1,54 @@
 import 'package:flutter/material.dart';
 import '../../../theme/app_colors.dart';
 
+/// 홈 상단 필터 진입 바. 탭하면 필터 화면으로 이동. 활성 필터 개수를 배지로 표시.
 class FilterBar extends StatelessWidget {
-  const FilterBar({super.key});
+  const FilterBar({super.key, required this.activeCount, required this.onTap});
+
+  final int activeCount;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 48,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: AppColors.borderTertiary, width: 0.5),
+    return GestureDetector(
+      key: const Key('filter-bar'),
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        height: 48,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: const BoxDecoration(
+          border: Border(
+            bottom: BorderSide(color: AppColors.borderTertiary, width: 0.5),
+          ),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.filter_list, size: 18, color: AppColors.textPrimary),
+            const SizedBox(width: 8),
+            const Text('필터',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+            const SizedBox(width: 8),
+            if (activeCount > 0)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
+                decoration: BoxDecoration(
+                  color: AppColors.textInfo,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text('$activeCount',
+                    style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white)),
+              ),
+            const Spacer(),
+            const Text('카테고리 · 장소 · 시간',
+                style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+            const Icon(Icons.chevron_right, size: 18, color: AppColors.textTertiary),
+          ],
         ),
       ),
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        children: [
-          _filterButton(),
-          _chip('방탈출', AppColors.bgInfo, AppColors.textInfo),
-          _chip('볼링', AppColors.bgInfo, AppColors.textInfo),
-          _chip('신림', AppColors.bgSuccess, AppColors.textSuccess),
-        ],
-      ),
-    );
-  }
-
-  Widget _filterButton() {
-    return Container(
-      margin: const EdgeInsets.only(right: 6),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.textPrimary,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: const Row(
-        children: [
-          Icon(Icons.filter_list, size: 14, color: AppColors.bgPrimary),
-          SizedBox(width: 6),
-          Text('필터',
-              style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.bgPrimary)),
-          SizedBox(width: 6),
-          _Badge(),
-        ],
-      ),
-    );
-  }
-
-  Widget _chip(String label, Color bg, Color fg) {
-    return Container(
-      margin: const EdgeInsets.only(right: 6),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      alignment: Alignment.center,
-      child: Text(label,
-          style: TextStyle(
-              fontSize: 12, fontWeight: FontWeight.w500, color: fg)),
-    );
-  }
-}
-
-class _Badge extends StatelessWidget {
-  const _Badge();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
-      decoration: BoxDecoration(
-        color: AppColors.bgPrimary,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: const Text('3',
-          style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary)),
     );
   }
 }

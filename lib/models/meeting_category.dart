@@ -6,12 +6,12 @@ enum MeetingCategory {
   escapeRoom('방탈출', Icons.vpn_key, AppColors.bgInfo, AppColors.textInfo),
   bowling('볼링', Icons.sports_handball, AppColors.bgInfo, AppColors.textInfo),
   karaoke('노래방', Icons.mic, AppColors.bgWarning, AppColors.textWarning),
-  drink('술한잔', Icons.local_bar, AppColors.bgWarning, AppColors.textWarning),
-  boardGame('보드게임', Icons.casino, AppColors.bgSuccess, AppColors.textSuccess),
-  game('게임', Icons.sports_esports, AppColors.bgSuccess, AppColors.textSuccess),
-  hiking('등산', Icons.terrain, AppColors.bgSuccess, AppColors.textSuccess),
-  movie('영화', Icons.movie, AppColors.bgInfo, AppColors.textInfo),
+  drink('술 한잔', Icons.local_bar, AppColors.bgWarning, AppColors.textWarning),
   cafe('카페', Icons.local_cafe, AppColors.bgWarning, AppColors.textWarning),
+  hiking('등산', Icons.terrain, AppColors.bgSuccess, AppColors.textSuccess),
+  swimming('수영', Icons.pool, AppColors.bgSuccess, AppColors.textSuccess),
+  boardGame('보드게임', Icons.casino, AppColors.bgSuccess, AppColors.textSuccess),
+  lol('롤', Icons.sports_esports, AppColors.bgInfo, AppColors.textInfo),
   etc('기타', Icons.more_horiz, AppColors.bgTertiary, AppColors.textSecondary);
 
   const MeetingCategory(

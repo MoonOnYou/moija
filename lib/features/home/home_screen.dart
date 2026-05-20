@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../data/meeting_repository.dart';
+import '../../models/meeting_filter.dart';
 import '../../theme/app_colors.dart';
+import '../filter/filter_screen.dart';
 import 'calendar_grid.dart';
 import 'widgets/day_meetings_pager.dart';
 import 'widgets/filter_bar.dart';
@@ -17,19 +19,26 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // 목 데이터의 고정 "오늘".
   static final DateTime _today = DateTime(2026, 5, 16);
 
   final MeetingRepository _repository = MeetingRepository();
   late DateTime _windowStart = weekStartOf(_today);
   late DateTime _selectedDay = _today;
+  MeetingFilter _filter = const MeetingFilter.empty();
 
-  /// 달력 탭(미래/오늘 날짜)과 리스트 스와이프 공통 진입점.
   void _goToDay(DateTime day) {
     setState(() {
       _selectedDay = day;
       _windowStart = windowFollowing(_windowStart, day);
     });
+  }
+
+  Future<void> _openFilter() async {
+    final result = await Navigator.push<MeetingFilter>(
+      context,
+      MaterialPageRoute(builder: (_) => FilterScreen(initial: _filter)),
+    );
+    if (result != null) setState(() => _filter = result);
   }
 
   String _monthLabel() {
@@ -39,13 +48,13 @@ class _HomeScreenState extends State<HomeScreen> {
     if (first.month == last.month) {
       return DateFormat('y년 M월', 'ko_KR').format(first);
     }
-    // 두 달에 걸치면 "2026년 5–6월" 형태.
     return '${first.year}년 ${first.month}–${last.month}월';
   }
 
   @override
   Widget build(BuildContext context) {
-    final dayMeetings = _repository.meetingsOn(_selectedDay);
+    final dayMeetings =
+        _repository.meetingsOn(_selectedDay).where(_filter.matches).toList();
 
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
@@ -55,12 +64,13 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             HomeHeader(monthLabel: _monthLabel()),
             const SizedBox(height: 8),
-            const FilterBar(),
+            FilterBar(activeCount: _filter.activeCount, onTap: _openFilter),
             TwoWeekCalendar(
               windowStart: _windowStart,
               selectedDay: _selectedDay,
               today: _today,
               repository: _repository,
+              filter: _filter,
               onDaySelected: _goToDay,
               onWindowChanged: (ws) => setState(() => _windowStart = ws),
             ),
@@ -73,6 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 selectedDay: _selectedDay,
                 today: _today,
                 repository: _repository,
+                filter: _filter,
                 onDayChanged: _goToDay,
               ),
             ),
