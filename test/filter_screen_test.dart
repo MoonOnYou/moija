@@ -64,4 +64,21 @@ void main() {
 
     expect(holder.value!.isEmpty, isTrue);
   });
+
+  testWidgets('adding a custom category saves it', (tester) async {
+    final holder = _Holder();
+    await tester.pumpWidget(_host(holder));
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('+ 직접 입력하기'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), '플로깅');
+    await tester.tap(find.text('추가'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('저장하기'));
+    await tester.pumpAndSettle();
+
+    expect(holder.value!.customCategories, contains('플로깅'));
+  });
 }
