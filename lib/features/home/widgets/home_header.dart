@@ -2,10 +2,15 @@ import 'package:flutter/material.dart';
 import '../../../theme/app_colors.dart';
 
 class HomeHeader extends StatelessWidget {
-  const HomeHeader({super.key, required this.monthLabel});
+  const HomeHeader({
+    super.key,
+    required this.monthLabel,
+    required this.diamonds,
+  });
 
   /// 예: "2026년 5월"
   final String monthLabel;
+  final int diamonds;
 
   @override
   Widget build(BuildContext context) {
@@ -39,13 +44,13 @@ class HomeHeader extends StatelessWidget {
               color: AppColors.bgInfo,
               borderRadius: BorderRadius.circular(14),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.diamond, size: 15, color: AppColors.textInfo),
-                SizedBox(width: 4),
+                const Icon(Icons.diamond, size: 15, color: AppColors.textInfo),
+                const SizedBox(width: 4),
                 Text(
-                  '1,000',
-                  style: TextStyle(
+                  '$diamonds',
+                  style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
                     color: AppColors.textInfo,
