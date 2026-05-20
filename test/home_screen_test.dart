@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:moija/features/filter/filter_screen.dart';
 import 'package:moija/features/home/home_screen.dart';
 import 'package:moija/features/home/widgets/day_meetings_pager.dart';
+import 'package:moija/features/meeting/diamond_recharge_screen.dart';
 
 void main() {
   setUpAll(() async {
@@ -95,5 +96,13 @@ void main() {
     await pump(tester);
     expect(find.text('퇴근 후 볼링'), findsOneWidget);
     expect(find.text('불금 한잔'), findsNothing);
+  });
+
+  testWidgets('tapping the diamond chip opens the recharge screen',
+      (tester) async {
+    await pump(tester);
+    await tester.tap(find.byKey(const Key('header-diamond')));
+    await tester.pumpAndSettle();
+    expect(find.byType(DiamondRechargeScreen), findsOneWidget);
   });
 }

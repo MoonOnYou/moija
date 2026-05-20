@@ -6,11 +6,13 @@ class HomeHeader extends StatelessWidget {
     super.key,
     required this.monthLabel,
     required this.diamonds,
+    required this.onDiamondTap,
   });
 
   /// 예: "2026년 5월"
   final String monthLabel;
   final int diamonds;
+  final VoidCallback onDiamondTap;
 
   @override
   Widget build(BuildContext context) {
@@ -38,25 +40,30 @@ class HomeHeader extends StatelessWidget {
             ],
           ),
           const Spacer(),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            decoration: BoxDecoration(
-              color: AppColors.bgInfo,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.diamond, size: 15, color: AppColors.textInfo),
-                const SizedBox(width: 4),
-                Text(
-                  '$diamonds',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.textInfo,
+          GestureDetector(
+            key: const Key('header-diamond'),
+            onTap: onDiamondTap,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: AppColors.bgInfo,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.diamond,
+                      size: 15, color: AppColors.textInfo),
+                  const SizedBox(width: 4),
+                  Text(
+                    '$diamonds',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.textInfo,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           const SizedBox(width: 12),
