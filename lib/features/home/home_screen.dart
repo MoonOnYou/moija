@@ -6,6 +6,7 @@ import '../../data/wallet.dart';
 import '../../models/meeting_filter.dart';
 import '../../theme/app_colors.dart';
 import '../filter/filter_screen.dart';
+import '../meeting/diamond_recharge_screen.dart';
 import 'calendar_grid.dart';
 import 'widgets/day_meetings_pager.dart';
 import 'widgets/filter_bar.dart';
@@ -84,7 +85,17 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            HomeHeader(monthLabel: _monthLabel(), diamonds: Wallet.myDiamonds),
+            HomeHeader(
+              monthLabel: _monthLabel(),
+              diamonds: Wallet.myDiamonds,
+              onDiamondTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const DiamondRechargeScreen(
+                      currentDiamonds: Wallet.myDiamonds),
+                ),
+              ),
+            ),
             const SizedBox(height: 8),
             FilterBar(activeCount: _filter.activeCount, onTap: _openFilter),
             TwoWeekCalendar(

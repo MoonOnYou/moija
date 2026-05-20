@@ -1,3 +1,72 @@
+# 다이아 충전 화면(목업) + 헤더 진입 Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** 충전 화면을 목업(08_다이아충전.html)대로 재구성하고, 홈 헤더 다이아 칩 탭으로 진입하게 한다.
+
+**Architecture:** 충전 화면을 패키지 선택 상태를 가진 StatefulWidget으로 재작성. 헤더 다이아 칩에 onTap 콜백 추가, 홈이 push.
+
+**Tech Stack:** Flutter 3.38 / Dart 3.10, `intl`, `flutter_test`.
+
+**참조 스펙:** `docs/superpowers/specs/2026-05-21-recharge-screen-design.md`
+
+---
+
+## Task 1: 충전 화면 재구성 (`diamond_recharge_screen.dart`)
+
+**Files:**
+- Modify: `lib/features/meeting/diamond_recharge_screen.dart` (전체 교체)
+- Test: `test/diamond_recharge_screen_test.dart` (신규)
+
+- [ ] **Step 1: 실패 테스트 작성**
+
+`test/diamond_recharge_screen_test.dart`:
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:moija/features/meeting/diamond_recharge_screen.dart';
+
+void main() {
+  testWidgets('shows balance, packages, and default payment amount',
+      (tester) async {
+    await tester.pumpWidget(const MaterialApp(
+      home: DiamondRechargeScreen(currentDiamonds: 30),
+    ));
+
+    expect(find.text('현재 보유'), findsOneWidget);
+    expect(find.text('30'), findsOneWidget);
+    expect(find.text('1,000 다이아'), findsOneWidget);
+    expect(find.text('3,300 다이아'), findsOneWidget);
+    expect(find.text('12,000 다이아'), findsOneWidget);
+    expect(find.text('광고 보고 무료 충전'), findsOneWidget);
+    expect(find.text('₩3,000 결제하기'), findsOneWidget); // 기본 인기 패키지
+  });
+
+  testWidgets('selecting another package updates the payment amount',
+      (tester) async {
+    await tester.pumpWidget(const MaterialApp(
+      home: DiamondRechargeScreen(currentDiamonds: 30),
+    ));
+
+    await tester.tap(find.text('12,000 다이아'));
+    await tester.pump();
+
+    expect(find.text('₩10,000 결제하기'), findsOneWidget);
+  });
+}
+```
+
+- [ ] **Step 2: 실패 확인**
+
+Run: `flutter test test/diamond_recharge_screen_test.dart`
+Expected: FAIL — 기존 플레이스홀더와 불일치(패키지/결제 버튼 없음).
+
+- [ ] **Step 3: 화면 전체 교체**
+
+`lib/features/meeting/diamond_recharge_screen.dart`:
+
+```dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../theme/app_colors.dart';
@@ -254,3 +323,112 @@ class _DiamondRechargeScreenState extends State<DiamondRechargeScreen> {
         ],
       );
 }
+```
+
+- [ ] **Step 4: 통과 확인**
+
+Run: `flutter test test/diamond_recharge_screen_test.dart`
+Expected: PASS (2 tests).
+
+- [ ] **Step 5: 커밋**
+
+```bash
+git add lib/features/meeting/diamond_recharge_screen.dart test/diamond_recharge_screen_test.dart && git commit -m "feat: rebuild DiamondRechargeScreen from mockup"
+```
+(커밋 본문 끝에: `Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>`)
+
+---
+
+## Task 2: 헤더 다이아 칩 → 충전 화면 진입
+
+**Files:**
+- Modify: `lib/features/home/widgets/home_header.dart`
+- Modify: `lib/features/home/home_screen.dart`
+- Modify: `test/home_screen_test.dart` (테스트 추가)
+
+- [ ] **Step 1: 홈 테스트 추가(실패 유도)**
+
+`test/home_screen_test.dart` 상단 import에 추가:
+```dart
+import 'package:moija/features/meeting/diamond_recharge_screen.dart';
+```
+그리고 `void main(){` 안 마지막 `});` 다음(닫는 `}` 직전)에 추가:
+
+```dart
+  testWidgets('tapping the diamond chip opens the recharge screen',
+      (tester) async {
+    await pump(tester);
+    await tester.tap(find.byKey(const Key('header-diamond')));
+    await tester.pumpAndSettle();
+    expect(find.byType(DiamondRechargeScreen), findsOneWidget);
+  });
+```
+
+- [ ] **Step 2: 실패 확인**
+
+Run: `flutter test test/home_screen_test.dart`
+Expected: FAIL — 칩 키/탭 없음.
+
+- [ ] **Step 3: `home_header.dart` 수정**
+
+(a) 생성자/필드에 `onDiamondTap` 추가:
+```dart
+  const HomeHeader({
+    super.key,
+    required this.monthLabel,
+    required this.diamonds,
+    required this.onDiamondTap,
+  });
+
+  final String monthLabel;
+  final int diamonds;
+  final VoidCallback onDiamondTap;
+```
+(b) 다이아 `Container(...)`(칩)를 `GestureDetector`로 감싼다:
+```dart
+          GestureDetector(
+            key: const Key('header-diamond'),
+            onTap: onDiamondTap,
+            child: Container(
+              // ... 기존 다이아 칩 Container 그대로 ...
+            ),
+          ),
+```
+(기존 `Container(padding: ... 다이아 칩 ...)`를 위 GestureDetector의 child로 이동)
+
+- [ ] **Step 4: `home_screen.dart` 수정**
+
+(a) import 추가: `import '../meeting/diamond_recharge_screen.dart';`
+(b) `HomeHeader(monthLabel: _monthLabel(), diamonds: Wallet.myDiamonds)`를 다음으로:
+```dart
+            HomeHeader(
+              monthLabel: _monthLabel(),
+              diamonds: Wallet.myDiamonds,
+              onDiamondTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const DiamondRechargeScreen(
+                      currentDiamonds: Wallet.myDiamonds),
+                ),
+              ),
+            ),
+```
+
+- [ ] **Step 5: 통과 + 전체**
+
+Run: `flutter test test/home_screen_test.dart && flutter analyze && flutter test`
+Expected: 전부 PASS, No issues.
+
+- [ ] **Step 6: 커밋**
+
+```bash
+git add -A && git commit -m "feat: open recharge screen from home diamond chip"
+```
+(커밋 본문 끝에 Co-Authored-By 줄 추가)
+
+---
+
+## 최종 검증
+- [ ] `flutter analyze` → No issues
+- [ ] `flutter test` → 전부 PASS
+- [ ] `flutter run`: 홈 헤더 다이아(30) 탭 → 충전 화면(현재 보유 30, 패키지 선택, 결제 버튼 금액 변화).
