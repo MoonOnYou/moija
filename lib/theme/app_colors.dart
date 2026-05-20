@@ -18,6 +18,8 @@ abstract final class AppColors {
   static const textWarning = Color(0xFF854F0B);
   static const textSuccess = Color(0xFF3B6D11);
   static const textDanger = Color(0xFFA32D2D);
+  static const bgPink = Color(0xFFFDE7EF);
+  static const textPink = Color(0xFFC2185B);
 
   // 보더
   static const borderTertiary = Color(0x26000000); // rgba(0,0,0,0.15)

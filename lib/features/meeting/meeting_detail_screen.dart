@@ -98,7 +98,7 @@ class MeetingDetailScreen extends StatelessWidget {
                 children: [
                   Icon(Icons.diamond, size: 13, color: AppColors.textInfo),
                   SizedBox(width: 4),
-                  Text('수락 시 50 다이아 사용',
+                  Text('방장이 수락할 경우 다이아 50개 차감',
                       style: TextStyle(
                           fontSize: 11, color: AppColors.textSecondary)),
                 ],
