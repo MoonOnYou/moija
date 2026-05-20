@@ -1,6 +1,6 @@
 /// 모임 비용 부담 방식.
 enum CostType {
-  split('1/N'),
+  split('더치페이'),
   hostPays('호스트가 쏨'),
   free('무료'),
   paid('유료');

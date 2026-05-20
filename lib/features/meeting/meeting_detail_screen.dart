@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../data/meeting_repository.dart';
+import '../../data/wallet.dart';
 import '../../models/meeting.dart';
 import '../../theme/app_colors.dart';
+import 'diamond_recharge_screen.dart';
 import 'widgets/participant_card.dart';
 
 class MeetingDetailScreen extends StatelessWidget {
@@ -10,10 +12,30 @@ class MeetingDetailScreen extends StatelessWidget {
     super.key,
     required this.meeting,
     required this.repository,
+    this.diamonds = Wallet.myDiamonds,
   });
 
   final Meeting meeting;
   final MeetingRepository repository;
+  final int diamonds;
+
+  void _onApply(BuildContext context) {
+    final messenger = ScaffoldMessenger.of(context);
+    if (diamonds <= 50) {
+      messenger.showSnackBar(const SnackBar(
+          content: Text('다이아 50개 이상일 때 참가 신청을 할 수 있어요')));
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => DiamondRechargeScreen(currentDiamonds: diamonds),
+        ),
+      );
+    } else {
+      messenger.showSnackBar(
+          const SnackBar(content: Text('참가 신청이 완료됐어요')));
+      Navigator.pop(context);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,34 +98,27 @@ class MeetingDetailScreen extends StatelessWidget {
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.textPrimary,
-                    foregroundColor: AppColors.bgPrimary,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                  onPressed: () {},
-                  child: const Text('참가 신청하기',
-                      style: TextStyle(fontWeight: FontWeight.w600)),
-                ),
+          child: SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.textPrimary,
+                foregroundColor: AppColors.bgPrimary,
+                padding: const EdgeInsets.symmetric(vertical: 12),
               ),
-              const SizedBox(height: 6),
-              const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+              onPressed: () => _onApply(context),
+              child: const Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.diamond, size: 13, color: AppColors.textInfo),
-                  SizedBox(width: 4),
-                  Text('방장이 수락할 경우 다이아 50개 차감',
-                      style: TextStyle(
-                          fontSize: 11, color: AppColors.textSecondary)),
+                  Text('참가 신청하기',
+                      style:
+                          TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                  SizedBox(height: 2),
+                  Text('방장 수락 시 다이아 50개 차감',
+                      style: TextStyle(fontSize: 11, color: Colors.white70)),
                 ],
               ),
-            ],
+            ),
           ),
         ),
       ),

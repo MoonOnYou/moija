@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../data/filter_storage.dart';
 import '../../data/meeting_repository.dart';
+import '../../data/wallet.dart';
 import '../../models/meeting_filter.dart';
 import '../../theme/app_colors.dart';
 import '../filter/filter_screen.dart';
@@ -83,7 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            HomeHeader(monthLabel: _monthLabel()),
+            HomeHeader(monthLabel: _monthLabel(), diamonds: Wallet.myDiamonds),
             const SizedBox(height: 8),
             FilterBar(activeCount: _filter.activeCount, onTap: _openFilter),
             TwoWeekCalendar(
