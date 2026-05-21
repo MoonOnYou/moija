@@ -181,7 +181,9 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
           );
     return ListView(
       children: [
-        stationTile(line.id, '${line.label} 전체'),
+        // "노선 전체"는 필터(다중 선택)에서만 제공한다.
+        // 모임 만들기(단일 선택)에서는 구체적인 역을 골라야 하므로 노출하지 않는다.
+        if (!widget.singleSelect) stationTile(line.id, '${line.label} 전체'),
         for (final s in stations) stationTile(s.id, s.label),
       ],
     );
