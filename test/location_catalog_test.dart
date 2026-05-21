@@ -49,4 +49,22 @@ void main() {
     expect(gangwon?.region, '강원');
     expect(gyeongnam?.region, '경남');
   });
+
+  test('childrenOf returns station nodes for a subway line', () {
+    final stations = LocationCatalog.childrenOf('seoul-line2');
+    expect(stations, isNotEmpty);
+    expect(stations.any((n) => n.id == 'seoul-line2-강남'), isTrue);
+    expect(stations.first.region, '서울');
+  });
+
+  test('childrenOf is empty for 시·군 leaves and unknown ids', () {
+    expect(LocationCatalog.childrenOf('경기-수원시'), isEmpty);
+    expect(LocationCatalog.childrenOf('nope'), isEmpty);
+  });
+
+  test('nodeById resolves a station node', () {
+    final n = LocationCatalog.nodeById('seoul-line2-강남');
+    expect(n?.label, '강남');
+    expect(n?.region, '서울');
+  });
 }

@@ -1,4 +1,5 @@
 import '../models/location_node.dart';
+import 'subway_stations.dart';
 
 /// 전국 시/도 + 시·군(도) / 지하철 호선·구(광역시) 카탈로그.
 class LocationCatalog {
@@ -101,12 +102,42 @@ class LocationCatalog {
     '제주': _province('제주', const ['제주시', '서귀포시']),
   };
 
+  /// 노선 노드 id가 속한 시/도를 _byRegion에서만 찾는다(역 노드 초기화 전 호출 안전).
+  static String _regionOfLineId(String lineId) {
+    for (final entry in _byRegion.entries) {
+      if (entry.value.any((n) => n.id == lineId)) return entry.key;
+    }
+    return '';
+  }
+
+  /// 노선 id → 역 노드 목록. kSubwayStations로부터 생성(지연 초기화).
+  static final Map<String, List<LocationNode>> _stationsByLine = {
+    for (final entry in kSubwayStations.entries)
+      entry.key: [
+        for (final name in entry.value)
+          LocationNode(
+            id: '${entry.key}-$name',
+            label: name,
+            region: _regionOfLineId(entry.key),
+          ),
+      ],
+  };
+
+  /// 노선이면 역 노드 목록, 아니면(시·군/구·미지정) 빈 목록.
+  static List<LocationNode> childrenOf(String nodeId) =>
+      _stationsByLine[nodeId] ?? const [];
+
   static List<LocationNode> nodesIn(String region) =>
       _byRegion[region] ?? const [];
 
   static LocationNode? nodeById(String id) {
     for (final list in _byRegion.values) {
       for (final node in list) {
+        if (node.id == id) return node;
+      }
+    }
+    for (final stations in _stationsByLine.values) {
+      for (final node in stations) {
         if (node.id == id) return node;
       }
     }
