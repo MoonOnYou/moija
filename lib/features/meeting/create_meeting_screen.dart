@@ -46,6 +46,7 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
   void initState() {
     super.initState();
     _title.addListener(_refresh);
+    _place.addListener(_refresh);
     _amount.addListener(_refresh);
   }
 
@@ -65,6 +66,7 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
     if (_title.text.trim().isEmpty) return false;
     if (_date == null || _time == null) return false;
     if (!_online && _locationId == null) return false;
+    if (!_online && _place.text.trim().isEmpty) return false;
     if (_members < 2) return false;
     if (_costType == null) return false;
     if (_costType == CostType.paid &&
@@ -230,7 +232,7 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
             TextField(
               key: const Key('place'),
               controller: _place,
-              decoration: _inputDeco('구체적인 장소 (선택)'),
+              decoration: _inputDeco('구체적인 장소 (예: 강남역 2번 출구)'),
             ),
           ],
           const SizedBox(height: 20),

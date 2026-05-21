@@ -33,6 +33,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('2호선'));
     await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('place')), '강남역 2번 출구'); // 구체 장소(필수)
+    await tester.pump();
 
     // 비용 칩이 보이도록 스크롤(ListView 지연 빌드).
     await tester.drag(find.byType(ListView), const Offset(0, -400));
@@ -55,6 +57,26 @@ void main() {
     await fillRequired(tester);
     await tester.ensureVisible(find.byKey(const Key('submit')));
     expect(button().onPressed, isNotNull); // 활성
+  });
+
+  testWidgets('구체적인 장소가 비면 버튼 비활성', (tester) async {
+    final repo = MeetingRepository();
+    await tester.pumpWidget(MaterialApp(
+      home: CreateMeetingScreen(repository: repo, currentDiamonds: 1000),
+    ));
+    await tester.pumpAndSettle();
+
+    await fillRequired(tester); // 장소 포함 모두 채움 → 활성
+    // 장소 필드가 보이도록 위로 스크롤 후 비운다.
+    await tester.drag(find.byType(ListView), const Offset(0, 400));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('place')), '');
+    await tester.pump();
+
+    await tester.ensureVisible(find.byKey(const Key('submit')));
+    final button =
+        tester.widget<ElevatedButton>(find.byKey(const Key('submit')));
+    expect(button.onPressed, isNull); // 장소가 비면 비활성
   });
 
   testWidgets('잔액 충분: 저장소에 추가되고 pop', (tester) async {
