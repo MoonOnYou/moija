@@ -220,4 +220,43 @@ void main() {
 
     expect(result, {'경기-수원시'});
   });
+
+  testWidgets('다중: 목록 하단 역(충정로)도 스크롤하여 선택 가능', (tester) async {
+    Set<String>? result;
+    await tester.pumpWidget(MaterialApp(
+      home: Builder(
+        builder: (context) => Scaffold(
+          body: Center(
+            child: ElevatedButton(
+              onPressed: () async {
+                result = await Navigator.push<Set<String>>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const LocationPickerScreen(initial: {}),
+                  ),
+                );
+              },
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    ));
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('서울'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('2호선'));
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(find.text('충정로'), 300.0);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('충정로'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('완료'));
+    await tester.pumpAndSettle();
+
+    expect(result, contains('seoul-line2-충정로'));
+  });
 }

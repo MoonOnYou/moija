@@ -21,13 +21,28 @@ class LocationPickerScreen extends StatefulWidget {
 
 class _LocationPickerScreenState extends State<LocationPickerScreen> {
   late final Set<String> _selected = {...widget.initial};
-  String? _region; // null = 시/도 목록
-  LocationNode? _line; // null이 아니면 해당 노선의 역 목록
+  String? _region; // null = 시/도 목록. _line이 set되려면 먼저 _region이 set돼야 한다.
+  LocationNode? _line; // null이 아니면 해당 노선의 역 목록(_region != null 보장)
 
   void _toggle(String id) {
     setState(() {
       if (!_selected.add(id)) _selected.remove(id);
     });
+  }
+
+  /// 칩 표시 라벨. 역이면 노선명을 앞에 붙여 동명 역을 구분한다(예: "2호선 시청").
+  String _chipLabel(String id) {
+    final node = LocationCatalog.nodeById(id);
+    if (node == null) return id;
+    final dash = id.lastIndexOf('-');
+    if (dash > 0) {
+      final parentId = id.substring(0, dash);
+      final line = LocationCatalog.nodeById(parentId);
+      if (line != null && LocationCatalog.childrenOf(parentId).isNotEmpty) {
+        return '${line.label} ${node.label}';
+      }
+    }
+    return node.label;
   }
 
   void _back() {
@@ -114,7 +129,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Text(
-                  '${LocationCatalog.nodeById(id)?.label ?? id} ✕',
+                  '${_chipLabel(id)} ✕',
                   style: const TextStyle(fontSize: 11, color: Colors.white),
                 ),
               ),
@@ -143,19 +158,19 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     return ListView(
       children: [
         for (final node in nodes)
-          if (LocationCatalog.childrenOf(node.id).isNotEmpty)
+          if (LocationCatalog.childrenOf(node.id).isNotEmpty) // 자식(역) 있는 노선 → 드릴다운
             ListTile(
               title: Text(node.label),
               trailing: const Icon(Icons.chevron_right,
                   color: AppColors.textTertiary),
               onTap: () => setState(() => _line = node),
             )
-          else if (widget.singleSelect)
+          else if (widget.singleSelect) // 리프(시·군/구) 단일 선택 → 즉시 pop
             ListTile(
               title: Text(node.label),
               onTap: () => Navigator.pop(context, {node.id}),
             )
-          else
+          else // 리프 다중 선택 → 체크박스 토글
             CheckboxListTile(
               value: _selected.contains(node.id),
               title: Text(node.label),
@@ -168,7 +183,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
 
   Widget _stationList(LocationNode line) {
     final stations = LocationCatalog.childrenOf(line.id);
-    Widget tile(String id, String label) => widget.singleSelect
+    Widget stationTile(String id, String label) => widget.singleSelect
         ? ListTile(
             title: Text(label),
             onTap: () => Navigator.pop(context, {id}),
@@ -181,8 +196,8 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
           );
     return ListView(
       children: [
-        tile(line.id, '${line.label} 전체'),
-        for (final s in stations) tile(s.id, s.label),
+        stationTile(line.id, '${line.label} 전체'),
+        for (final s in stations) stationTile(s.id, s.label),
       ],
     );
   }
