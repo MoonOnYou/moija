@@ -1,3 +1,4 @@
+import 'join_method.dart';
 import 'meeting_category.dart';
 import 'meeting_cost.dart';
 
@@ -15,6 +16,7 @@ class Meeting {
     this.description = '',
     this.nearestStation = '',
     this.cost = const MeetingCost(CostType.split),
+    this.joinMethod = JoinMethod.approval,
   });
 
   final String id;
@@ -36,6 +38,7 @@ class Meeting {
   final String description;
   final String nearestStation;
   final MeetingCost cost;
+  final JoinMethod joinMethod;
 
   int get spotsLeft => maxMembers - currentMembers;
   bool get isFull => spotsLeft <= 0;

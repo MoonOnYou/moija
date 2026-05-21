@@ -3,9 +3,11 @@ import 'package:intl/intl.dart';
 import '../../data/filter_storage.dart';
 import '../../data/meeting_repository.dart';
 import '../../data/wallet.dart';
+import '../../models/meeting.dart';
 import '../../models/meeting_filter.dart';
 import '../../theme/app_colors.dart';
 import '../filter/filter_screen.dart';
+import '../meeting/create_meeting_screen.dart';
 import '../meeting/diamond_recharge_screen.dart';
 import 'calendar_grid.dart';
 import 'widgets/day_meetings_pager.dart';
@@ -128,7 +130,18 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.textPrimary,
         foregroundColor: AppColors.bgPrimary,
-        onPressed: () {},
+        onPressed: () async {
+          final created = await Navigator.push<Meeting>(
+            context,
+            MaterialPageRoute(
+              builder: (_) => CreateMeetingScreen(repository: _repository),
+            ),
+          );
+          if (created != null && mounted) {
+            _goToDay(created.startTime);
+            setState(() {});
+          }
+        },
         child: const Icon(Icons.add),
       ),
     );

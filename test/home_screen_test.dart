@@ -105,4 +105,14 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(DiamondRechargeScreen), findsOneWidget);
   });
+
+  testWidgets('FAB 탭하면 모임 만들기 화면으로 이동', (tester) async {
+    await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+
+    expect(find.text('모임 만들기'), findsWidgets);
+  });
 }

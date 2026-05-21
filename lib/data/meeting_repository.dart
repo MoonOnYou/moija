@@ -6,17 +6,25 @@ import '../models/member.dart';
 /// 인메모리 목 데이터 저장소.
 class MeetingRepository {
   MeetingRepository() {
+    _all = [..._seed];
     _byDay = {};
-    for (final m in _seed) {
+    for (final m in _all) {
       _byDay.putIfAbsent(_key(m.startTime), () => []).add(m);
     }
   }
 
+  late final List<Meeting> _all;
   late final Map<DateTime, List<Meeting>> _byDay;
 
   static DateTime _key(DateTime d) => DateTime(d.year, d.month, d.day);
 
-  List<Meeting> get allMeetings => List.unmodifiable(_seed);
+  List<Meeting> get allMeetings => List.unmodifiable(_all);
+
+  /// 새 모임을 추가하고 날짜 인덱스에 반영한다.
+  void add(Meeting m) {
+    _all.add(m);
+    _byDay.putIfAbsent(_key(m.startTime), () => []).add(m);
+  }
 
   /// 해당 날짜 모임을 시작 시각 오름차순으로 반환한다.
   List<Meeting> meetingsOn(DateTime day) {
