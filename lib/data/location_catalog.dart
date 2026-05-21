@@ -25,21 +25,38 @@ class LocationCatalog {
       LocationNode(id: 'seoul-line7', label: '7호선', region: '서울'),
       LocationNode(id: 'seoul-line8', label: '8호선', region: '서울'),
       LocationNode(id: 'seoul-line9', label: '9호선', region: '서울'),
+      // 광역 노선(여러 시/도에 중복 노출)
+      LocationNode(id: 'sinbundang', label: '신분당선', region: '서울'),
+      LocationNode(id: 'suin-bundang', label: '수인분당선', region: '서울'),
+      LocationNode(id: 'gyeongui-jungang', label: '경의중앙선', region: '서울'),
+      LocationNode(id: 'gyeongchun', label: '경춘선', region: '서울'),
+      LocationNode(id: 'airport', label: '공항철도', region: '서울'),
+      LocationNode(id: 'ui-sinseol', label: '우이신설선', region: '서울'),
+      LocationNode(id: 'sillim', label: '신림선', region: '서울'),
+      LocationNode(id: 'gimpo-gold', label: '김포골드라인', region: '서울'),
+      LocationNode(id: 'gtx-a', label: 'GTX-A', region: '서울'),
     ],
     '부산': const [
       LocationNode(id: 'busan-line1', label: '부산1호선', region: '부산'),
       LocationNode(id: 'busan-line2', label: '부산2호선', region: '부산'),
       LocationNode(id: 'busan-line3', label: '부산3호선', region: '부산'),
       LocationNode(id: 'busan-line4', label: '부산4호선', region: '부산'),
+      // 광역 노선
+      LocationNode(id: 'donghae', label: '동해선', region: '부산'),
+      LocationNode(id: 'busan-gimhae', label: '부산김해경전철', region: '부산'),
     ],
     '대구': const [
       LocationNode(id: 'daegu-line1', label: '대구1호선', region: '대구'),
       LocationNode(id: 'daegu-line2', label: '대구2호선', region: '대구'),
       LocationNode(id: 'daegu-line3', label: '대구3호선', region: '대구'),
+      LocationNode(id: 'daegyeong', label: '대경선', region: '대구'),
     ],
     '인천': const [
       LocationNode(id: 'incheon-line1', label: '인천1호선', region: '인천'),
       LocationNode(id: 'incheon-line2', label: '인천2호선', region: '인천'),
+      // 광역 노선
+      LocationNode(id: 'suin-bundang', label: '수인분당선', region: '인천'),
+      LocationNode(id: 'airport', label: '공항철도', region: '인천'),
     ],
     '광주': const [
       LocationNode(id: 'gwangju-line1', label: '광주1호선', region: '광주'),
@@ -53,22 +70,41 @@ class LocationCatalog {
       LocationNode(id: 'ulsan-donggu', label: '동구', region: '울산'),
       LocationNode(id: 'ulsan-bukgu', label: '북구', region: '울산'),
       LocationNode(id: 'ulsan-uljugun', label: '울주군', region: '울산'),
+      // 광역 노선
+      LocationNode(id: 'donghae', label: '동해선', region: '울산'),
     ],
     '세종': const [
       LocationNode(id: 'sejong', label: '세종시', region: '세종'),
     ],
-    '경기': _province('경기', const [
-      '수원시', '성남시', '의정부시', '안양시', '부천시', '광명시', '평택시',
-      '동두천시', '안산시', '고양시', '과천시', '구리시', '남양주시', '오산시',
-      '시흥시', '군포시', '의왕시', '하남시', '용인시', '파주시', '이천시',
-      '안성시', '김포시', '화성시', '광주시', '양주시', '포천시', '여주시',
-      '연천군', '가평군', '양평군',
-    ]),
-    '강원': _province('강원', const [
-      '춘천시', '원주시', '강릉시', '동해시', '태백시', '속초시', '삼척시',
-      '홍천군', '횡성군', '영월군', '평창군', '정선군', '철원군', '화천군',
-      '양구군', '인제군', '고성군', '양양군',
-    ]),
+    '경기': [
+      ..._province('경기', const [
+        '수원시', '성남시', '의정부시', '안양시', '부천시', '광명시', '평택시',
+        '동두천시', '안산시', '고양시', '과천시', '구리시', '남양주시', '오산시',
+        '시흥시', '군포시', '의왕시', '하남시', '용인시', '파주시', '이천시',
+        '안성시', '김포시', '화성시', '광주시', '양주시', '포천시', '여주시',
+        '연천군', '가평군', '양평군',
+      ]),
+      // 광역 노선(여러 시/도에 중복 노출)
+      const LocationNode(id: 'sinbundang', label: '신분당선', region: '경기'),
+      const LocationNode(id: 'suin-bundang', label: '수인분당선', region: '경기'),
+      const LocationNode(id: 'gyeongui-jungang', label: '경의중앙선', region: '경기'),
+      const LocationNode(id: 'gyeongchun', label: '경춘선', region: '경기'),
+      const LocationNode(id: 'gimpo-gold', label: '김포골드라인', region: '경기'),
+      const LocationNode(id: 'seohae', label: '서해선', region: '경기'),
+      const LocationNode(id: 'gyeonggang', label: '경강선', region: '경기'),
+      const LocationNode(id: 'uijeongbu-lrt', label: '의정부경전철', region: '경기'),
+      const LocationNode(id: 'yongin-everline', label: '용인에버라인', region: '경기'),
+      const LocationNode(id: 'gtx-a', label: 'GTX-A', region: '경기'),
+    ],
+    '강원': [
+      ..._province('강원', const [
+        '춘천시', '원주시', '강릉시', '동해시', '태백시', '속초시', '삼척시',
+        '홍천군', '횡성군', '영월군', '평창군', '정선군', '철원군', '화천군',
+        '양구군', '인제군', '고성군', '양양군',
+      ]),
+      // 광역 노선
+      const LocationNode(id: 'gyeongchun', label: '경춘선', region: '강원'),
+    ],
     '충북': _province('충북', const [
       '청주시', '충주시', '제천시', '보은군', '옥천군', '영동군', '증평군',
       '진천군', '괴산군', '음성군', '단양군',
@@ -88,17 +124,25 @@ class LocationCatalog {
       '영암군', '무안군', '함평군', '영광군', '장성군', '완도군', '진도군',
       '신안군',
     ]),
-    '경북': _province('경북', const [
-      '포항시', '경주시', '김천시', '안동시', '구미시', '영주시', '영천시',
-      '상주시', '문경시', '경산시', '의성군', '청송군', '영양군', '영덕군',
-      '청도군', '고령군', '성주군', '칠곡군', '예천군', '봉화군', '울진군',
-      '울릉군',
-    ]),
-    '경남': _province('경남', const [
-      '창원시', '진주시', '통영시', '사천시', '김해시', '밀양시', '거제시',
-      '양산시', '의령군', '함안군', '창녕군', '고성군', '남해군', '하동군',
-      '산청군', '함양군', '거창군', '합천군',
-    ]),
+    '경북': [
+      ..._province('경북', const [
+        '포항시', '경주시', '김천시', '안동시', '구미시', '영주시', '영천시',
+        '상주시', '문경시', '경산시', '의성군', '청송군', '영양군', '영덕군',
+        '청도군', '고령군', '성주군', '칠곡군', '예천군', '봉화군', '울진군',
+        '울릉군',
+      ]),
+      // 광역 노선
+      const LocationNode(id: 'daegyeong', label: '대경선', region: '경북'),
+    ],
+    '경남': [
+      ..._province('경남', const [
+        '창원시', '진주시', '통영시', '사천시', '김해시', '밀양시', '거제시',
+        '양산시', '의령군', '함안군', '창녕군', '고성군', '남해군', '하동군',
+        '산청군', '함양군', '거창군', '합천군',
+      ]),
+      // 광역 노선
+      const LocationNode(id: 'busan-gimhae', label: '부산김해경전철', region: '경남'),
+    ],
     '제주': _province('제주', const ['제주시', '서귀포시']),
   };
 

@@ -13,10 +13,38 @@ void main() {
     expect(LocationCatalog.regions, isNot(contains('전라')));
   });
 
-  test('서울 has 9 subway lines', () {
+  test('서울 has 9 numbered lines plus 광역 노선', () {
     final seoul = LocationCatalog.nodesIn('서울');
-    expect(seoul.length, 9);
     expect(seoul.any((n) => n.id == 'seoul-line2'), isTrue);
+    // 숫자 호선 9개 + 광역 노선
+    expect(seoul.where((n) => n.id.startsWith('seoul-line')).length, 9);
+    expect(seoul.map((n) => n.label),
+        containsAll(['신림선', '경의중앙선', '신분당선', '공항철도']));
+  });
+
+  test('광역 노선은 걸치는 모든 시/도에 같은 id로 노출된다', () {
+    bool hasLine(String region, String id) =>
+        LocationCatalog.nodesIn(region).any((n) => n.id == id);
+    // 경의중앙선: 서울·경기
+    expect(hasLine('서울', 'gyeongui-jungang'), isTrue);
+    expect(hasLine('경기', 'gyeongui-jungang'), isTrue);
+    // 수인분당선: 서울·경기·인천
+    expect(hasLine('서울', 'suin-bundang'), isTrue);
+    expect(hasLine('경기', 'suin-bundang'), isTrue);
+    expect(hasLine('인천', 'suin-bundang'), isTrue);
+    // 동해선: 부산·울산 / 부산김해경전철: 부산·경남
+    expect(hasLine('부산', 'donghae'), isTrue);
+    expect(hasLine('울산', 'donghae'), isTrue);
+    expect(hasLine('부산', 'busan-gimhae'), isTrue);
+    expect(hasLine('경남', 'busan-gimhae'), isTrue);
+    // 대경선: 대구·경북
+    expect(hasLine('대구', 'daegyeong'), isTrue);
+    expect(hasLine('경북', 'daegyeong'), isTrue);
+
+    // 같은 id이므로 역 목록은 한 벌만 공유한다.
+    expect(LocationCatalog.childrenOf('gyeongui-jungang'),
+        LocationCatalog.childrenOf('gyeongui-jungang'));
+    expect(LocationCatalog.childrenOf('gyeongui-jungang'), isNotEmpty);
   });
 
   test('제주 has 2 cities', () {

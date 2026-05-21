@@ -23,6 +23,21 @@ void main() {
     );
   });
 
+  test('비숫자 광역 노선도 역 목록을 갖는다', () {
+    const wideArea = [
+      'sinbundang', 'suin-bundang', 'gyeongui-jungang', 'gyeongchun', 'airport',
+      'ui-sinseol', 'sillim', 'gimpo-gold', 'seohae', 'gyeonggang',
+      'uijeongbu-lrt', 'yongin-everline', 'gtx-a', 'donghae', 'busan-gimhae',
+      'daegyeong',
+    ];
+    for (final id in wideArea) {
+      expect(kSubwayStations[id], isNotNull, reason: '$id 누락');
+      expect(kSubwayStations[id], isNotEmpty, reason: '$id 역 비어있음');
+    }
+    expect(kSubwayStations['sillim'], contains('관악산'));
+    expect(kSubwayStations['gyeongui-jungang'], contains('용산'));
+  });
+
   test('역 이름에는 매칭 구분자 - 가 없다', () {
     for (final stations in kSubwayStations.values) {
       for (final s in stations) {
