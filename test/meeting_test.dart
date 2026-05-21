@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:moija/models/meeting.dart';
 import 'package:moija/models/meeting_category.dart';
+import 'package:moija/models/join_method.dart';
 
 void main() {
   test('spotsLeft = max - current', () {
@@ -17,5 +18,20 @@ void main() {
     );
     expect(m.spotsLeft, 2);
     expect(m.locationId, 'seoul-line2');
+  });
+
+  test('joinMethod 기본값은 승인제', () {
+    final m = Meeting(
+      id: '1',
+      title: 't',
+      category: MeetingCategory.cafe,
+      startTime: DateTime(2026, 5, 19, 20, 0),
+      location: 'x',
+      region: 'x',
+      locationId: 'seoul-line2',
+      currentMembers: 1,
+      maxMembers: 4,
+    );
+    expect(m.joinMethod, JoinMethod.approval);
   });
 }
