@@ -3,10 +3,16 @@ import '../../data/location_catalog.dart';
 import '../../theme/app_colors.dart';
 
 /// 시/도 목록 ↔ 지역 상세(리프 다중 체크) 드릴다운. 완료 시 선택 id 집합 반환.
+/// [singleSelect]가 true이면 리프 탭 즉시 단일 id로 pop.
 class LocationPickerScreen extends StatefulWidget {
-  const LocationPickerScreen({super.key, required this.initial});
+  const LocationPickerScreen({
+    super.key,
+    required this.initial,
+    this.singleSelect = false,
+  });
 
   final Set<String> initial;
+  final bool singleSelect;
 
   @override
   State<LocationPickerScreen> createState() => _LocationPickerScreenState();
@@ -52,28 +58,30 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
         ),
         body: Column(
           children: [
-            if (_selected.isNotEmpty) _selectedChips(),
+            if (!widget.singleSelect && _selected.isNotEmpty) _selectedChips(),
             Expanded(
                 child: _region == null ? _regionList() : _nodeList(_region!)),
           ],
         ),
-        bottomNavigationBar: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.textPrimary,
-                  foregroundColor: AppColors.bgPrimary,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+        bottomNavigationBar: widget.singleSelect
+            ? null
+            : SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.textPrimary,
+                        foregroundColor: AppColors.bgPrimary,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      onPressed: () => Navigator.pop(context, _selected),
+                      child: const Text('완료'),
+                    ),
+                  ),
                 ),
-                onPressed: () => Navigator.pop(context, _selected),
-                child: const Text('완료'),
               ),
-            ),
-          ),
-        ),
       ),
     );
   }
@@ -129,12 +137,18 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     return ListView(
       children: [
         for (final node in nodes)
-          CheckboxListTile(
-            value: _selected.contains(node.id),
-            title: Text(node.label),
-            controlAffinity: ListTileControlAffinity.trailing,
-            onChanged: (_) => _toggle(node.id),
-          ),
+          if (widget.singleSelect)
+            ListTile(
+              title: Text(node.label),
+              onTap: () => Navigator.pop(context, {node.id}),
+            )
+          else
+            CheckboxListTile(
+              value: _selected.contains(node.id),
+              title: Text(node.label),
+              controlAffinity: ListTileControlAffinity.trailing,
+              onChanged: (_) => _toggle(node.id),
+            ),
       ],
     );
   }

@@ -146,4 +146,38 @@ void main() {
 
     expect(result, contains('daegu-line1'));
   });
+
+  testWidgets('singleSelect: 리프 탭 시 즉시 단일 id로 pop', (tester) async {
+    Set<String>? result;
+    await tester.pumpWidget(MaterialApp(
+      home: Builder(
+        builder: (context) => Scaffold(
+          body: Center(
+            child: ElevatedButton(
+              onPressed: () async {
+                result = await Navigator.push<Set<String>>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const LocationPickerScreen(
+                        initial: {}, singleSelect: true),
+                  ),
+                );
+              },
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    ));
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('서울'));
+    await tester.pumpAndSettle();
+    expect(find.text('완료'), findsNothing); // 단일 모드엔 완료 버튼 없음
+    await tester.tap(find.text('2호선'));
+    await tester.pumpAndSettle();
+
+    expect(result, {'seoul-line2'});
+  });
 }
