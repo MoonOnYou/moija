@@ -31,9 +31,11 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('서울'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('2호선'));
+    await tester.tap(find.text('2호선')); // 노선 드릴다운
     await tester.pumpAndSettle();
-    await tester.enterText(find.byKey(const Key('place')), '강남역 2번 출구'); // 구체 장소(필수)
+    await tester.tap(find.text('시청')); // 역 선택 → 즉시 pop
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('place')), '시청역 2번 출구'); // 구체 장소(필수)
     await tester.pump();
 
     // 비용 칩이 보이도록 스크롤(ListView 지연 빌드).
