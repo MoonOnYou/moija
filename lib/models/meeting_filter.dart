@@ -41,7 +41,9 @@ class MeetingFilter {
     if (categories.isNotEmpty && !categories.contains(m.category)) {
       return false;
     }
-    if (locationIds.isNotEmpty && !locationIds.contains(m.locationId)) {
+    if (locationIds.isNotEmpty &&
+        !locationIds.any((s) =>
+            m.locationId == s || m.locationId.startsWith('$s-'))) {
       return false;
     }
     if (timeBands.isNotEmpty &&

@@ -40,6 +40,20 @@ void main() {
     expect(f.matches(_m(locationId: 'seoul-line3')), isFalse);
   });
 
+  test('location filter: 노선 전체 선택은 그 노선의 역·노선 모임을 매칭', () {
+    const f = MeetingFilter(locationIds: {'seoul-line2'});
+    expect(f.matches(_m(locationId: 'seoul-line2')), isTrue); // 노선 단위
+    expect(f.matches(_m(locationId: 'seoul-line2-강남')), isTrue); // 역
+    expect(f.matches(_m(locationId: 'seoul-line3-교대')), isFalse); // 다른 노선
+  });
+
+  test('location filter: 특정 역 선택은 그 역만 매칭', () {
+    const f = MeetingFilter(locationIds: {'seoul-line2-강남'});
+    expect(f.matches(_m(locationId: 'seoul-line2-강남')), isTrue);
+    expect(f.matches(_m(locationId: 'seoul-line2')), isFalse); // 더 거친 단위
+    expect(f.matches(_m(locationId: 'seoul-line2-역삼')), isFalse);
+  });
+
   test('time band filter', () {
     const f = MeetingFilter(timeBands: {TimeBand.evening});
     expect(f.matches(_m(hour: 19)), isTrue);
