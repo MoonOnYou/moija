@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../data/location_catalog.dart';
+import '../../models/location_node.dart';
 import '../../theme/app_colors.dart';
 
-/// 시/도 목록 ↔ 지역 상세(리프 다중 체크) 드릴다운. 완료 시 선택 id 집합 반환.
-/// [singleSelect]가 true이면 리프 탭 즉시 단일 id로 pop.
+/// 시/도 → 노선/리프 → 역 3단계 드릴다운. 완료 시 선택 id 집합 반환.
+/// [singleSelect]가 true이면 리프(역·시·군) 탭 즉시 단일 id로 pop.
 class LocationPickerScreen extends StatefulWidget {
   const LocationPickerScreen({
     super.key,
@@ -20,7 +21,8 @@ class LocationPickerScreen extends StatefulWidget {
 
 class _LocationPickerScreenState extends State<LocationPickerScreen> {
   late final Set<String> _selected = {...widget.initial};
-  String? _region; // null = 시/도 목록, else 해당 지역 상세
+  String? _region; // null = 시/도 목록
+  LocationNode? _line; // null이 아니면 해당 노선의 역 목록
 
   void _toggle(String id) {
     setState(() {
@@ -28,17 +30,27 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     });
   }
 
+  void _back() {
+    if (_line != null) {
+      setState(() => _line = null);
+    } else if (_region != null) {
+      setState(() => _region = null);
+    } else {
+      Navigator.pop(context, _selected);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final Widget content = _line != null
+        ? _stationList(_line!)
+        : (_region == null ? _regionList() : _nodeList(_region!));
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        if (_region != null) {
-          setState(() => _region = null);
-        } else {
-          Navigator.pop(context, _selected);
-        }
+        _back();
       },
       child: Scaffold(
         backgroundColor: AppColors.bgPrimary,
@@ -46,21 +58,14 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
           backgroundColor: AppColors.bgPrimary,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              if (_region != null) {
-                setState(() => _region = null);
-              } else {
-                Navigator.pop(context, _selected);
-              }
-            },
+            onPressed: _back,
           ),
-          title: Text(_region ?? '장소 선택'),
+          title: Text(_line?.label ?? _region ?? '장소 선택'),
         ),
         body: Column(
           children: [
             if (!widget.singleSelect && _selected.isNotEmpty) _selectedChips(),
-            Expanded(
-                child: _region == null ? _regionList() : _nodeList(_region!)),
+            Expanded(child: content),
           ],
         ),
         bottomNavigationBar: widget.singleSelect
@@ -125,7 +130,8 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
         for (final region in LocationCatalog.regions)
           ListTile(
             title: Text(region),
-            trailing: const Icon(Icons.chevron_right, color: AppColors.textTertiary),
+            trailing:
+                const Icon(Icons.chevron_right, color: AppColors.textTertiary),
             onTap: () => setState(() => _region = region),
           ),
       ],
@@ -137,7 +143,14 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     return ListView(
       children: [
         for (final node in nodes)
-          if (widget.singleSelect)
+          if (LocationCatalog.childrenOf(node.id).isNotEmpty)
+            ListTile(
+              title: Text(node.label),
+              trailing: const Icon(Icons.chevron_right,
+                  color: AppColors.textTertiary),
+              onTap: () => setState(() => _line = node),
+            )
+          else if (widget.singleSelect)
             ListTile(
               title: Text(node.label),
               onTap: () => Navigator.pop(context, {node.id}),
@@ -149,6 +162,27 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
               controlAffinity: ListTileControlAffinity.trailing,
               onChanged: (_) => _toggle(node.id),
             ),
+      ],
+    );
+  }
+
+  Widget _stationList(LocationNode line) {
+    final stations = LocationCatalog.childrenOf(line.id);
+    Widget tile(String id, String label) => widget.singleSelect
+        ? ListTile(
+            title: Text(label),
+            onTap: () => Navigator.pop(context, {id}),
+          )
+        : CheckboxListTile(
+            value: _selected.contains(id),
+            title: Text(label),
+            controlAffinity: ListTileControlAffinity.trailing,
+            onChanged: (_) => _toggle(id),
+          );
+    return ListView(
+      children: [
+        tile(line.id, '${line.label} 전체'),
+        for (final s in stations) tile(s.id, s.label),
       ],
     );
   }
