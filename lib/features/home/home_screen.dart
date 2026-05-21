@@ -17,14 +17,18 @@ import 'widgets/selected_day_summary.dart';
 import 'widgets/two_week_calendar.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({super.key, this.today});
+
+  /// 기준 "오늘". 미지정 시 실제 현재 날짜를 사용한다(테스트에서 주입).
+  final DateTime? today;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  static final DateTime _today = DateTime(2026, 5, 16);
+  static DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
+  late final DateTime _today = _dateOnly(widget.today ?? DateTime.now());
 
   final MeetingRepository _repository = MeetingRepository();
   final FilterStorage _storage = FilterStorage();

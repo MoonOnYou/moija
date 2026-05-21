@@ -20,7 +20,8 @@ void main() {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
-    await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+    await tester.pumpWidget(
+        MaterialApp(home: HomeScreen(today: DateTime(2026, 5, 16))));
     await tester.pumpAndSettle();
   }
 
@@ -107,7 +108,8 @@ void main() {
   });
 
   testWidgets('FAB 탭하면 모임 만들기 화면으로 이동', (tester) async {
-    await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+    await tester.pumpWidget(
+        MaterialApp(home: HomeScreen(today: DateTime(2026, 5, 16))));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byType(FloatingActionButton));

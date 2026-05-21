@@ -12,7 +12,6 @@ import '../filter/location_picker_screen.dart';
 import 'diamond_recharge_screen.dart';
 
 const int _createCost = 300;
-final DateTime _today = DateTime(2026, 5, 16);
 
 class CreateMeetingScreen extends StatefulWidget {
   const CreateMeetingScreen({
@@ -77,11 +76,13 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
   }
 
   Future<void> _pickDate() async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
     final picked = await showDatePicker(
       context: context,
-      initialDate: _date ?? _today,
-      firstDate: _today,
-      lastDate: DateTime(2027, 12, 31),
+      initialDate: _date ?? today,
+      firstDate: today,
+      lastDate: DateTime(now.year + 2, 12, 31),
     );
     if (picked != null) setState(() => _date = picked);
   }
