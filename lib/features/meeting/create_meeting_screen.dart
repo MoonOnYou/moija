@@ -29,6 +29,8 @@ class CreateMeetingScreen extends StatefulWidget {
 
 class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
   MeetingCategory? _category;
+  /// 직접 입력한 카테고리. 값이 있으면 _category는 etc로 둔다.
+  String? _customCategory;
   final _title = TextEditingController();
   DateTime? _date;
   TimeOfDay? _time;
@@ -110,6 +112,33 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
     }
   }
 
+  Future<void> _addCustomCategory() async {
+    final controller = TextEditingController(text: _customCategory ?? '');
+    final text = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('직접 입력'),
+        content: TextField(controller: controller, autofocus: true),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('취소'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, controller.text),
+            child: const Text('추가'),
+          ),
+        ],
+      ),
+    );
+    if (text != null && text.trim().isNotEmpty) {
+      setState(() {
+        _customCategory = text.trim();
+        _category = MeetingCategory.etc;
+      });
+    }
+  }
+
   void _submit() {
     final messenger = ScaffoldMessenger.of(context);
     if (widget.currentDiamonds < _createCost) {
@@ -134,6 +163,7 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
       id: 'u${DateTime.now().millisecondsSinceEpoch}',
       title: _title.text.trim(),
       category: _category!,
+      customCategory: _customCategory ?? '',
       startTime: start,
       location: _online
           ? (placeText.isEmpty ? '온라인' : placeText)
@@ -181,8 +211,18 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
             runSpacing: 8,
             children: [
               for (final c in MeetingCategory.values)
-                _chip(c.label, _category == c,
-                    () => setState(() => _category = c)),
+                _chip(c.label, _category == c && _customCategory == null,
+                    () => setState(() {
+                          _category = c;
+                          _customCategory = null;
+                        })),
+              if (_customCategory != null)
+                _chip(_customCategory!, true,
+                    () => setState(() {
+                          _customCategory = null;
+                          _category = null;
+                        })),
+              _dashedChip('+ 직접 입력하기', _addCustomCategory),
             ],
           ),
           const SizedBox(height: 20),
@@ -360,6 +400,23 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
             color: selected ? Colors.white : AppColors.textPrimary,
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _dashedChip(String label, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
+          color: AppColors.bgPrimary,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.textTertiary),
+        ),
+        child: Text(label,
+            style: const TextStyle(
+                fontSize: 12, color: AppColors.textSecondary)),
       ),
     );
   }

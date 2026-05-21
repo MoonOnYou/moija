@@ -128,7 +128,7 @@ class DayCell extends StatelessWidget {
   }
 
   Widget _chip(Meeting m) {
-    final text = '${m.category.label}·${m.region}·${m.title}';
+    final text = '${m.categoryLabel}·${m.region}·${m.title}';
     return Container(
       height: _chipHeight,
       padding: const EdgeInsets.symmetric(horizontal: 4),

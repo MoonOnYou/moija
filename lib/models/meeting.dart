@@ -13,6 +13,7 @@ class Meeting {
     required this.locationId,
     required this.currentMembers,
     required this.maxMembers,
+    this.customCategory = '',
     this.description = '',
     this.nearestStation = '',
     this.cost = const MeetingCost(CostType.split),
@@ -34,11 +35,19 @@ class Meeting {
   final int currentMembers;
   final int maxMembers;
 
+  /// 직접 입력한 카테고리 이름. 비어 있지 않으면 [category] 라벨 대신 표시한다.
+  /// 이때 [category]는 보통 [MeetingCategory.etc]로 저장된다.
+  final String customCategory;
+
   /// 상세 화면 정보(저장소가 채움).
   final String description;
   final String nearestStation;
   final MeetingCost cost;
   final JoinMethod joinMethod;
+
+  /// 칩·달력에 표시할 카테고리 이름. 직접 입력값이 있으면 그걸 우선한다.
+  String get categoryLabel =>
+      customCategory.isNotEmpty ? customCategory : category.label;
 
   int get spotsLeft => maxMembers - currentMembers;
   bool get isFull => spotsLeft <= 0;

@@ -136,7 +136,7 @@ class MeetingDetailScreen extends StatelessWidget {
             Icon(meeting.category.icon,
                 size: 14, color: meeting.category.chipForeground),
             const SizedBox(width: 4),
-            Text(meeting.category.label,
+            Text(meeting.categoryLabel,
                 style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,

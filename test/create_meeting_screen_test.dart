@@ -35,12 +35,20 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('시청')); // 역 선택 → 즉시 pop
     await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('place')),
+      100,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.enterText(find.byKey(const Key('place')), '시청역 2번 출구'); // 구체 장소(필수)
     await tester.pump();
 
     // 비용 칩이 보이도록 스크롤(ListView 지연 빌드).
-    await tester.drag(find.byType(ListView), const Offset(0, -400));
-    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('더치페이'),
+      100,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.tap(find.text('더치페이')); // 비용
     await tester.pump();
   }
@@ -113,6 +121,37 @@ void main() {
     expect(find.byType(CreateMeetingScreen), findsNothing);
     expect(repo.allMeetings.length, before + 1);
     expect(repo.allMeetings.last.title, '주말 카페 모임');
+  });
+
+  testWidgets('카테고리 직접 입력: customCategory로 저장된다', (tester) async {
+    final repo = MeetingRepository();
+    await tester.pumpWidget(MaterialApp(
+      home: CreateMeetingScreen(repository: repo, currentDiamonds: 1000),
+    ));
+    await tester.pumpAndSettle();
+    await fillRequired(tester); // 카페 선택됨
+
+    // 카테고리 영역으로 올라가 직접 입력 칩을 연다.
+    await tester.scrollUntilVisible(
+      find.text('+ 직접 입력하기'),
+      -100,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('+ 직접 입력하기'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, '클라이밍');
+    await tester.tap(find.text('추가'));
+    await tester.pumpAndSettle();
+
+    // 입력한 이름이 칩으로 노출되고 프리셋(카페)은 해제된다.
+    expect(find.text('클라이밍 ✓'), findsOneWidget);
+
+    await tester.ensureVisible(find.byKey(const Key('submit')));
+    await tester.tap(find.byKey(const Key('submit')));
+    await tester.pumpAndSettle();
+
+    expect(repo.allMeetings.last.customCategory, '클라이밍');
+    expect(repo.allMeetings.last.categoryLabel, '클라이밍');
   });
 
   testWidgets('잔액 부족: 충전 화면으로 이동', (tester) async {
