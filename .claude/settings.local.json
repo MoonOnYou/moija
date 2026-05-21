@@ -22,7 +22,8 @@
       "Bash(dart -e ' *)",
       "Skill(superpowers:systematic-debugging)",
       "Bash(grep -v \"^$\")",
-      "Bash(dart *)"
+      "Bash(dart *)",
+      "Bash(flutter doctor *)"
     ]
   }
 }
