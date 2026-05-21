@@ -30,21 +30,6 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     });
   }
 
-  /// 칩 표시 라벨. 역이면 노선명을 앞에 붙여 동명 역을 구분한다(예: "2호선 시청").
-  String _chipLabel(String id) {
-    final node = LocationCatalog.nodeById(id);
-    if (node == null) return id;
-    final dash = id.lastIndexOf('-');
-    if (dash > 0) {
-      final parentId = id.substring(0, dash);
-      final line = LocationCatalog.nodeById(parentId);
-      if (line != null && LocationCatalog.childrenOf(parentId).isNotEmpty) {
-        return '${line.label} ${node.label}';
-      }
-    }
-    return node.label;
-  }
-
   void _back() {
     if (_line != null) {
       setState(() => _line = null);
@@ -129,7 +114,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Text(
-                  '${_chipLabel(id)} ✕',
+                  '${LocationCatalog.displayLabel(id)} ✕',
                   style: const TextStyle(fontSize: 11, color: Colors.white),
                 ),
               ),

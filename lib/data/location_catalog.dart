@@ -143,4 +143,19 @@ class LocationCatalog {
     }
     return null;
   }
+
+  /// 표시용 라벨. 역이면 노선명을 앞에 붙여 동명 역을 구분한다(예: "2호선 시청").
+  static String displayLabel(String id) {
+    final node = nodeById(id);
+    if (node == null) return id;
+    final dash = id.lastIndexOf('-');
+    if (dash > 0) {
+      final parentId = id.substring(0, dash);
+      final line = nodeById(parentId);
+      if (line != null && childrenOf(parentId).isNotEmpty) {
+        return '${line.label} ${node.label}';
+      }
+    }
+    return node.label;
+  }
 }

@@ -134,8 +134,7 @@ class _FilterScreenState extends State<FilterScreen> {
                       _locationIds.isEmpty
                           ? '지역 선택'
                           : _locationIds
-                              .map((id) =>
-                                  LocationCatalog.nodeById(id)?.label ?? id)
+                              .map(LocationCatalog.displayLabel)
                               .join(', '),
                       style: const TextStyle(
                           fontSize: 13, color: AppColors.textSecondary),
