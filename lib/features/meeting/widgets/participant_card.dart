@@ -56,7 +56,7 @@ class ParticipantCard extends StatelessWidget {
                         decoration: BoxDecoration(
                             color: AppColors.textInfo,
                             borderRadius: BorderRadius.circular(6)),
-                        child: const Text('HOST',
+                        child: const Text('방장',
                             style: TextStyle(
                                 fontSize: 9,
                                 fontWeight: FontWeight.w700,

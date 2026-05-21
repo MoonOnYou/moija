@@ -8,6 +8,6 @@ void main() {
   test('non-paid shows the type label', () {
     expect(const MeetingCost(CostType.split).display, '더치페이');
     expect(const MeetingCost(CostType.free).display, '무료');
-    expect(const MeetingCost(CostType.hostPays).display, '호스트가 쏨');
+    expect(const MeetingCost(CostType.hostPays).display, '방장이 쏨');
   });
 }

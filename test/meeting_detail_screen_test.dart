@@ -23,7 +23,7 @@ void main() {
     expect(find.text('참가 신청하기'), findsOneWidget);
     expect(find.text('방장 수락 시 다이아 50개 차감'), findsOneWidget);
     expect(find.text('참가자 4명'), findsOneWidget);
-    expect(find.text('HOST'), findsOneWidget);
+    expect(find.text('방장'), findsOneWidget);
   });
 
   testWidgets('low balance shows toast and opens recharge screen',
