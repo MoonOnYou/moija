@@ -137,6 +137,8 @@ void main() {
       -100,
       scrollable: find.byType(Scrollable).first,
     );
+    await tester.ensureVisible(find.text('+ 직접 입력하기'));
+    await tester.pump();
     await tester.tap(find.text('+ 직접 입력하기'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).last, '클라이밍');

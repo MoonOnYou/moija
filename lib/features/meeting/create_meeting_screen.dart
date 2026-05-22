@@ -406,10 +406,6 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('방이 생성되면 다이아 300개가 차감돼요',
-                  style:
-                      TextStyle(fontSize: 12, color: AppColors.textTertiary)),
-              const SizedBox(height: 8),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -596,14 +592,6 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
                   Text(m.summary,
                       style: const TextStyle(
                           fontSize: 13, color: AppColors.textSecondary)),
-                  const SizedBox(height: 6),
-                  for (final b in m.bullets)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 2),
-                      child: Text('· $b',
-                          style: const TextStyle(
-                              fontSize: 12, color: AppColors.textTertiary)),
-                    ),
                 ],
               ),
             ),
