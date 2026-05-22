@@ -11,4 +11,9 @@ void main() {
     expect(const MeetingCost(CostType.free).display, '무료');
     expect(const MeetingCost(CostType.hostPays).display, '방장이 쏨');
   });
+  test('custom shows entered text, falls back to label when empty', () {
+    expect(const MeetingCost(CostType.custom, customText: '연구실에서 갹출').display,
+        '연구실에서 갹출');
+    expect(const MeetingCost(CostType.custom).display, '기타');
+  });
 }

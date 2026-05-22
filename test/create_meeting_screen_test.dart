@@ -154,6 +154,58 @@ void main() {
     expect(repo.allMeetings.last.categoryLabel, '클라이밍');
   });
 
+  testWidgets('인원: 직접 입력 가능하고 99 초과는 99로 잘린다', (tester) async {
+    final repo = MeetingRepository();
+    await tester.pumpWidget(MaterialApp(
+      home: CreateMeetingScreen(repository: repo, currentDiamonds: 1000),
+    ));
+    await tester.pumpAndSettle();
+    await fillRequired(tester);
+
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('members-input')),
+      -100,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.enterText(find.byKey(const Key('members-input')), '150');
+    await tester.pump();
+    // 99로 클램프되어 필드에 반영된다.
+    expect(find.text('99'), findsOneWidget);
+
+    await tester.enterText(find.byKey(const Key('members-input')), '8');
+    await tester.pump();
+
+    await tester.ensureVisible(find.byKey(const Key('submit')));
+    await tester.tap(find.byKey(const Key('submit')));
+    await tester.pumpAndSettle();
+    expect(repo.allMeetings.last.maxMembers, 8);
+  });
+
+  testWidgets('비용: 기타 선택 후 직접 입력값이 저장된다', (tester) async {
+    final repo = MeetingRepository();
+    await tester.pumpWidget(MaterialApp(
+      home: CreateMeetingScreen(repository: repo, currentDiamonds: 1000),
+    ));
+    await tester.pumpAndSettle();
+    await fillRequired(tester); // 더치페이 선택됨
+
+    await tester.scrollUntilVisible(
+      find.text('기타'),
+      100,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('기타'));
+    await tester.pump();
+    await tester.enterText(
+        find.byKey(const Key('cost-etc')), '연구실에서 갹출');
+    await tester.pump();
+
+    await tester.ensureVisible(find.byKey(const Key('submit')));
+    await tester.tap(find.byKey(const Key('submit')));
+    await tester.pumpAndSettle();
+    expect(repo.allMeetings.last.cost.display, '연구실에서 갹출');
+  });
+
   testWidgets('잔액 부족: 충전 화면으로 이동', (tester) async {
     final repo = MeetingRepository();
     await tester.pumpWidget(MaterialApp(

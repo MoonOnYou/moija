@@ -38,10 +38,15 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
   String? _locationId;
   final _place = TextEditingController();
   int _members = 4;
+  final _membersCtrl = TextEditingController(text: '4');
   CostType? _costType;
   final _amount = TextEditingController();
+  final _costEtc = TextEditingController();
   final _description = TextEditingController();
   JoinMethod _joinMethod = JoinMethod.approval;
+
+  static const _maxMembers = 99;
+  static const _minMembers = 2;
 
   @override
   void initState() {
@@ -49,6 +54,7 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
     _title.addListener(_refresh);
     _place.addListener(_refresh);
     _amount.addListener(_refresh);
+    _costEtc.addListener(_refresh);
   }
 
   @override
@@ -56,8 +62,48 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
     _title.dispose();
     _place.dispose();
     _amount.dispose();
+    _costEtc.dispose();
+    _membersCtrl.dispose();
     _description.dispose();
     super.dispose();
+  }
+
+  /// 버튼으로 인원 증감(2~99로 클램프, 텍스트 필드도 동기화).
+  void _setMembers(int v) {
+    final clamped = v.clamp(_minMembers, _maxMembers);
+    setState(() {
+      _members = clamped;
+      _membersCtrl.text = '$clamped';
+    });
+  }
+
+  /// 인원 직접 입력. 99 초과면 99로 잘라준다. 빈 값은 0(미충족) 처리.
+  void _onMembersTyped(String s) {
+    final n = int.tryParse(s);
+    if (n == null) {
+      setState(() => _members = 0);
+      return;
+    }
+    if (n > _maxMembers) {
+      _membersCtrl.text = '$_maxMembers';
+      _membersCtrl.selection =
+          TextSelection.collapsed(offset: _membersCtrl.text.length);
+      setState(() => _members = _maxMembers);
+      return;
+    }
+    setState(() => _members = n);
+  }
+
+  MeetingCost _buildCost() {
+    switch (_costType!) {
+      case CostType.paid:
+        return MeetingCost(CostType.paid,
+            amountWon: int.tryParse(_amount.text.trim()));
+      case CostType.custom:
+        return MeetingCost(CostType.custom, customText: _costEtc.text.trim());
+      default:
+        return MeetingCost(_costType!);
+    }
   }
 
   void _refresh() => setState(() {});
@@ -68,10 +114,13 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
     if (_date == null || _time == null) return false;
     if (!_online && _locationId == null) return false;
     if (!_online && _place.text.trim().isEmpty) return false;
-    if (_members < 2) return false;
+    if (_members < _minMembers || _members > _maxMembers) return false;
     if (_costType == null) return false;
     if (_costType == CostType.paid &&
         (int.tryParse(_amount.text.trim()) ?? 0) <= 0) {
+      return false;
+    }
+    if (_costType == CostType.custom && _costEtc.text.trim().isEmpty) {
       return false;
     }
     return true;
@@ -174,10 +223,7 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
       maxMembers: _members,
       description: _description.text.trim(),
       nearestStation: _online ? '온라인' : (node?.label ?? ''),
-      cost: _costType == CostType.paid
-          ? MeetingCost(CostType.paid,
-              amountWon: int.tryParse(_amount.text.trim()))
-          : MeetingCost(_costType!),
+      cost: _buildCost(),
       joinMethod: _joinMethod,
     );
     widget.repository.add(meeting);
@@ -281,15 +327,33 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
           Row(
             children: [
               _stepBtn(const Key('members-minus'), Icons.remove,
-                  _members > 2 ? () => setState(() => _members--) : null),
+                  _members > _minMembers
+                      ? () => _setMembers(_members - 1)
+                      : null),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Text('$_members명',
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: SizedBox(
+                  width: 72,
+                  child: TextField(
+                    key: const Key('members-input'),
+                    controller: _membersCtrl,
+                    textAlign: TextAlign.center,
+                    keyboardType: TextInputType.number,
                     style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.w600)),
+                        fontSize: 16, fontWeight: FontWeight.w600),
+                    decoration: _inputDeco('').copyWith(
+                      suffixText: '명',
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 10),
+                    ),
+                    onChanged: _onMembersTyped,
+                  ),
+                ),
               ),
               _stepBtn(const Key('members-plus'), Icons.add,
-                  () => setState(() => _members++)),
+                  _members < _maxMembers
+                      ? () => _setMembers(_members + 1)
+                      : null),
             ],
           ),
           const SizedBox(height: 20),
@@ -310,6 +374,14 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
               controller: _amount,
               keyboardType: TextInputType.number,
               decoration: _inputDeco('1인당 금액 (원)'),
+            ),
+          ],
+          if (_costType == CostType.custom) ...[
+            const SizedBox(height: 10),
+            TextField(
+              key: const Key('cost-etc'),
+              controller: _costEtc,
+              decoration: _inputDeco('비용을 직접 입력해 주세요'),
             ),
           ],
           const SizedBox(height: 20),
