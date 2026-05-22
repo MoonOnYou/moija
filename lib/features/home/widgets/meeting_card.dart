@@ -62,12 +62,27 @@ class MeetingCard extends StatelessWidget {
                         size: 12, color: AppColors.textSecondary),
                     const SizedBox(width: 4),
                     Flexible(
-                      child: Text(meeting.location,
+                      child: Text(meeting.placeLabel,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                               fontSize: 11,
                               color: AppColors.textSecondary)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Icon(Icons.payments_outlined,
+                        size: 12, color: AppColors.textSecondary),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(meeting.cost.display,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              fontSize: 11, color: AppColors.textSecondary)),
                     ),
                   ],
                 ),

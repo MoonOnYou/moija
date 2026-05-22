@@ -49,6 +49,13 @@ class Meeting {
   String get categoryLabel =>
       customCategory.isNotEmpty ? customCategory : category.label;
 
+  /// 리스트·상세에 공통으로 쓰는 장소 표시. 인근역 정보가 있고 장소와 다르면
+  /// "인근역 · 장소" 형태로, 아니면 장소만 보여준다.
+  String get placeLabel {
+    if (nearestStation.isEmpty || nearestStation == location) return location;
+    return '$nearestStation · $location';
+  }
+
   int get spotsLeft => maxMembers - currentMembers;
   bool get isFull => spotsLeft <= 0;
 }
