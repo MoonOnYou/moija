@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../data/meeting_repository.dart';
 import '../../data/wallet.dart';
+import '../../models/join_method.dart';
 import '../../models/meeting.dart';
 import '../../theme/app_colors.dart';
 import 'diamond_recharge_screen.dart';
@@ -67,6 +68,8 @@ class MeetingDetailScreen extends StatelessWidget {
               _categoryChip(),
               const SizedBox(width: 8),
               _statusBadge(meeting.isFull),
+              const SizedBox(width: 8),
+              _joinBadge(meeting.joinMethod),
             ],
           ),
           const SizedBox(height: 12),
@@ -106,16 +109,12 @@ class MeetingDetailScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 12),
               ),
               onPressed: () => _onApply(context),
-              child: const Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('참가 신청하기',
-                      style:
-                          TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-                  SizedBox(height: 2),
-                  Text('방장 수락 시 다이아 50개 차감',
-                      style: TextStyle(fontSize: 11, color: Colors.white70)),
-                ],
+              child: Text(
+                meeting.joinMethod == JoinMethod.firstCome
+                    ? '모임 참가하기'
+                    : '참가 신청하기',
+                style:
+                    const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
               ),
             ),
           ),
@@ -155,6 +154,19 @@ class MeetingDetailScreen extends StatelessWidget {
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
                 color: full ? AppColors.textSecondary : AppColors.textSuccess)),
+      );
+
+  Widget _joinBadge(JoinMethod m) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: AppColors.bgTertiary,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Text(m.label,
+            style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: AppColors.textSecondary)),
       );
 
   Widget _infoRow(IconData icon, String text) => Padding(

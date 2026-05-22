@@ -97,6 +97,19 @@ class MeetingCard extends StatelessWidget {
               ],
             ),
           ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: AppColors.bgTertiary,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(meeting.joinMethod.label,
+                style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textSecondary)),
+          ),
         ],
       ),
       ),

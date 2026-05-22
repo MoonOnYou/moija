@@ -29,5 +29,7 @@ void main() {
     expect(find.text('강남 인근 · 강남 보드카페'), findsOneWidget);
     // 비용도 카드에 보인다.
     expect(find.text('더치페이'), findsOneWidget);
+    // 참가 방식(기본 승인제) 배지도 카드에 보인다.
+    expect(find.text('승인제'), findsOneWidget);
   });
 }
