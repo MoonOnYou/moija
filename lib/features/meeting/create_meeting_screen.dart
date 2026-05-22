@@ -7,7 +7,9 @@ import '../../models/join_method.dart';
 import '../../models/meeting.dart';
 import '../../models/meeting_category.dart';
 import '../../models/meeting_cost.dart';
+import '../../shell/app_navigation.dart';
 import '../../theme/app_colors.dart';
+import '../common/notice_screen.dart';
 import '../filter/location_picker_screen.dart';
 import 'diamond_recharge_screen.dart';
 
@@ -188,12 +190,12 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
     }
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
     if (widget.currentDiamonds < _createCost) {
       messenger.showSnackBar(const SnackBar(content: Text('다이아가 부족해요')));
-      Navigator.push(
-        context,
+      navigator.push(
         MaterialPageRoute(
           builder: (_) =>
               DiamondRechargeScreen(currentDiamonds: widget.currentDiamonds),
@@ -201,6 +203,11 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
       );
       return;
     }
+    // 실제 생성 전에 안내 화면을 띄우고, 동의해야 만들어진다.
+    final agreed = await navigator.push<bool>(
+      MaterialPageRoute(builder: (_) => Notices.createMeeting()),
+    );
+    if (agreed != true || !mounted) return;
     final start = DateTime(
         _date!.year, _date!.month, _date!.day, _time!.hour, _time!.minute);
     final node = _online ? null : LocationCatalog.nodeById(_locationId!);
@@ -227,8 +234,9 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
       joinMethod: _joinMethod,
     );
     widget.repository.add(meeting);
+    selectedTab.value = 1; // 채팅 탭(2번째)으로 이동
+    navigator.popUntil((r) => r.isFirst);
     messenger.showSnackBar(const SnackBar(content: Text('모임이 생성됐어요')));
-    Navigator.pop(context, meeting);
   }
 
   @override

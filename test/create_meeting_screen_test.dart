@@ -4,11 +4,14 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:moija/data/meeting_repository.dart';
 import 'package:moija/features/meeting/create_meeting_screen.dart';
 import 'package:moija/features/meeting/diamond_recharge_screen.dart';
+import 'package:moija/shell/app_navigation.dart';
 
 void main() {
   setUpAll(() async {
     await initializeDateFormatting('ko_KR');
   });
+
+  setUp(() => selectedTab.value = 0);
 
   // 필수 항목을 모두 채운다(설명·구체장소 제외).
   Future<void> fillRequired(WidgetTester tester) async {
@@ -117,10 +120,14 @@ void main() {
     await tester.ensureVisible(find.byKey(const Key('submit')));
     await tester.tap(find.byKey(const Key('submit')));
     await tester.pumpAndSettle();
+    // 안내(#22) 동의해야 실제로 생성된다.
+    await tester.tap(find.byKey(const Key('notice-agree')));
+    await tester.pumpAndSettle();
 
     expect(find.byType(CreateMeetingScreen), findsNothing);
     expect(repo.allMeetings.length, before + 1);
     expect(repo.allMeetings.last.title, '주말 카페 모임');
+    expect(selectedTab.value, 1); // 채팅 탭으로 이동
   });
 
   testWidgets('카테고리 직접 입력: customCategory로 저장된다', (tester) async {
@@ -151,6 +158,8 @@ void main() {
     await tester.ensureVisible(find.byKey(const Key('submit')));
     await tester.tap(find.byKey(const Key('submit')));
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('notice-agree')));
+    await tester.pumpAndSettle();
 
     expect(repo.allMeetings.last.customCategory, '클라이밍');
     expect(repo.allMeetings.last.categoryLabel, '클라이밍');
@@ -180,6 +189,8 @@ void main() {
     await tester.ensureVisible(find.byKey(const Key('submit')));
     await tester.tap(find.byKey(const Key('submit')));
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('notice-agree')));
+    await tester.pumpAndSettle();
     expect(repo.allMeetings.last.maxMembers, 8);
   });
 
@@ -204,6 +215,8 @@ void main() {
 
     await tester.ensureVisible(find.byKey(const Key('submit')));
     await tester.tap(find.byKey(const Key('submit')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('notice-agree')));
     await tester.pumpAndSettle();
     expect(repo.allMeetings.last.cost.display, '연구실에서 갹출');
   });

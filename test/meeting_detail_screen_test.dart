@@ -6,11 +6,14 @@ import 'package:moija/features/meeting/diamond_recharge_screen.dart';
 import 'package:moija/features/meeting/meeting_detail_screen.dart';
 import 'package:moija/models/join_method.dart';
 import 'package:moija/models/meeting.dart';
+import 'package:moija/shell/app_navigation.dart';
 
 void main() {
   setUpAll(() async {
     await initializeDateFormatting('ko_KR');
   });
+
+  setUp(() => selectedTab.value = 0);
 
   testWidgets('renders meeting info, participants, and join CTA',
       (tester) async {
@@ -77,7 +80,7 @@ void main() {
     expect(find.text('다이아 50개 이상일 때 참가 신청을 할 수 있어요'), findsOneWidget);
   });
 
-  testWidgets('sufficient balance completes and returns home', (tester) async {
+  testWidgets('승인제: 안내 동의 후 신청 완료 토스트 + 내모임 탭으로 이동', (tester) async {
     final repo = MeetingRepository();
     final meeting = repo.allMeetings.firstWhere((m) => m.id == 't1');
     await tester.pumpWidget(MaterialApp(
@@ -101,10 +104,67 @@ void main() {
 
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
+    // 참가 신청하기 → 승인제 안내(#23b) 노출
     await tester.tap(find.text('참가 신청하기'));
+    await tester.pumpAndSettle();
+    expect(find.text('참가 신청하기 전에\n확인해주세요'), findsOneWidget);
+
+    // 동의 → 첫 화면으로 복귀 + 토스트 + 내모임 탭(2) 선택
+    await tester.tap(find.byKey(const Key('notice-agree')));
     await tester.pumpAndSettle();
 
     expect(find.byType(MeetingDetailScreen), findsNothing);
-    expect(find.text('참가 신청이 완료됐어요'), findsOneWidget);
+    expect(find.text('참가 신청이 완료되었습니다'), findsOneWidget);
+    expect(selectedTab.value, 2);
+  });
+
+  testWidgets('선착순: 안내 동의 후 채팅 탭으로 이동', (tester) async {
+    final repo = MeetingRepository();
+    final base = repo.allMeetings.firstWhere((m) => m.id == 't1');
+    final firstCome = Meeting(
+      id: base.id,
+      title: base.title,
+      category: base.category,
+      startTime: base.startTime,
+      location: base.location,
+      region: base.region,
+      locationId: base.locationId,
+      currentMembers: base.currentMembers,
+      maxMembers: base.maxMembers,
+      description: base.description,
+      nearestStation: base.nearestStation,
+      cost: base.cost,
+      joinMethod: JoinMethod.firstCome,
+    );
+    await tester.pumpWidget(MaterialApp(
+      home: Builder(
+        builder: (context) => Scaffold(
+          body: Center(
+            child: ElevatedButton(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => MeetingDetailScreen(
+                      meeting: firstCome, repository: repo, diamonds: 1000),
+                ),
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    ));
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('모임 참가하기'));
+    await tester.pumpAndSettle();
+    expect(find.text('바로 참가하기 전에\n확인해주세요'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('notice-agree')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MeetingDetailScreen), findsNothing);
+    expect(selectedTab.value, 1);
   });
 }

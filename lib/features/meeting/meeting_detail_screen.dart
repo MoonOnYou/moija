@@ -4,7 +4,9 @@ import '../../data/meeting_repository.dart';
 import '../../data/wallet.dart';
 import '../../models/join_method.dart';
 import '../../models/meeting.dart';
+import '../../shell/app_navigation.dart';
 import '../../theme/app_colors.dart';
+import '../common/notice_screen.dart';
 import 'diamond_recharge_screen.dart';
 import 'widgets/participant_card.dart';
 
@@ -20,22 +22,38 @@ class MeetingDetailScreen extends StatelessWidget {
   final MeetingRepository repository;
   final int diamonds;
 
-  void _onApply(BuildContext context) {
+  Future<void> _onApply(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
     if (diamonds <= 50) {
       messenger.showSnackBar(const SnackBar(
           content: Text('다이아 50개 이상일 때 참가 신청을 할 수 있어요')));
-      Navigator.push(
-        context,
+      navigator.push(
         MaterialPageRoute(
           builder: (_) => DiamondRechargeScreen(currentDiamonds: diamonds),
         ),
       );
-    } else {
-      messenger.showSnackBar(
-          const SnackBar(content: Text('참가 신청이 완료됐어요')));
-      Navigator.pop(context);
+      return;
     }
+    final isFirstCome = meeting.joinMethod == JoinMethod.firstCome;
+    // 실제 참가/신청 전에 안내 화면을 띄우고, 동의해야 진행된다.
+    final agreed = await navigator.push<bool>(
+      MaterialPageRoute(
+        builder: (_) =>
+            isFirstCome ? Notices.joinFirstCome() : Notices.joinApproval(),
+      ),
+    );
+    if (agreed != true) return;
+    if (isFirstCome) {
+      // 선착순: 즉시 확정 → 채팅 탭(2번째)의 채팅방으로 이동
+      selectedTab.value = 1;
+    } else {
+      // 승인제: 참가 신청 완료 → 내모임 탭(3번째)으로 이동
+      selectedTab.value = 2;
+      messenger.showSnackBar(
+          const SnackBar(content: Text('참가 신청이 완료되었습니다')));
+    }
+    navigator.popUntil((r) => r.isFirst);
   }
 
   @override
