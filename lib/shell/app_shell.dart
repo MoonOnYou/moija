@@ -13,12 +13,16 @@ class AppShell extends StatelessWidget {
     return ValueListenableBuilder<int>(
       valueListenable: selectedTab,
       builder: (context, index, _) {
-        final Widget body = index == 0
-            ? const HomeScreen()
-            : _Placeholder(label: _placeholders[index - 1]);
-
+        // 모든 탭 위젯을 IndexedStack에 살려둬, 탭 전환 후 돌아와도
+        // HomeScreen의 저장소·선택 날짜 같은 상태가 보존되도록 한다.
         return Scaffold(
-          body: body,
+          body: IndexedStack(
+            index: index,
+            children: [
+              const HomeScreen(),
+              for (final label in _placeholders) _Placeholder(label: label),
+            ],
+          ),
           bottomNavigationBar: NavigationBar(
             selectedIndex: index,
             onDestinationSelected: (i) => selectedTab.value = i,

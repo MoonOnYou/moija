@@ -11,7 +11,10 @@ void main() {
     await initializeDateFormatting('ko_KR');
   });
 
-  setUp(() => selectedTab.value = 0);
+  setUp(() {
+    selectedTab.value = 0;
+    pendingFocusDay.value = null;
+  });
 
   // 필수 항목을 모두 채운다(설명·구체장소 제외).
   Future<void> fillRequired(WidgetTester tester) async {

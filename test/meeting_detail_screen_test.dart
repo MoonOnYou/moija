@@ -13,7 +13,10 @@ void main() {
     await initializeDateFormatting('ko_KR');
   });
 
-  setUp(() => selectedTab.value = 0);
+  setUp(() {
+    selectedTab.value = 0;
+    pendingFocusDay.value = null;
+  });
 
   testWidgets('renders meeting info, participants, and join CTA',
       (tester) async {

@@ -234,6 +234,9 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
       joinMethod: _joinMethod,
     );
     widget.repository.add(meeting);
+    // 채팅 탭으로 이동하지만, 홈 캘린더는 새 모임 날짜로 자동 이동시켜
+    // 다시 홈으로 돌아왔을 때 만들어진 모임이 바로 보이도록 한다.
+    pendingFocusDay.value = start;
     selectedTab.value = 1; // 채팅 탭(2번째)으로 이동
     navigator.popUntil((r) => r.isFirst);
     messenger.showSnackBar(const SnackBar(content: Text('모임이 생성됐어요')));

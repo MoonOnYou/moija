@@ -5,6 +5,7 @@ import '../../data/meeting_repository.dart';
 import '../../data/wallet.dart';
 import '../../models/meeting.dart';
 import '../../models/meeting_filter.dart';
+import '../../shell/app_navigation.dart';
 import '../../theme/app_colors.dart';
 import '../filter/filter_screen.dart';
 import '../meeting/create_meeting_screen.dart';
@@ -40,6 +41,24 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _loadFilter();
+    pendingFocusDay.addListener(_consumePendingFocus);
+    // 위젯이 살아있는 동안 누적된 요청이 있으면 마운트 직후 1회 처리.
+    _consumePendingFocus();
+  }
+
+  @override
+  void dispose() {
+    pendingFocusDay.removeListener(_consumePendingFocus);
+    super.dispose();
+  }
+
+  /// 외부(예: 모임 생성 흐름)에서 요청한 날짜로 캘린더를 이동시킨 뒤
+  /// 신호를 비워둔다(중복 처리를 막기 위함).
+  void _consumePendingFocus() {
+    final day = pendingFocusDay.value;
+    if (day == null) return;
+    _goToDay(day);
+    pendingFocusDay.value = null;
   }
 
   Future<void> _loadFilter() async {
