@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
+import '../data/meeting_repository.dart';
+import '../features/chat/chat_screen.dart';
 import '../features/home/home_screen.dart';
 import '../theme/app_colors.dart';
 import 'app_navigation.dart';
 
-class AppShell extends StatelessWidget {
+class AppShell extends StatefulWidget {
   const AppShell({super.key});
 
-  static const _placeholders = ['채팅', '내모임', '프로필'];
+  @override
+  State<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends State<AppShell> {
+  // 홈과 채팅이 같은 모임 데이터를 공유하도록 한 인스턴스를 셸에서 보유한다.
+  final MeetingRepository _repository = MeetingRepository();
 
   @override
   Widget build(BuildContext context) {
@@ -19,8 +27,10 @@ class AppShell extends StatelessWidget {
           body: IndexedStack(
             index: index,
             children: [
-              const HomeScreen(),
-              for (final label in _placeholders) _Placeholder(label: label),
+              HomeScreen(repository: _repository),
+              ChatScreen(repository: _repository),
+              const _Placeholder(label: '내모임'),
+              const _Placeholder(label: '프로필'),
             ],
           ),
           bottomNavigationBar: NavigationBar(
