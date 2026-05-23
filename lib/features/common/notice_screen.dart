@@ -58,6 +58,9 @@ class NoticeScreen extends StatelessWidget {
         ),
       ),
       body: Column(
+        // 바깥 Column 기본값(center)이면 너비가 콘텐츠에 맞춰진 헤더 Padding이
+        // 가운데로 정렬돼 왼쪽이 비어 보인다. start로 고정해 왼쪽 끝에 붙인다.
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 4, 24, 16),
@@ -224,7 +227,7 @@ class Notices {
           NoticeItem(Icons.diamond_outlined, AppColors.textInfo,
               '다이아 300개로 모임을 만들어요'),
           NoticeItem(Icons.schedule, AppColors.textSecondary,
-              '모임이 끝난 뒤 48시간까지 채팅이 유지돼요', '정산용'),
+              '모임 시작 후 48시간까지 채팅이 유지돼요', '정산을 마무리 해 주세요'),
           NoticeItem(Icons.fact_check_outlined, AppColors.textSecondary,
               '방장은 출석 체크와 정산 확인을 해주세요'),
           NoticeItem(Icons.warning_amber_rounded, AppColors.textDanger,
@@ -244,14 +247,14 @@ class Notices {
         badgeColor: AppColors.textSuccess,
         items: [
           NoticeItem(Icons.diamond_outlined, AppColors.textInfo,
-              '바로 참가하고 50 다이아를 사용해요', '즉시 확정 + 채팅방 입장'),
+              '바로 참가하고 50 다이아를 사용해요', '즉시 채팅방에 입장헤요'),
           NoticeItem(Icons.star_border, AppColors.textWarning,
               '참여하면 멤버들이 내 매너점수를 매길 수 있어요'),
           NoticeItem(Icons.schedule, AppColors.textSecondary,
-              '모임이 끝난 뒤 48시간까지 채팅이 유지돼요', '정산용'),
+              '모임이 시작 후 48시간까지 채팅이 유지돼요', '정산을 마무리 해 주세요'),
           NoticeItem(Icons.warning_amber_rounded, AppColors.textDanger,
               '무단 이탈·노쇼·미정산은 제한을 받을 수 있어요',
-              '매너점수 하락 + 앱 이용 제한'),
+              '매너점수 하락 및 앱 이용에 제한을 받아요'),
         ],
         buttonLabel: '동의하고 바로 참가하기 · 50 다이아',
       );
@@ -267,12 +270,14 @@ class Notices {
         showHostMessage: true,
         items: [
           NoticeItem(Icons.diamond_outlined, AppColors.textInfo,
-              '방장이 수락하면 50 다이아를 사용해요', '신청은 무료 · 거절되면 차감 없음'),
+              '방장이 수락하면 50 다이아를 사용해요', '신청은 무료 · 거절되면 차감 없어요'),
           NoticeItem(Icons.star_border, AppColors.textWarning,
               '참여하면 멤버들이 내 매너점수를 매길 수 있어요'),
+          NoticeItem(Icons.schedule, AppColors.textSecondary,
+              '모임이 시작 후 48시간까지 채팅이 유지돼요', '정산을 마무리 해 주세요'),
           NoticeItem(Icons.warning_amber_rounded, AppColors.textDanger,
               '무단 이탈·노쇼·미정산은 제한을 받을 수 있어요',
-              '매너점수 하락 + 앱 이용 제한'),
+              '매너점수 하락 및 앱 이용에 제한을 받아요'),
         ],
         buttonLabel: '동의하고 참가 신청하기',
       );
