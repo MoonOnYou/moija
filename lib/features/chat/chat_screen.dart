@@ -17,6 +17,13 @@ class ChatScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final n = now ?? DateTime.now();
+    // 안읽음 탭 배지: 채팅이 유지 중인 모든 모임의 unread를 합산.
+    final unreadTotal = repository.allMeetings
+        .where((m) => chatStillAlive(m, n))
+        .fold<int>(
+            0, (sum, m) => sum + ChatPreview.forMeeting(m).unreadCount);
+
     return DefaultTabController(
       length: 2,
       child: Scaffold(
@@ -27,22 +34,59 @@ class ChatScreen extends StatelessWidget {
           title: const Text('채팅',
               style: TextStyle(
                   fontSize: 18, fontWeight: FontWeight.w700)),
-          bottom: const TabBar(
+          bottom: TabBar(
             labelColor: AppColors.textPrimary,
             unselectedLabelColor: AppColors.textTertiary,
             indicatorColor: AppColors.textPrimary,
             labelStyle:
-                TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-            tabs: [Tab(text: '전체'), Tab(text: '안읽음')],
+                const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            tabs: [
+              const Tab(text: '전체'),
+              Tab(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('안읽음'),
+                    if (unreadTotal > 0) ...[
+                      const SizedBox(width: 6),
+                      _UnreadBadge(count: unreadTotal),
+                    ],
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
         body: TabBarView(
           children: [
-            _ChatList(repository: repository, now: now, onlyUnread: false),
-            _ChatList(repository: repository, now: now, onlyUnread: true),
+            _ChatList(repository: repository, now: n, onlyUnread: false),
+            _ChatList(repository: repository, now: n, onlyUnread: true),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _UnreadBadge extends StatelessWidget {
+  const _UnreadBadge({required this.count});
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+      constraints: const BoxConstraints(minWidth: 20),
+      decoration: BoxDecoration(
+        color: AppColors.textDanger,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text('$count',
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+              fontSize: 11,
+              color: Colors.white,
+              fontWeight: FontWeight.w600)),
     );
   }
 }

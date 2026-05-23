@@ -113,6 +113,53 @@ void main() {
     }
   });
 
+  testWidgets('안읽음 탭에 미읽음 합계 배지가 표시된다', (tester) async {
+    final now = DateTime(2026, 5, 23, 12, 0);
+
+    // ChatPreview.forMeeting는 id.hashCode % 5 로 unread를 결정한다.
+    // 모두 unread>0인 id만 모아 합계가 노출되는지 확인한다.
+    Meeting future(String id) => _m(id, '미래 $id', now.add(const Duration(days: 1)));
+    final candidates = [
+      'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
+    ].map(future).toList();
+    final withUnread =
+        candidates.where((m) => ChatPreview.forMeeting(m).unreadCount > 0).toList();
+    final expectedTotal = withUnread.fold<int>(
+        0, (sum, m) => sum + ChatPreview.forMeeting(m).unreadCount);
+    expect(withUnread, isNotEmpty);
+    expect(expectedTotal, greaterThan(0));
+
+    await tester.pumpWidget(MaterialApp(
+      home: ChatScreen(repository: _TestRepo(withUnread), now: now),
+    ));
+    await tester.pumpAndSettle();
+
+    // 탭 라벨 옆 배지 텍스트(합계)가 노출된다.
+    expect(find.text('$expectedTotal'), findsOneWidget);
+  });
+
+  testWidgets('미읽음이 없으면 배지가 표시되지 않는다', (tester) async {
+    final now = DateTime(2026, 5, 23, 12, 0);
+
+    Meeting future(String id) => _m(id, '미래 $id', now.add(const Duration(days: 1)));
+    final candidates = [
+      'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
+    ].map(future).toList();
+    final noUnread = candidates
+        .where((m) => ChatPreview.forMeeting(m).unreadCount == 0)
+        .toList();
+    expect(noUnread, isNotEmpty);
+
+    await tester.pumpWidget(MaterialApp(
+      home: ChatScreen(repository: _TestRepo(noUnread), now: now),
+    ));
+    await tester.pumpAndSettle();
+
+    // 배지 컨테이너(textDanger 배경)는 그려지지 않아야 한다.
+    // 안읽음 라벨은 한 번만 보여야 한다(배지 텍스트가 추가로 잡히지 않음).
+    expect(find.text('안읽음'), findsOneWidget);
+  });
+
   testWidgets('채팅이 없으면 안내 문구', (tester) async {
     final now = DateTime(2026, 5, 23, 12, 0);
     final repo = _TestRepo([
