@@ -54,6 +54,20 @@ void main() {
     expect(f.matches(_m(locationId: 'seoul-line2-역삼')), isFalse);
   });
 
+  test('location filter: 지역 전체("서울") 선택은 그 지역 모든 노선·역을 매칭', () {
+    const f = MeetingFilter(locationIds: {'서울'});
+    expect(f.matches(_m(locationId: 'seoul-line2')), isTrue);
+    expect(f.matches(_m(locationId: 'seoul-line2-강남')), isTrue);
+    expect(f.matches(_m(locationId: 'sinbundang')), isTrue); // 광역 노선도 서울에 포함
+    expect(f.matches(_m(locationId: 'busan-line2')), isFalse);
+  });
+
+  test('location filter: "세종" 전체는 세종시 노드와 매칭', () {
+    const f = MeetingFilter(locationIds: {'세종'});
+    expect(f.matches(_m(locationId: 'sejong')), isTrue);
+    expect(f.matches(_m(locationId: 'seoul-line2')), isFalse);
+  });
+
   test('time band filter', () {
     const f = MeetingFilter(timeBands: {TimeBand.evening});
     expect(f.matches(_m(hour: 19)), isTrue);

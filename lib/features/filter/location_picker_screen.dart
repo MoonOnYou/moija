@@ -140,8 +140,22 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
 
   Widget _nodeList(String region) {
     final nodes = LocationCatalog.nodesIn(region);
+    // 세종은 단일 노드가 이미 "세종시 전체"라 region 전체 행을 따로 두지 않는다.
+    final showRegionAll = region != '세종';
     return ListView(
       children: [
+        if (showRegionAll)
+          widget.singleSelect
+              ? ListTile(
+                  title: Text('$region 전체'),
+                  onTap: () => Navigator.pop(context, {region}),
+                )
+              : CheckboxListTile(
+                  value: _selected.contains(region),
+                  title: Text('$region 전체'),
+                  controlAffinity: ListTileControlAffinity.trailing,
+                  onChanged: (_) => _toggle(region),
+                ),
         for (final node in nodes)
           if (LocationCatalog.childrenOf(node.id).isNotEmpty) // 자식(역) 있는 노선 → 드릴다운
             ListTile(

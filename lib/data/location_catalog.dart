@@ -74,7 +74,7 @@ class LocationCatalog {
       LocationNode(id: 'donghae', label: '동해선', region: '울산'),
     ],
     '세종': const [
-      LocationNode(id: 'sejong', label: '세종시', region: '세종'),
+      LocationNode(id: 'sejong', label: '세종시 전체', region: '세종'),
     ],
     '경기': [
       ..._province('경기', const [
@@ -174,6 +174,25 @@ class LocationCatalog {
   static List<LocationNode> nodesIn(String region) =>
       _byRegion[region] ?? const [];
 
+  /// 시/도 이름인지 여부. 필터 id로 "서울"·"부산" 같은 region 자체가 들어올 수 있다.
+  static bool isRegion(String id) => regions.contains(id);
+
+  /// 필터 id 집합에 region 자체(예: "서울")가 있으면 그 region의 자식 노드 id로 펼친다.
+  /// region이 아닌 id는 그대로 둔다.
+  static Set<String> expandToLeafIds(Iterable<String> ids) {
+    final out = <String>{};
+    for (final id in ids) {
+      if (isRegion(id)) {
+        for (final n in nodesIn(id)) {
+          out.add(n.id);
+        }
+      } else {
+        out.add(id);
+      }
+    }
+    return out;
+  }
+
   static LocationNode? nodeById(String id) {
     for (final list in _byRegion.values) {
       for (final node in list) {
@@ -190,6 +209,7 @@ class LocationCatalog {
 
   /// 표시용 라벨. 역이면 노선명을 앞에 붙여 동명 역을 구분한다(예: "2호선 시청").
   static String displayLabel(String id) {
+    if (isRegion(id)) return '$id 전체';
     final node = nodeById(id);
     if (node == null) return id;
     final dash = id.lastIndexOf('-');

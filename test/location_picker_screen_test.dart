@@ -143,11 +143,11 @@ void main() {
     await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
     expect(find.text('시청'), findsNothing);
-    expect(find.text('9호선'), findsOneWidget); // 노선 목록
+    expect(find.text('서울 전체'), findsOneWidget); // 노선 목록 최상단
 
     await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
-    expect(find.text('9호선'), findsNothing);
+    expect(find.text('서울 전체'), findsNothing);
     expect(find.text('장소 선택'), findsOneWidget); // 시/도 목록
   });
 
@@ -253,6 +253,106 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(result, {'경기-수원시'});
+  });
+
+  testWidgets('다중: "서울 전체" 행 체크 후 완료 시 region id 반환', (tester) async {
+    Set<String>? result;
+    await tester.pumpWidget(MaterialApp(
+      home: Builder(
+        builder: (context) => Scaffold(
+          body: Center(
+            child: ElevatedButton(
+              onPressed: () async {
+                result = await Navigator.push<Set<String>>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const LocationPickerScreen(initial: {}),
+                  ),
+                );
+              },
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    ));
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('서울'));
+    await tester.pumpAndSettle();
+    // 호선 목록 맨 위에 "서울 전체" 행이 노출되어야 한다.
+    expect(find.text('서울 전체'), findsOneWidget);
+    await tester.tap(find.text('서울 전체'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('완료'));
+    await tester.pumpAndSettle();
+
+    expect(result, contains('서울'));
+  });
+
+  testWidgets('singleSelect: "경기 전체"를 누르면 region id로 즉시 pop', (tester) async {
+    Set<String>? result;
+    await tester.pumpWidget(MaterialApp(
+      home: Builder(
+        builder: (context) => Scaffold(
+          body: Center(
+            child: ElevatedButton(
+              onPressed: () async {
+                result = await Navigator.push<Set<String>>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const LocationPickerScreen(
+                        initial: {}, singleSelect: true),
+                  ),
+                );
+              },
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    ));
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('경기'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('경기 전체'));
+    await tester.pumpAndSettle();
+
+    expect(result, {'경기'});
+  });
+
+  testWidgets('세종은 단일 노드가 "세종시 전체"로 노출되고 region 전체 행은 없다',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Builder(
+        builder: (context) => Scaffold(
+          body: Center(
+            child: ElevatedButton(
+              onPressed: () async {
+                await Navigator.push<Set<String>>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const LocationPickerScreen(initial: {}),
+                  ),
+                );
+              },
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    ));
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('세종'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('세종시 전체'), findsOneWidget);
+    expect(find.text('세종 전체'), findsNothing); // region 전체 행 없음
   });
 
   testWidgets('다중: 목록 하단 역(충정로)도 스크롤하여 선택 가능', (tester) async {

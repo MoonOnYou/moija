@@ -1,3 +1,4 @@
+import '../data/location_catalog.dart';
 import 'meeting.dart';
 import 'meeting_category.dart';
 import 'time_band.dart';
@@ -41,10 +42,12 @@ class MeetingFilter {
     if (categories.isNotEmpty && !categories.contains(m.category)) {
       return false;
     }
-    if (locationIds.isNotEmpty &&
-        !locationIds.any((s) =>
-            m.locationId == s || m.locationId.startsWith('$s-'))) {
-      return false;
+    if (locationIds.isNotEmpty) {
+      // region 자체("서울" 등)는 그 지역의 모든 자식 노드 id로 펼친 뒤 매칭.
+      final expanded = LocationCatalog.expandToLeafIds(locationIds);
+      final matched = expanded.any(
+          (s) => m.locationId == s || m.locationId.startsWith('$s-'));
+      if (!matched) return false;
     }
     if (timeBands.isNotEmpty &&
         !timeBands.any((b) => b.containsHour(m.startTime.hour))) {
