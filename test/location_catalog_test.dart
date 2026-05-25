@@ -64,6 +64,22 @@ void main() {
     expect(ulsan.map((n) => n.label), containsAll(['중구', '울주군']));
   });
 
+  test('서울 외 광역시는 호선과 함께 구·군도 노출된다', () {
+    bool hasNode(String region, String id) =>
+        LocationCatalog.nodesIn(region).any((n) => n.id == id);
+
+    expect(hasNode('부산', '부산-해운대구'), isTrue);
+    expect(hasNode('부산', 'busan-line2'), isTrue);
+    expect(hasNode('대구', '대구-수성구'), isTrue);
+    expect(hasNode('대구', 'daegu-line2'), isTrue);
+    expect(hasNode('인천', '인천-연수구'), isTrue);
+    expect(hasNode('인천', 'incheon-line1'), isTrue);
+    expect(hasNode('광주', '광주-동구'), isTrue);
+    expect(hasNode('광주', 'gwangju-line1'), isTrue);
+    expect(hasNode('대전', '대전-유성구'), isTrue);
+    expect(hasNode('대전', 'daejeon-line1'), isTrue);
+  });
+
   test('nodeById resolves labels', () {
     expect(LocationCatalog.nodeById('seoul-line2')?.label, '2호선');
     expect(LocationCatalog.nodeById('busan-line4')?.label, '부산4호선');

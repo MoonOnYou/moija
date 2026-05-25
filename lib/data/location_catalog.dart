@@ -36,33 +36,49 @@ class LocationCatalog {
       LocationNode(id: 'gimpo-gold', label: '김포골드라인', region: '서울'),
       LocationNode(id: 'gtx-a', label: 'GTX-A', region: '서울'),
     ],
-    '부산': const [
-      LocationNode(id: 'busan-line1', label: '부산1호선', region: '부산'),
-      LocationNode(id: 'busan-line2', label: '부산2호선', region: '부산'),
-      LocationNode(id: 'busan-line3', label: '부산3호선', region: '부산'),
-      LocationNode(id: 'busan-line4', label: '부산4호선', region: '부산'),
+    '부산': [
+      // 구·군(지하철로 닿기 어려운 지역도 고를 수 있게).
+      ..._province('부산', const [
+        '중구', '서구', '동구', '영도구', '부산진구', '동래구', '남구', '북구',
+        '해운대구', '사하구', '금정구', '강서구', '연제구', '수영구', '사상구',
+        '기장군',
+      ]),
+      const LocationNode(id: 'busan-line1', label: '부산1호선', region: '부산'),
+      const LocationNode(id: 'busan-line2', label: '부산2호선', region: '부산'),
+      const LocationNode(id: 'busan-line3', label: '부산3호선', region: '부산'),
+      const LocationNode(id: 'busan-line4', label: '부산4호선', region: '부산'),
       // 광역 노선
-      LocationNode(id: 'donghae', label: '동해선', region: '부산'),
-      LocationNode(id: 'busan-gimhae', label: '부산김해경전철', region: '부산'),
+      const LocationNode(id: 'donghae', label: '동해선', region: '부산'),
+      const LocationNode(id: 'busan-gimhae', label: '부산김해경전철', region: '부산'),
     ],
-    '대구': const [
-      LocationNode(id: 'daegu-line1', label: '대구1호선', region: '대구'),
-      LocationNode(id: 'daegu-line2', label: '대구2호선', region: '대구'),
-      LocationNode(id: 'daegu-line3', label: '대구3호선', region: '대구'),
-      LocationNode(id: 'daegyeong', label: '대경선', region: '대구'),
+    '대구': [
+      ..._province('대구', const [
+        '중구', '동구', '서구', '남구', '북구', '수성구', '달서구', '달성군',
+        '군위군',
+      ]),
+      const LocationNode(id: 'daegu-line1', label: '대구1호선', region: '대구'),
+      const LocationNode(id: 'daegu-line2', label: '대구2호선', region: '대구'),
+      const LocationNode(id: 'daegu-line3', label: '대구3호선', region: '대구'),
+      const LocationNode(id: 'daegyeong', label: '대경선', region: '대구'),
     ],
-    '인천': const [
-      LocationNode(id: 'incheon-line1', label: '인천1호선', region: '인천'),
-      LocationNode(id: 'incheon-line2', label: '인천2호선', region: '인천'),
+    '인천': [
+      ..._province('인천', const [
+        '중구', '동구', '미추홀구', '연수구', '남동구', '부평구', '계양구', '서구',
+        '강화군', '옹진군',
+      ]),
+      const LocationNode(id: 'incheon-line1', label: '인천1호선', region: '인천'),
+      const LocationNode(id: 'incheon-line2', label: '인천2호선', region: '인천'),
       // 광역 노선
-      LocationNode(id: 'suin-bundang', label: '수인분당선', region: '인천'),
-      LocationNode(id: 'airport', label: '공항철도', region: '인천'),
+      const LocationNode(id: 'suin-bundang', label: '수인분당선', region: '인천'),
+      const LocationNode(id: 'airport', label: '공항철도', region: '인천'),
     ],
-    '광주': const [
-      LocationNode(id: 'gwangju-line1', label: '광주1호선', region: '광주'),
+    '광주': [
+      ..._province('광주', const ['동구', '서구', '남구', '북구', '광산구']),
+      const LocationNode(id: 'gwangju-line1', label: '광주1호선', region: '광주'),
     ],
-    '대전': const [
-      LocationNode(id: 'daejeon-line1', label: '대전1호선', region: '대전'),
+    '대전': [
+      ..._province('대전', const ['동구', '중구', '서구', '유성구', '대덕구']),
+      const LocationNode(id: 'daejeon-line1', label: '대전1호선', region: '대전'),
     ],
     '울산': const [
       LocationNode(id: 'ulsan-junggu', label: '중구', region: '울산'),
