@@ -55,7 +55,8 @@ class _ChatScreenState extends State<ChatScreen> {
     ongoing.sort((a, b) => a.startTime.compareTo(b.startTime));
     ended.sort((a, b) => b.startTime.compareTo(a.startTime));
 
-    final hasAny = pending.isNotEmpty ||
+    final hasAny =
+        pending.isNotEmpty ||
         ongoing.isNotEmpty ||
         upcoming.isNotEmpty ||
         ended.isNotEmpty;
@@ -65,93 +66,117 @@ class _ChatScreenState extends State<ChatScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.bgPrimary,
         elevation: 0,
-        title: const Text('내모임',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+        title: const Text(
+          '내모임',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+        ),
       ),
-      body: !hasAny
-          ? const Center(
-              child: Text('아직 참여 중인 모임이 없어요',
-                  style: TextStyle(
-                      fontSize: 14, color: AppColors.textTertiary)),
-            )
-          : ListView(
-              children: [
-                if (pending.isNotEmpty) ...[
-                  const _SectionHeader('신청 대기중'),
-                  for (final m in pending)
-                    _PendingMeetingCell(
-                      meeting: m,
-                      onCancel: () => _confirmCancel(m),
+      body: RefreshIndicator(
+        onRefresh: _onRefresh,
+        child: !hasAny
+            ? CustomScrollView(
+                // 빈 상태에서도 당겨서 새로고침이 동작하도록 항상 스크롤 가능하게.
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: const [
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(
+                      child: Text(
+                        '아직 참여 중인 모임이 없어요',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textTertiary,
+                        ),
+                      ),
                     ),
+                  ),
                 ],
-                if (ongoing.isNotEmpty) ...[
-                  const _SectionHeader('진행중인 모임'),
-                  for (final m in ongoing)
-                    ChatRoomCell(
-                      meeting: m,
-                      timeLabel: ongoingLabel(m),
-                      isHost: repo.isHost(m),
-                      onTap: () => _openChatRoom(m),
-                    ),
-                ],
-                if (upcoming.isNotEmpty) ...[
-                  const _SectionHeader('다가오는 모임'),
-                  for (final m in upcoming) ...[
-                    ChatRoomCell(
-                      meeting: m,
-                      timeLabel: upcomingLabel(m, n),
-                      isHost: repo.isHost(m),
-                      onTap: () => _openChatRoom(m),
-                    ),
-                    // 선착순은 신청 검토 단계가 없으므로 승인제일 때만 노출.
-                    if (repo.isHost(m) &&
-                        m.joinMethod == JoinMethod.approval)
-                      _HostActionButton(
-                        icon: Icons.fact_check_outlined,
-                        label: '신청자 ${pendingApplicantsFor(m)}명 검토하기',
-                        onPressed: () => _openApplicantReview(m),
+              )
+            : ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: [
+                  if (pending.isNotEmpty) ...[
+                    const _SectionHeader('신청 대기중'),
+                    for (final m in pending)
+                      _PendingMeetingCell(
+                        meeting: m,
+                        onCancel: () => _confirmCancel(m),
                       ),
                   ],
-                ],
-                if (ended.isNotEmpty) ...[
-                  const _SectionHeader('종료된 모임'),
-                  for (final m in ended) ...[
-                    ChatRoomCell(
-                      meeting: m,
-                      timeLabel: endedLabel(m, n),
-                      isHost: repo.isHost(m),
-                      onTap: () => _openChatRoom(m),
-                    ),
-                    if (repo.isHost(m))
-                      _HostActionButton(
-                        icon: Icons.star_outline_rounded,
-                        label: '팀원 매너 평가하기',
-                        onPressed: () {},
+                  if (ongoing.isNotEmpty) ...[
+                    const _SectionHeader('진행중인 모임'),
+                    for (final m in ongoing)
+                      ChatRoomCell(
+                        meeting: m,
+                        timeLabel: ongoingLabel(m),
+                        isHost: repo.isHost(m),
+                        onTap: () => _openChatRoom(m),
                       ),
                   ],
+                  if (upcoming.isNotEmpty) ...[
+                    const _SectionHeader('다가오는 모임'),
+                    for (final m in upcoming) ...[
+                      ChatRoomCell(
+                        meeting: m,
+                        timeLabel: upcomingLabel(m, n),
+                        isHost: repo.isHost(m),
+                        onTap: () => _openChatRoom(m),
+                      ),
+                      // 선착순은 신청 검토 단계가 없으므로 승인제일 때만 노출.
+                      if (repo.isHost(m) && m.joinMethod == JoinMethod.approval)
+                        _HostActionButton(
+                          icon: Icons.fact_check_outlined,
+                          label: '신청자 ${pendingApplicantsFor(m)}명 검토하기',
+                          onPressed: () => _openApplicantReview(m),
+                        ),
+                    ],
+                  ],
+                  if (ended.isNotEmpty) ...[
+                    const _SectionHeader('종료된 모임'),
+                    for (final m in ended) ...[
+                      ChatRoomCell(
+                        meeting: m,
+                        timeLabel: endedLabel(m, n),
+                        isHost: repo.isHost(m),
+                        onTap: () => _openChatRoom(m),
+                      ),
+                      if (repo.isHost(m))
+                        _HostActionButton(
+                          icon: Icons.star_outline_rounded,
+                          label: '팀원 매너 평가하기',
+                          onPressed: () {},
+                        ),
+                    ],
+                  ],
+                  const SizedBox(height: 12),
                 ],
-                const SizedBox(height: 12),
-              ],
-            ),
+              ),
+      ),
     );
   }
 
+  Future<void> _onRefresh() async {
+    // mock 데이터라 별도 fetch는 없고, 약간의 지연 후 리스트만 다시 그린다.
+    await Future<void>.delayed(const Duration(milliseconds: 600));
+    if (mounted) setState(() {});
+  }
+
   Future<void> _openApplicantReview(Meeting m) async {
-    await Navigator.of(context).push(MaterialPageRoute(
-      builder: (_) => ApplicantReviewScreen(
-        repository: widget.repository,
-        meeting: m,
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) =>
+            ApplicantReviewScreen(repository: widget.repository, meeting: m),
       ),
-    ));
+    );
   }
 
   Future<void> _openChatRoom(Meeting m) async {
-    await Navigator.of(context).push(MaterialPageRoute(
-      builder: (_) => ChatRoomScreen(
-        repository: widget.repository,
-        meeting: m,
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) =>
+            ChatRoomScreen(repository: widget.repository, meeting: m),
       ),
-    ));
+    );
     // 채팅방에서 모임 나가기 했을 수 있으니 리스트 갱신.
     if (mounted) setState(() {});
   }
@@ -190,11 +215,14 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 6),
-      child: Text(title,
-          style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textSecondary)),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textSecondary,
+        ),
+      ),
     );
   }
 }
@@ -220,19 +248,26 @@ class _PendingMeetingCell extends StatelessWidget {
               color: meeting.category.chipBackground,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(meeting.category.icon,
-                size: 24, color: meeting.category.chipForeground),
+            child: Icon(
+              meeting.category.icon,
+              size: 24,
+              color: meeting.category.chipForeground,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(meeting.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                        fontSize: 15, fontWeight: FontWeight.w600)),
+                Text(
+                  meeting.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 const SizedBox(height: 4),
                 Text(
                   meeting.description.isNotEmpty
@@ -241,9 +276,10 @@ class _PendingMeetingCell extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textSecondary,
-                      height: 1.35),
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                    height: 1.35,
+                  ),
                 ),
               ],
             ),
@@ -258,9 +294,12 @@ class _PendingMeetingCell extends StatelessWidget {
               minimumSize: const Size(0, 32),
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
+                borderRadius: BorderRadius.circular(8),
+              ),
               textStyle: const TextStyle(
-                  fontSize: 12, fontWeight: FontWeight.w600),
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
             ),
             child: const Text('신청 취소'),
           ),
@@ -297,9 +336,12 @@ class _HostActionButton extends StatelessWidget {
             foregroundColor: AppColors.textPrimary,
             padding: const EdgeInsets.symmetric(vertical: 12),
             shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10)),
-            textStyle:
-                const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            textStyle: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ),

@@ -223,6 +223,52 @@ void main() {
     expect(find.text('아직 참여 중인 모임이 없어요'), findsOneWidget);
   });
 
+  testWidgets('리스트와 빈 상태 모두 RefreshIndicator로 감싸져 있다', (tester) async {
+    final now = DateTime(2026, 5, 25, 12, 0);
+
+    // 데이터가 있을 때.
+    final mine = _m('mine', '내 모임', now.add(const Duration(days: 1)));
+    final repoWith = MeetingRepository.test(
+      meetings: [mine],
+      joined: {'mine'},
+    );
+    await tester.pumpWidget(MaterialApp(
+      home: ChatScreen(repository: repoWith, now: now),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.byType(RefreshIndicator), findsOneWidget);
+
+    // 비어 있을 때도.
+    await tester.pumpWidget(MaterialApp(
+      home: ChatScreen(repository: MeetingRepository.test(), now: now),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.byType(RefreshIndicator), findsOneWidget);
+    expect(find.text('아직 참여 중인 모임이 없어요'), findsOneWidget);
+  });
+
+  testWidgets('아래로 당기면 새로고침 인디케이터가 표시·종료된다', (tester) async {
+    final now = DateTime(2026, 5, 25, 12, 0);
+    final mine = _m('mine', '새로고침 모임', now.add(const Duration(days: 1)));
+    final repo = MeetingRepository.test(meetings: [mine], joined: {'mine'});
+
+    await tester.pumpWidget(MaterialApp(
+      home: ChatScreen(repository: repo, now: now),
+    ));
+    await tester.pumpAndSettle();
+
+    // 리스트 아래로 fling → 인디케이터 표시 → onRefresh 완료 후 사라짐.
+    await tester.fling(
+        find.text('새로고침 모임'), const Offset(0, 300), 1000);
+    await tester.pump(); // 인디케이터 등장 프레임
+    expect(find.byType(RefreshProgressIndicator), findsOneWidget);
+
+    await tester.pumpAndSettle(const Duration(seconds: 1));
+    expect(find.byType(RefreshProgressIndicator), findsNothing);
+    // 화면은 정상 유지.
+    expect(find.text('새로고침 모임'), findsOneWidget);
+  });
+
   test('배지 합계 = 채팅 안읽음 + 방장 액션 카드(대기·선착순 검토 제외)', () {
     final now = DateTime(2026, 5, 25, 12, 0);
 
