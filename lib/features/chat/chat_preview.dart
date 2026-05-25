@@ -1,5 +1,6 @@
 import 'package:intl/intl.dart';
 import '../../data/meeting_repository.dart';
+import '../../models/join_method.dart';
 import '../../models/meeting.dart';
 
 /// 모임 채팅 단계. 채팅 리스트 섹션을 가른다.
@@ -116,7 +117,8 @@ int myMeetingsBadgeTotal(MeetingRepository repo, DateTime now) {
     if (repo.isHost(m)) {
       switch (meetingPhase(m, now)) {
         case MeetingPhase.upcoming:
-          total += 1; // 신청자 N명 검토하기
+          // 선착순은 검토 카드가 없으므로 합산에서 제외.
+          if (m.joinMethod == JoinMethod.approval) total += 1;
         case MeetingPhase.ended:
           total += 1; // 팀원 매너 평가하기
         case MeetingPhase.ongoing:

@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import '../models/join_method.dart';
 import '../models/meeting.dart';
 import '../models/meeting_category.dart';
 import '../models/meeting_cost.dart';
@@ -64,6 +65,12 @@ class MeetingRepository {
     _myPendingIds.remove(meetingId);
   }
 
+  /// 내 모임에서 나간다. 방장 권한도 같이 사라진다(mock 단순화).
+  void leave(String meetingId) {
+    _myJoinedIds.remove(meetingId);
+    _myHostedIds.remove(meetingId);
+  }
+
   bool isHost(Meeting m) => _myHostedIds.contains(m.id);
   bool isPending(Meeting m) => _myPendingIds.contains(m.id);
   bool isJoined(Meeting m) => _myJoinedIds.contains(m.id);
@@ -112,8 +119,9 @@ class MeetingRepository {
     String region,
     String locationId,
     int cur,
-    int max,
-  ) =>
+    int max, {
+    JoinMethod join = JoinMethod.approval,
+  }) =>
       Meeting(
         id: id,
         title: title,
@@ -128,6 +136,7 @@ class MeetingRepository {
             '$region에서 즐기는 ${c.label} 모임이에요. 부담 없이 신청해 주세요!',
         nearestStation: '$region 인근',
         cost: _costFor(c),
+        joinMethod: join,
       );
 
   static MeetingCost _costFor(MeetingCategory c) {
@@ -167,7 +176,8 @@ class MeetingRepository {
     _m('c3', '심야 모임', MeetingCategory.etc,
         DateTime(2026, 5, 20, 22, 0), '신림 어딘가', '신림', 'seoul-line2', 2, 4),
     _m('c4', '라떼 한잔', MeetingCategory.cafe,
-        DateTime(2026, 5, 20, 15, 0), '신림 카페거리', '신림', 'seoul-line2', 1, 4),
+        DateTime(2026, 5, 20, 15, 0), '신림 카페거리', '신림', 'seoul-line2', 1, 4,
+        join: JoinMethod.firstCome),
     _m('c5', '소맥 모임', MeetingCategory.drink,
         DateTime(2026, 5, 20, 21, 0), '신림 술집', '신림', 'seoul-line2', 5, 8),
     _m('c6', '노래방 직행', MeetingCategory.karaoke,
@@ -181,7 +191,8 @@ class MeetingRepository {
 
     // --- 추가 (이번달 후반·다음달, 필터 테스트용) ---
     _m('n1', '서면 코인노래방', MeetingCategory.karaoke,
-        DateTime(2026, 5, 21, 19, 0), '부산 서면', '서면', 'busan-line2', 2, 6),
+        DateTime(2026, 5, 21, 19, 0), '부산 서면', '서면', 'busan-line2', 2, 6,
+        join: JoinMethod.firstCome),
     _m('n2', '광교산 등반', MeetingCategory.hiking,
         DateTime(2026, 5, 21, 6, 30), '수원 광교산', '수원', '경기-수원시', 4, 10),
     _m('n3', '판교 보드게임', MeetingCategory.boardGame,
@@ -189,7 +200,8 @@ class MeetingRepository {
     _m('n4', '부산 PC방 정모', MeetingCategory.lol,
         DateTime(2026, 5, 23, 22, 0), '부산 남포동', '남포', 'busan-line1', 4, 5),
     _m('n5', '제주 오션뷰 카페', MeetingCategory.cafe,
-        DateTime(2026, 5, 23, 10, 0), '제주 애월', '애월', '제주-제주시', 2, 4),
+        DateTime(2026, 5, 23, 10, 0), '제주 애월', '애월', '제주-제주시', 2, 4,
+        join: JoinMethod.firstCome),
     _m('n6', '대구 방탈출', MeetingCategory.escapeRoom,
         DateTime(2026, 5, 25, 13, 0), '대구 동성로', '동성로', 'daegu-line1', 3, 6),
     _m('n7', '강남 포차 한잔', MeetingCategory.drink,
@@ -201,7 +213,8 @@ class MeetingRepository {
     _m('n10', '창원 무학산', MeetingCategory.hiking,
         DateTime(2026, 5, 28, 7, 0), '창원 무학산', '창원', '경남-창원시', 6, 12),
     _m('n11', '신촌 심야 코노', MeetingCategory.karaoke,
-        DateTime(2026, 5, 29, 23, 0), '신촌', '신촌', 'seoul-line2', 4, 8),
+        DateTime(2026, 5, 29, 23, 0), '신촌', '신촌', 'seoul-line2', 4, 8,
+        join: JoinMethod.firstCome),
     _m('n12', '청주 디저트 카페', MeetingCategory.cafe,
         DateTime(2026, 5, 30, 15, 0), '청주', '청주', '충북-청주시', 2, 5),
     _m('n13', '광주 롤 모임', MeetingCategory.lol,
@@ -209,7 +222,8 @@ class MeetingRepository {
     _m('n14', '압구정 방탈출', MeetingCategory.escapeRoom,
         DateTime(2026, 6, 1, 14, 0), '압구정', '압구정', 'seoul-line3', 2, 6),
     _m('n15', '수원 점심 볼링', MeetingCategory.bowling,
-        DateTime(2026, 6, 2, 12, 30), '수원역', '수원', '경기-수원시', 4, 8),
+        DateTime(2026, 6, 2, 12, 30), '수원역', '수원', '경기-수원시', 4, 8,
+        join: JoinMethod.firstCome),
     _m('n16', '광안리 술 한잔', MeetingCategory.drink,
         DateTime(2026, 6, 3, 20, 0), '부산 광안리', '광안리', 'busan-line2', 4, 8),
     _m('n17', '춘천 삼악산', MeetingCategory.hiking,
@@ -244,8 +258,10 @@ class MeetingRepository {
       String region, {
       int cur = 3,
       int max = 6,
+      JoinMethod join = JoinMethod.approval,
     }) =>
-        _m(id, title, c, start, place, region, 'seoul-line2', cur, max);
+        _m(id, title, c, start, place, region, 'seoul-line2', cur, max,
+            join: join);
 
     final joined = <Meeting>[
       // 진행중 1 — now 기준 1시간 전 시작(진행중 윈도우 0~3h).
@@ -256,9 +272,10 @@ class MeetingRepository {
       at('me-up1-host', '주말 한강 러닝 모임', MeetingCategory.hiking,
           _at(now.add(const Duration(days: 1)), 8, 0), '여의도 한강공원', '여의도',
           cur: 4, max: 8),
+      // 호스트지만 선착순 — 검토 버튼이 안 나오는 케이스(테스트용).
       at('me-up2-host', '판교 보드게임 정기 모임', MeetingCategory.boardGame,
           _at(now.add(const Duration(days: 3)), 19, 30), '판교 보드카페', '판교',
-          cur: 3, max: 6),
+          cur: 3, max: 6, join: JoinMethod.firstCome),
       at('me-up3', '신촌 코노 한 시간', MeetingCategory.karaoke,
           _at(now.add(const Duration(days: 6)), 21, 0), '신촌 코인노래방', '신촌',
           cur: 2, max: 6),

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../data/meeting_repository.dart';
+import '../../models/join_method.dart';
 import '../../models/meeting.dart';
 import '../../shell/app_navigation.dart';
 import '../../theme/app_colors.dart';
 import 'chat_preview.dart';
 import 'chat_room_cell.dart';
+import 'chat_room_screen.dart';
 
 /// 내모임 화면. 내가 신청 대기 중이거나 참가한 모임만 노출한다.
 /// 섹션 순서: 신청 대기 → 진행중 → 다가오는 → 종료된.
@@ -88,6 +90,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       meeting: m,
                       timeLabel: ongoingLabel(m),
                       isHost: repo.isHost(m),
+                      onTap: () => _openChatRoom(m),
                     ),
                 ],
                 if (upcoming.isNotEmpty) ...[
@@ -97,8 +100,11 @@ class _ChatScreenState extends State<ChatScreen> {
                       meeting: m,
                       timeLabel: upcomingLabel(m, n),
                       isHost: repo.isHost(m),
+                      onTap: () => _openChatRoom(m),
                     ),
-                    if (repo.isHost(m))
+                    // 선착순은 신청 검토 단계가 없으므로 승인제일 때만 노출.
+                    if (repo.isHost(m) &&
+                        m.joinMethod == JoinMethod.approval)
                       _HostActionButton(
                         icon: Icons.fact_check_outlined,
                         label: '신청자 ${pendingApplicantsFor(m)}명 검토하기',
@@ -113,6 +119,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       meeting: m,
                       timeLabel: endedLabel(m, n),
                       isHost: repo.isHost(m),
+                      onTap: () => _openChatRoom(m),
                     ),
                     if (repo.isHost(m))
                       _HostActionButton(
@@ -126,6 +133,17 @@ class _ChatScreenState extends State<ChatScreen> {
               ],
             ),
     );
+  }
+
+  Future<void> _openChatRoom(Meeting m) async {
+    await Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => ChatRoomScreen(
+        repository: widget.repository,
+        meeting: m,
+      ),
+    ));
+    // 채팅방에서 모임 나가기 했을 수 있으니 리스트 갱신.
+    if (mounted) setState(() {});
   }
 
   Future<void> _confirmCancel(Meeting m) async {

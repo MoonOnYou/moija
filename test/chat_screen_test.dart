@@ -4,6 +4,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:moija/data/meeting_repository.dart';
 import 'package:moija/features/chat/chat_preview.dart';
 import 'package:moija/features/chat/chat_screen.dart';
+import 'package:moija/models/join_method.dart';
 import 'package:moija/models/meeting.dart';
 import 'package:moija/models/meeting_category.dart';
 
@@ -15,6 +16,7 @@ Meeting _m(
   String description = '강남에서 즐기는 카페 모임이에요.',
   int currentMembers = 3,
   int maxMembers = 6,
+  JoinMethod joinMethod = JoinMethod.approval,
 }) =>
     Meeting(
       id: id,
@@ -27,6 +29,7 @@ Meeting _m(
       currentMembers: currentMembers,
       maxMembers: maxMembers,
       description: description,
+      joinMethod: joinMethod,
     );
 
 void main() {
@@ -166,6 +169,29 @@ void main() {
     expect(find.text('팀원 매너 평가하기'), findsOneWidget);
   });
 
+  testWidgets('선착순 방장 다가오는 모임에는 검토 버튼이 없다', (tester) async {
+    final now = DateTime(2026, 5, 25, 12, 0);
+    final hostFirstCome = _m('u-host-fc', '선착순 방장 다가오는',
+        now.add(const Duration(days: 2)),
+        joinMethod: JoinMethod.firstCome);
+
+    final repo = MeetingRepository.test(
+      meetings: [hostFirstCome],
+      joined: {'u-host-fc'},
+      hosted: {'u-host-fc'},
+    );
+
+    await tester.pumpWidget(MaterialApp(
+      home: ChatScreen(repository: repo, now: now),
+    ));
+    await tester.pumpAndSettle();
+
+    // 셀과 방장 칩은 보이지만 검토 버튼은 없어야 한다.
+    expect(find.text('선착순 방장 다가오는'), findsOneWidget);
+    expect(find.text('방장'), findsOneWidget);
+    expect(find.textContaining('검토하기'), findsNothing);
+  });
+
   testWidgets('비방장 모임에는 액션 버튼이 없다', (tester) async {
     final now = DateTime(2026, 5, 25, 12, 0);
     final guest =
@@ -197,26 +223,30 @@ void main() {
     expect(find.text('아직 참여 중인 모임이 없어요'), findsOneWidget);
   });
 
-  test('배지 합계 = 채팅 안읽음 + 방장 액션 카드(대기는 제외)', () {
+  test('배지 합계 = 채팅 안읽음 + 방장 액션 카드(대기·선착순 검토 제외)', () {
     final now = DateTime(2026, 5, 25, 12, 0);
 
     final upHost = _m('u-host', '방장 다가오는', now.add(const Duration(days: 1)));
+    final upHostFc = _m('u-host-fc', '선착순 방장 다가오는',
+        now.add(const Duration(days: 2)),
+        joinMethod: JoinMethod.firstCome);
     final endHost =
         _m('e-host', '방장 끝난', now.subtract(const Duration(hours: 5)));
     final guest = _m('u-guest', '게스트 다가오는', now.add(const Duration(days: 1)));
     final pending = _m('p1', '대기', now.add(const Duration(days: 3)));
 
     final repo = MeetingRepository.test(
-      meetings: [upHost, endHost, guest, pending],
-      joined: {'u-host', 'e-host', 'u-guest'},
-      hosted: {'u-host', 'e-host'},
+      meetings: [upHost, upHostFc, endHost, guest, pending],
+      joined: {'u-host', 'u-host-fc', 'e-host', 'u-guest'},
+      hosted: {'u-host', 'u-host-fc', 'e-host'},
       pending: {'p1'},
     );
 
     final chatUnread = ChatPreview.forMeeting(upHost).unreadCount +
+        ChatPreview.forMeeting(upHostFc).unreadCount +
         ChatPreview.forMeeting(endHost).unreadCount +
         ChatPreview.forMeeting(guest).unreadCount;
-    // 방장 액션 2개 = +2. 대기는 ChatPreview 합산에서 제외.
+    // 방장 액션: 승인제 다가오는 1 + 종료된 1 = +2 (선착순 다가오는·대기는 제외).
     expect(myMeetingsBadgeTotal(repo, now), chatUnread + 2);
   });
 }
