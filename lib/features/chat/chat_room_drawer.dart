@@ -142,31 +142,27 @@ class ChatRoomDrawer extends StatelessWidget {
   }
 
   Future<void> _confirmLeave(BuildContext context) async {
-    final ok = await showDialog<bool>(
+    final isHost = repository.isHost(meeting);
+    final participants = repository.participantsOf(meeting);
+    // 호스트(=나) 다음 자리부터를 다른 팀원으로 본다(mock 단순화).
+    final others = isHost && participants.length > 1
+        ? participants.sublist(1)
+        : const <Member>[];
+
+    final result = await showDialog<_LeaveResult>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('모임 나가기'),
-        content: Text('"${meeting.title}" 모임에서 나갈까요?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('아니오'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            style: TextButton.styleFrom(foregroundColor: AppColors.textDanger),
-            child: const Text('나가기'),
-          ),
-        ],
-      ),
+      builder: (ctx) => _LeaveMeetingDialog(isHost: isHost, others: others),
     );
-    if (ok != true) return;
+    if (result == null) return;
     if (!context.mounted) return;
+
+    if (isHost && result.nextHost != null) {
+      _toast(context, '${result.nextHost}님이 새 방장이 되었어요');
+    }
     repository.leave(meeting.id);
     myMeetingsRevision.value++;
-    // drawer 닫기 + 채팅방 화면 pop → 내모임 리스트로 돌아간다.
-    Navigator.of(context).pop();
-    Navigator.of(context).pop();
+    Navigator.of(context).pop(); // drawer
+    Navigator.of(context).pop(); // chat room screen
   }
 
   void _toast(BuildContext context, String message) {
@@ -264,6 +260,296 @@ class _InfoRow extends StatelessWidget {
           child: Text(text,
               style: const TextStyle(
                   fontSize: 12, color: AppColors.textSecondary, height: 1.35)),
+        ),
+      ],
+    );
+  }
+}
+
+/// 나가기 다이얼로그 pop 결과. null이면 취소.
+class _LeaveResult {
+  const _LeaveResult({this.nextHost});
+
+  /// 호스트가 나갈 때 위임받을 다음 방장 닉네임. 팀원이거나 혼자였으면 null.
+  final String? nextHost;
+}
+
+class _LeaveMeetingDialog extends StatefulWidget {
+  const _LeaveMeetingDialog({required this.isHost, required this.others});
+
+  final bool isHost;
+  final List<Member> others;
+
+  @override
+  State<_LeaveMeetingDialog> createState() => _LeaveMeetingDialogState();
+}
+
+class _LeaveMeetingDialogState extends State<_LeaveMeetingDialog> {
+  String? _nextHost;
+
+  bool get _needsNextHost => widget.isHost && widget.others.isNotEmpty;
+  bool get _canLeave => !_needsNextHost || _nextHost != null;
+
+  @override
+  Widget build(BuildContext context) {
+    final diamond = widget.isHost ? 300 : 50;
+
+    return Dialog(
+      backgroundColor: AppColors.bgPrimary,
+      elevation: 0,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 380, maxHeight: 600),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 상단 원형 아이콘.
+              Container(
+                width: 60,
+                height: 60,
+                decoration: const BoxDecoration(
+                  color: AppColors.bgPink,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.logout_rounded,
+                    size: 28, color: AppColors.textDanger),
+              ),
+              const SizedBox(height: 14),
+              const Text('모임을 정말 나가시겠어요?',
+                  style: TextStyle(
+                      fontSize: 17, fontWeight: FontWeight.w700)),
+              const SizedBox(height: 18),
+
+              // 안내 카드 묶음.
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+                decoration: BoxDecoration(
+                  color: AppColors.bgSecondary,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _NoticeRow(
+                        icon: Icons.diamond_outlined,
+                        iconColor: AppColors.textInfo,
+                        text: '$diamond 다이아는 환불되지 않아요'),
+                    const SizedBox(height: 10),
+                    const _NoticeRow(
+                        icon: Icons.star_outline_rounded,
+                        iconColor: AppColors.textWarning,
+                        text: '나가도 팀원들이 내 매너점수를 평가할 수 있어요'),
+                    if (_needsNextHost) ...[
+                      const SizedBox(height: 10),
+                      const _NoticeRow(
+                          icon: Icons.swap_horiz_rounded,
+                          iconColor: AppColors.textDanger,
+                          text: '다른 팀원에게 방장을 넘겨줘야 해요'),
+                    ],
+                  ],
+                ),
+              ),
+
+              if (_needsNextHost) ...[
+                const SizedBox(height: 18),
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text('다음 방장 선택',
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textSecondary)),
+                ),
+                const SizedBox(height: 8),
+                Flexible(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        for (final m in widget.others)
+                          _NextHostCard(
+                            key: ValueKey('next-host-${m.nickname}'),
+                            member: m,
+                            selected: _nextHost == m.nickname,
+                            onTap: () =>
+                                setState(() => _nextHost = m.nickname),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+
+              const SizedBox(height: 18),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      key: const Key('leave-cancel'),
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.textSecondary,
+                        side: const BorderSide(
+                            color: AppColors.borderTertiary),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
+                        textStyle: const TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.w600),
+                      ),
+                      child: const Text('취소'),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: FilledButton(
+                      key: const Key('leave-confirm'),
+                      onPressed: _canLeave
+                          ? () => Navigator.of(context)
+                              .pop(_LeaveResult(nextHost: _nextHost))
+                          : null,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.textDanger,
+                        foregroundColor: Colors.white,
+                        disabledBackgroundColor: AppColors.bgTertiary,
+                        disabledForegroundColor: AppColors.textTertiary,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
+                        textStyle: const TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.w700),
+                      ),
+                      child: const Text('나가기'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 다음 방장 후보 카드. 탭으로 선택, 선택 시 보더·배경·체크 아이콘이 강조된다.
+class _NextHostCard extends StatelessWidget {
+  const _NextHostCard({
+    super.key,
+    required this.member,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final Member member;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final isMale = member.gender == Gender.male;
+    final avatarBg = isMale ? AppColors.bgInfo : AppColors.bgPink;
+    final avatarFg = isMale ? AppColors.textInfo : AppColors.textPink;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(10),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: selected ? AppColors.bgInfo : AppColors.bgPrimary,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: selected
+                    ? AppColors.textInfo
+                    : AppColors.borderTertiary,
+                width: selected ? 1.4 : 0.5,
+              ),
+            ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 15,
+                  backgroundColor: avatarBg,
+                  child: Text(member.nickname.characters.first,
+                      style: TextStyle(
+                          color: avatarFg,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700)),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(member.nickname,
+                          style: const TextStyle(
+                              fontSize: 13, fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 1),
+                      Text(_memberSummary(member),
+                          style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.textTertiary)),
+                    ],
+                  ),
+                ),
+                Icon(
+                  selected
+                      ? Icons.check_circle_rounded
+                      : Icons.radio_button_unchecked_rounded,
+                  color: selected
+                      ? AppColors.textInfo
+                      : AppColors.textTertiary,
+                  size: 20,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NoticeRow extends StatelessWidget {
+  const _NoticeRow({
+    required this.icon,
+    required this.iconColor,
+    required this.text,
+  });
+
+  final IconData icon;
+  final Color iconColor;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    if (text.isEmpty) return const SizedBox.shrink();
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 2),
+          child: Icon(icon, size: 16, color: iconColor),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(text,
+              style: const TextStyle(
+                  fontSize: 13,
+                  height: 1.4,
+                  color: AppColors.textPrimary)),
         ),
       ],
     );

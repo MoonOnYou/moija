@@ -120,7 +120,7 @@ void main() {
     expect(find.text('신고하기'), findsOneWidget);
   });
 
-  testWidgets('모임 나가기 확정 → repository.leave 반영', (tester) async {
+  testWidgets('팀원 나가기 다이얼로그: 50 다이아 안내·즉시 나가기 가능', (tester) async {
     final m = _m('chat-leave', '나가기 모임', DateTime(2026, 5, 25, 18, 0));
     final repo = MeetingRepository.test(meetings: [m], joined: {'chat-leave'});
     expect(repo.isJoined(m), isTrue);
@@ -132,14 +132,92 @@ void main() {
 
     await tester.tap(find.byTooltip('더보기'));
     await tester.pumpAndSettle();
-
     await tester.tap(find.text('모임 나가기'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(TextButton, '나가기'));
+    // 팀원 다이얼로그: 50 다이아 + 매너평가 안내, 방장 라디오·안내 없음.
+    expect(find.textContaining('50 다이아'), findsOneWidget);
+    expect(find.textContaining('매너점수를 평가'), findsOneWidget);
+    expect(find.textContaining('방장을 넘겨줘야 해요'), findsNothing);
+
+    final confirm = find.byKey(const Key('leave-confirm'));
+    expect(tester.widget<FilledButton>(confirm).onPressed, isNotNull);
+
+    await tester.tap(confirm);
+    await tester.pumpAndSettle();
+    expect(repo.isJoined(m), isFalse);
+  });
+
+  testWidgets('방장 나가기 다이얼로그: 300 다이아 + 라디오, 선택 전 비활성',
+      (tester) async {
+    final m = _m('chat-host-leave', '방장 나가기',
+        DateTime(2026, 5, 25, 18, 0),
+        currentMembers: 3); // 호스트 포함 3명 → 다른 멤버 2명
+    final repo = MeetingRepository.test(
+      meetings: [m],
+      joined: {'chat-host-leave'},
+      hosted: {'chat-host-leave'},
+    );
+    final others = repo.participantsOf(m).sublist(1);
+
+    await tester.pumpWidget(_wrap(
+      ChatRoomScreen(repository: repo, meeting: m),
+    ));
     await tester.pumpAndSettle();
 
+    await tester.tap(find.byTooltip('더보기'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('모임 나가기'));
+    await tester.pumpAndSettle();
+
+    // 방장 안내문 + 방장 라디오 노출.
+    expect(find.textContaining('300 다이아'), findsOneWidget);
+    expect(find.textContaining('방장을 넘겨줘야 해요'), findsOneWidget);
+    expect(find.byKey(ValueKey('next-host-${others.first.nickname}')),
+        findsOneWidget);
+
+    // 선택 전엔 나가기 비활성.
+    final confirm = find.byKey(const Key('leave-confirm'));
+    expect(tester.widget<FilledButton>(confirm).onPressed, isNull);
+
+    // 첫 다른 멤버를 다음 방장으로 선택.
+    await tester.tap(
+        find.byKey(ValueKey('next-host-${others.first.nickname}')));
+    await tester.pumpAndSettle();
+    expect(tester.widget<FilledButton>(confirm).onPressed, isNotNull);
+
+    await tester.tap(confirm);
+    await tester.pumpAndSettle();
     expect(repo.isJoined(m), isFalse);
+    expect(repo.isHost(m), isFalse);
+  });
+
+  testWidgets('방장 단독(혼자) 나가기 다이얼로그: 방장 라디오 없이 즉시 가능',
+      (tester) async {
+    final m = _m('chat-host-solo', '혼자 방장',
+        DateTime(2026, 5, 25, 18, 0),
+        currentMembers: 1); // 호스트만
+    final repo = MeetingRepository.test(
+      meetings: [m],
+      joined: {'chat-host-solo'},
+      hosted: {'chat-host-solo'},
+    );
+
+    await tester.pumpWidget(_wrap(
+      ChatRoomScreen(repository: repo, meeting: m),
+    ));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('더보기'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('모임 나가기'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('300 다이아'), findsOneWidget);
+    expect(find.textContaining('방장을 넘겨줘야 해요'), findsNothing);
+
+    final confirm = find.byKey(const Key('leave-confirm'));
+    expect(tester.widget<FilledButton>(confirm).onPressed, isNotNull);
   });
 
   testWidgets('전송 버튼은 빈 입력에는 비활성, 텍스트가 있으면 활성·전송 후 입력 비움', (tester) async {
