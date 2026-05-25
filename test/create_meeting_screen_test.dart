@@ -75,6 +75,45 @@ void main() {
     expect(button().onPressed, isNotNull); // 활성
   });
 
+  testWidgets('지역 단독 선택("광주 전체")이 화면 라벨에 반영된다', (tester) async {
+    final repo = MeetingRepository();
+    await tester.pumpWidget(MaterialApp(
+      home: CreateMeetingScreen(repository: repo, currentDiamonds: 1000),
+    ));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('location')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('광주'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('광주 전체'));
+    await tester.pumpAndSettle();
+
+    // 피커 필드 라벨이 "광주 전체"로 갱신되어야 한다(예전엔 nodeById로 인해 "지역 선택" 유지).
+    expect(find.text('광주 전체'), findsOneWidget);
+    expect(find.text('지역 선택'), findsNothing);
+  });
+
+  testWidgets('노선 단독 선택("2호선 전체")이 화면 라벨에 반영된다', (tester) async {
+    final repo = MeetingRepository();
+    await tester.pumpWidget(MaterialApp(
+      home: CreateMeetingScreen(repository: repo, currentDiamonds: 1000),
+    ));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('location')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('서울'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('2호선'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('2호선 전체'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('2호선'), findsOneWidget); // 피커 필드 라벨
+    expect(find.text('지역 선택'), findsNothing);
+  });
+
   testWidgets('구체적인 장소가 비면 버튼 비활성', (tester) async {
     final repo = MeetingRepository();
     await tester.pumpWidget(MaterialApp(

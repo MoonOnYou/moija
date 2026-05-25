@@ -210,11 +210,12 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
     if (agreed != true || !mounted) return;
     final start = DateTime(
         _date!.year, _date!.month, _date!.day, _time!.hour, _time!.minute);
-    final node = _online ? null : LocationCatalog.nodeById(_locationId!);
+    // region·노선·역 모두 displayLabel로 일관 처리(예: "광주 전체", "2호선", "2호선 강남").
     final placeText = _place.text.trim();
-    final region = _online
-        ? '온라인'
-        : (placeText.isNotEmpty ? placeText : (node?.label ?? ''));
+    final locLabel =
+        _online ? '' : LocationCatalog.displayLabel(_locationId!);
+    final regionName =
+        _online ? '온라인' : LocationCatalog.regionOf(_locationId!);
     final meeting = Meeting(
       id: 'u${DateTime.now().millisecondsSinceEpoch}',
       title: _title.text.trim(),
@@ -223,13 +224,15 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
       startTime: start,
       location: _online
           ? (placeText.isEmpty ? '온라인' : placeText)
-          : (placeText.isEmpty ? (node?.label ?? '') : placeText),
-      region: region,
+          : (placeText.isEmpty ? locLabel : placeText),
+      region: _online
+          ? '온라인'
+          : (placeText.isNotEmpty ? placeText : regionName),
       locationId: _online ? 'online' : _locationId!,
       currentMembers: 1,
       maxMembers: _members,
       description: _description.text.trim(),
-      nearestStation: _online ? '온라인' : (node?.label ?? ''),
+      nearestStation: _online ? '온라인' : locLabel,
       cost: _buildCost(),
       joinMethod: _joinMethod,
     );
@@ -321,8 +324,7 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
               Icons.location_on_outlined,
               _locationId == null
                   ? '지역 선택'
-                  : (LocationCatalog.nodeById(_locationId!)?.label ??
-                      '지역 선택'),
+                  : LocationCatalog.displayLabel(_locationId!),
               _locationId != null,
               _pickLocation,
             ),

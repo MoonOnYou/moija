@@ -177,6 +177,12 @@ class LocationCatalog {
   /// 시/도 이름인지 여부. 필터 id로 "서울"·"부산" 같은 region 자체가 들어올 수 있다.
   static bool isRegion(String id) => regions.contains(id);
 
+  /// id가 속한 시/도 이름. region id면 그 자체, 노드면 node.region, 알 수 없으면 ''.
+  static String regionOf(String id) {
+    if (isRegion(id)) return id;
+    return nodeById(id)?.region ?? '';
+  }
+
   /// 필터 id 집합에 region 자체(예: "서울")가 있으면 그 region의 자식 노드 id로 펼친다.
   /// region이 아닌 id는 그대로 둔다.
   static Set<String> expandToLeafIds(Iterable<String> ids) {

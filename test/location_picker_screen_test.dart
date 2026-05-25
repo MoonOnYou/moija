@@ -188,15 +188,15 @@ void main() {
     expect(result, {'seoul-line2-시청'});
   });
 
-  testWidgets('singleSelect: 역 목록에 "2호선 전체"는 노출되지 않는다',
-      (tester) async {
+  testWidgets('singleSelect: "2호선 전체" 탭하면 노선 id로 즉시 pop', (tester) async {
+    Set<String>? result;
     await tester.pumpWidget(MaterialApp(
       home: Builder(
         builder: (context) => Scaffold(
           body: Center(
             child: ElevatedButton(
               onPressed: () async {
-                await Navigator.push<Set<String>>(
+                result = await Navigator.push<Set<String>>(
                   context,
                   MaterialPageRoute(
                     builder: (_) => const LocationPickerScreen(
@@ -218,8 +218,11 @@ void main() {
     await tester.tap(find.text('2호선'));
     await tester.pumpAndSettle();
 
-    expect(find.text('2호선 전체'), findsNothing);
-    expect(find.text('시청'), findsOneWidget); // 개별 역은 정상 노출
+    expect(find.text('2호선 전체'), findsOneWidget); // 노선 단위 선택 가능
+    await tester.tap(find.text('2호선 전체'));
+    await tester.pumpAndSettle();
+
+    expect(result, {'seoul-line2'});
   });
 
   testWidgets('singleSelect: 시·군 리프(경기 → 수원시)는 바로 pop', (tester) async {
