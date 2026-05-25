@@ -5,6 +5,7 @@ import '../../models/meeting.dart';
 import '../../shell/app_navigation.dart';
 import '../../theme/app_colors.dart';
 import '../meeting/applicant_review_screen.dart';
+import '../meeting/manner_review_screen.dart';
 import 'chat_preview.dart';
 import 'chat_room_cell.dart';
 import 'chat_room_screen.dart';
@@ -144,7 +145,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         _HostActionButton(
                           icon: Icons.star_outline_rounded,
                           label: '팀원 매너 평가하기',
-                          onPressed: () {},
+                          onPressed: () => _openMannerReview(m),
                         ),
                     ],
                   ],
@@ -166,6 +167,15 @@ class _ChatScreenState extends State<ChatScreen> {
       MaterialPageRoute(
         builder: (_) =>
             ApplicantReviewScreen(repository: widget.repository, meeting: m),
+      ),
+    );
+  }
+
+  Future<void> _openMannerReview(Meeting m) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) =>
+            MannerReviewScreen(repository: widget.repository, meeting: m),
       ),
     );
   }

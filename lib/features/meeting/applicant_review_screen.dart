@@ -24,7 +24,11 @@ class ApplicantReviewScreen extends StatefulWidget {
 }
 
 class _ApplicantReviewScreenState extends State<ApplicantReviewScreen> {
+  final GlobalKey<AnimatedListState> _listKey =
+      GlobalKey<AnimatedListState>();
   late final List<Applicant> _pending;
+
+  static const _dismissDuration = Duration(milliseconds: 380);
 
   @override
   void initState() {
@@ -34,7 +38,16 @@ class _ApplicantReviewScreenState extends State<ApplicantReviewScreen> {
   }
 
   void _handle(Applicant a, {required bool accepted}) {
-    setState(() => _pending.remove(a));
+    final i = _pending.indexOf(a);
+    if (i < 0) return;
+    final removed = _pending[i];
+    _pending.removeAt(i);
+    _listKey.currentState?.removeItem(
+      i,
+      (ctx, anim) => _animatedItem(removed, anim),
+      duration: _dismissDuration,
+    );
+
     final messenger = ScaffoldMessenger.maybeOf(context);
     messenger?.showSnackBar(SnackBar(
       content: Text(accepted
@@ -42,6 +55,46 @@ class _ApplicantReviewScreenState extends State<ApplicantReviewScreen> {
           : '${a.member.nickname}님 신청을 거절했어요'),
       duration: const Duration(seconds: 2),
     ));
+
+    if (_pending.isEmpty) {
+      // 마지막 카드의 슬라이드 애니메이션이 끝난 뒤 빈 상태로 전환.
+      Future.delayed(_dismissDuration, () {
+        if (mounted) setState(() {});
+      });
+    } else {
+      setState(() {}); // AppBar 카운트 갱신
+    }
+  }
+
+  Widget _animatedItem(Applicant a, Animation<double> animation) {
+    // 슬라이드·페이드는 dismiss 앞쪽 70% 구간에서 또렷이 진행,
+    // size 축소는 뒤쪽 50% 구간에서 일어나 다른 카드가 부드럽게 위로 올라온다.
+    final slideAndFade = CurvedAnimation(
+      parent: animation,
+      curve: const Interval(0.3, 1.0, curve: Curves.easeOutCubic),
+    );
+    final sizeShrink = CurvedAnimation(
+      parent: animation,
+      curve: const Interval(0.0, 0.6, curve: Curves.easeIn),
+    );
+    return SizeTransition(
+      sizeFactor: sizeShrink,
+      axisAlignment: 0,
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(-1.5, 0),
+          end: Offset.zero,
+        ).animate(slideAndFade),
+        child: FadeTransition(
+          opacity: slideAndFade,
+          child: _ApplicantCard(
+            applicant: a,
+            onAccept: () => _handle(a, accepted: true),
+            onReject: () => _handle(a, accepted: false),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -66,18 +119,13 @@ class _ApplicantReviewScreenState extends State<ApplicantReviewScreen> {
                   style: TextStyle(
                       fontSize: 14, color: AppColors.textTertiary)),
             )
-          : ListView.builder(
+          : AnimatedList(
+              key: _listKey,
+              initialItemCount: _pending.length,
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-              itemCount: _pending.length,
-              itemBuilder: (ctx, i) {
+              itemBuilder: (ctx, i, animation) {
                 final a = _pending[i];
-                return _ApplicantCard(
-                  key: ValueKey('applicant-${a.member.nickname}'),
-                  applicant: a,
-                  meetingTitle: widget.meeting.title,
-                  onAccept: () => _handle(a, accepted: true),
-                  onReject: () => _handle(a, accepted: false),
-                );
+                return _animatedItem(a, animation);
               },
             ),
     );
@@ -112,15 +160,12 @@ List<Applicant> _seedApplicants(Meeting m, List<Member> pool) {
 
 class _ApplicantCard extends StatelessWidget {
   const _ApplicantCard({
-    super.key,
     required this.applicant,
-    required this.meetingTitle,
     required this.onAccept,
     required this.onReject,
   });
 
   final Applicant applicant;
-  final String meetingTitle;
   final VoidCallback onAccept;
   final VoidCallback onReject;
 
@@ -163,6 +208,7 @@ class _ApplicantCard extends StatelessWidget {
                   children: [
                     Row(
                       children: [
+                        // 닉네임 옆에 별점을 바로 붙여 보여준다.
                         Flexible(
                           child: Text(m.nickname,
                               maxLines: 1,
@@ -171,9 +217,9 @@ class _ApplicantCard extends StatelessWidget {
                                   fontSize: 15,
                                   fontWeight: FontWeight.w700)),
                         ),
-                        const Spacer(),
+                        const SizedBox(width: 8),
                         const Icon(Icons.star,
-                            size: 13, color: Color(0xFFE6A700)),
+                            size: 14, color: Color(0xFFE6A700)),
                         const SizedBox(width: 2),
                         Text(m.mannerScore.toStringAsFixed(1),
                             style: const TextStyle(
