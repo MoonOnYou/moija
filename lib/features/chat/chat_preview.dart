@@ -1,4 +1,5 @@
 import 'package:intl/intl.dart';
+import '../../data/meeting_repository.dart';
 import '../../models/meeting.dart';
 
 /// 모임 채팅 단계. 채팅 리스트 섹션을 가른다.
@@ -98,4 +99,30 @@ class ChatPreview {
       unreadCount: unread,
     );
   }
+}
+
+/// 방장 액션(신청자 검토/매너 평가) 카드에 노출할 신청자 수.
+/// 결정적으로 1~5 사이로 잡는다.
+int pendingApplicantsFor(Meeting m) => 1 + (m.id.hashCode.abs() % 5);
+
+/// 내모임 탭 배지에 쓰는 합계. 채팅 안읽음 + 방장 액션 카드 1개당 1.
+/// 신청 대기는 채팅이 아직 없으므로 합산에서 제외한다.
+int myMeetingsBadgeTotal(MeetingRepository repo, DateTime now) {
+  var total = 0;
+  for (final m in repo.allMeetings) {
+    if (!repo.isJoined(m)) continue;
+    if (!chatStillAlive(m, now)) continue;
+    total += ChatPreview.forMeeting(m).unreadCount;
+    if (repo.isHost(m)) {
+      switch (meetingPhase(m, now)) {
+        case MeetingPhase.upcoming:
+          total += 1; // 신청자 N명 검토하기
+        case MeetingPhase.ended:
+          total += 1; // 팀원 매너 평가하기
+        case MeetingPhase.ongoing:
+          break;
+      }
+    }
+  }
+  return total;
 }

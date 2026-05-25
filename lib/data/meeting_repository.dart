@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import '../models/meeting.dart';
 import '../models/meeting_category.dart';
 import '../models/meeting_cost.dart';
@@ -5,25 +6,74 @@ import '../models/member.dart';
 
 /// 인메모리 목 데이터 저장소.
 class MeetingRepository {
-  MeetingRepository() {
-    _all = [..._seed];
+  /// [baseTime] 기준으로 "내가 참가/방장/대기 중인" 모임을 상대 시각으로 시드한다.
+  /// 테스트는 baseTime을 고정해 결정성을 확보한다.
+  MeetingRepository({DateTime? baseTime}) {
+    final now = baseTime ?? DateTime.now();
+    final my = _buildMySeed(now);
+    _myJoinedIds = my.joinedIds;
+    _myHostedIds = my.hostedIds;
+    _myPendingIds = my.pendingIds;
+
+    _all = [..._seed, ...my.meetings];
     _byDay = {};
     for (final m in _all) {
       _byDay.putIfAbsent(_key(m.startTime), () => []).add(m);
     }
   }
 
+  /// 테스트 격리용 생성자. 시드를 만들지 않고, 주어진 데이터만 보유한다.
+  @visibleForTesting
+  MeetingRepository.test({
+    List<Meeting> meetings = const [],
+    Set<String> joined = const {},
+    Set<String> hosted = const {},
+    Set<String> pending = const {},
+  }) {
+    _all = [...meetings];
+    _byDay = {};
+    for (final m in _all) {
+      _byDay.putIfAbsent(_key(m.startTime), () => []).add(m);
+    }
+    _myJoinedIds = {...joined};
+    _myHostedIds = {...hosted};
+    _myPendingIds = {...pending};
+  }
+
   late final List<Meeting> _all;
   late final Map<DateTime, List<Meeting>> _byDay;
+  late final Set<String> _myJoinedIds;
+  late final Set<String> _myHostedIds;
+  late final Set<String> _myPendingIds;
 
   static DateTime _key(DateTime d) => DateTime(d.year, d.month, d.day);
 
   List<Meeting> get allMeetings => List.unmodifiable(_all);
 
-  /// 새 모임을 추가하고 날짜 인덱스에 반영한다.
+  /// 내가 참가(방장 포함)한 모임 id. 신청 대기는 포함하지 않는다.
+  Set<String> get myJoinedIds => Set.unmodifiable(_myJoinedIds);
+
+  /// 내가 방장인 모임 id.
+  Set<String> get myHostedIds => Set.unmodifiable(_myHostedIds);
+
+  /// 내가 신청해 대기 중인 모임 id.
+  Set<String> get myPendingIds => Set.unmodifiable(_myPendingIds);
+
+  /// 신청 대기를 취소한다(테스트·UI에서 호출). 노출 목록에서 빠진다.
+  void cancelPending(String meetingId) {
+    _myPendingIds.remove(meetingId);
+  }
+
+  bool isHost(Meeting m) => _myHostedIds.contains(m.id);
+  bool isPending(Meeting m) => _myPendingIds.contains(m.id);
+  bool isJoined(Meeting m) => _myJoinedIds.contains(m.id);
+
+  /// 새 모임을 추가하고 날짜 인덱스에 반영한다. 만든 사람을 방장·참가자로 둔다.
   void add(Meeting m) {
     _all.add(m);
     _byDay.putIfAbsent(_key(m.startTime), () => []).add(m);
+    _myJoinedIds.add(m.id);
+    _myHostedIds.add(m.id);
   }
 
   /// 해당 날짜 모임을 시작 시각 오름차순으로 반환한다.
@@ -181,4 +231,85 @@ class MeetingRepository {
     _m('n25', '서귀포 한잔', MeetingCategory.drink,
         DateTime(2026, 6, 28, 20, 30), '서귀포', '서귀포', '제주-서귀포시', 3, 6),
   ];
+
+  /// 내가 참가/방장/대기 중인 모임 목록을 baseTime 기준 상대 시각으로 만든다.
+  /// 분포: 진행중 1 + 다가오는 3(중 2 방장) + 종료된 4(중 2 방장) + 신청 대기 2.
+  static _MySeed _buildMySeed(DateTime now) {
+    Meeting at(
+      String id,
+      String title,
+      MeetingCategory c,
+      DateTime start,
+      String place,
+      String region, {
+      int cur = 3,
+      int max = 6,
+    }) =>
+        _m(id, title, c, start, place, region, 'seoul-line2', cur, max);
+
+    final joined = <Meeting>[
+      // 진행중 1 — now 기준 1시간 전 시작(진행중 윈도우 0~3h).
+      at('me-ongoing', '망원 와인바 번개', MeetingCategory.drink,
+          now.subtract(const Duration(hours: 1)), '망원 와인바', '망원'),
+
+      // 다가오는 3 — 앞 2개는 내가 방장.
+      at('me-up1-host', '주말 한강 러닝 모임', MeetingCategory.hiking,
+          _at(now.add(const Duration(days: 1)), 8, 0), '여의도 한강공원', '여의도',
+          cur: 4, max: 8),
+      at('me-up2-host', '판교 보드게임 정기 모임', MeetingCategory.boardGame,
+          _at(now.add(const Duration(days: 3)), 19, 30), '판교 보드카페', '판교',
+          cur: 3, max: 6),
+      at('me-up3', '신촌 코노 한 시간', MeetingCategory.karaoke,
+          _at(now.add(const Duration(days: 6)), 21, 0), '신촌 코인노래방', '신촌',
+          cur: 2, max: 6),
+
+      // 종료된 4 — 앞 2개는 내가 방장. 모두 채팅 만료 51h 이내.
+      at('me-end1-host', '강남 카페 코딩', MeetingCategory.cafe,
+          now.subtract(const Duration(hours: 5)), '강남 스타벅스', '강남',
+          cur: 3, max: 5),
+      at('me-end2-host', '잠실 볼링 한 게임', MeetingCategory.bowling,
+          now.subtract(const Duration(hours: 14)), '잠실 볼링센터', '잠실',
+          cur: 4, max: 6),
+      at('me-end3', '홍대 방탈출 도전', MeetingCategory.escapeRoom,
+          now.subtract(const Duration(hours: 26)), '홍대 비밀의방', '홍대',
+          cur: 4, max: 4),
+      at('me-end4', '성수 디저트 카페 투어', MeetingCategory.cafe,
+          now.subtract(const Duration(hours: 40)), '성수 카페거리', '성수',
+          cur: 3, max: 4),
+    ];
+
+    final pending = <Meeting>[
+      at('me-pending1', '잠실 야구 직관 같이 가요', MeetingCategory.etc,
+          _at(now.add(const Duration(days: 2)), 18, 30), '잠실야구장', '잠실',
+          cur: 5, max: 8),
+      at('me-pending2', '북한산 새벽 등반', MeetingCategory.hiking,
+          _at(now.add(const Duration(days: 9)), 6, 0), '북한산 우이분소', '우이',
+          cur: 6, max: 12),
+    ];
+
+    return _MySeed(
+      meetings: [...joined, ...pending],
+      joinedIds: {for (final m in joined) m.id},
+      hostedIds: {'me-up1-host', 'me-up2-host', 'me-end1-host', 'me-end2-host'},
+      pendingIds: {for (final m in pending) m.id},
+    );
+  }
+
+  /// 같은 날의 특정 시·분으로 맞춰진 DateTime.
+  static DateTime _at(DateTime day, int hour, int minute) =>
+      DateTime(day.year, day.month, day.day, hour, minute);
+}
+
+class _MySeed {
+  _MySeed({
+    required this.meetings,
+    required this.joinedIds,
+    required this.hostedIds,
+    required this.pendingIds,
+  });
+
+  final List<Meeting> meetings;
+  final Set<String> joinedIds;
+  final Set<String> hostedIds;
+  final Set<String> pendingIds;
 }

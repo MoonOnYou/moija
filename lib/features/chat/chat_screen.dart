@@ -1,116 +1,43 @@
 import 'package:flutter/material.dart';
 import '../../data/meeting_repository.dart';
 import '../../models/meeting.dart';
+import '../../shell/app_navigation.dart';
 import '../../theme/app_colors.dart';
 import 'chat_preview.dart';
 import 'chat_room_cell.dart';
 
-/// 채팅 메인 화면. 전체/안읽음 두 탭으로 나뉘고,
-/// 각 탭은 다가오는·진행중·종료된 모임 섹션을 차례로 보여준다.
-class ChatScreen extends StatelessWidget {
+/// 내모임 화면. 내가 신청 대기 중이거나 참가한 모임만 노출한다.
+/// 섹션 순서: 신청 대기 → 진행중 → 다가오는 → 종료된.
+class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key, required this.repository, this.now});
 
   final MeetingRepository repository;
 
-  /// 테스트에서 단계 판정 기준 시각을 주입할 수 있게 한다.
+  /// 테스트에서 단계 판정 기준 시각을 주입한다.
   final DateTime? now;
 
   @override
-  Widget build(BuildContext context) {
-    final n = now ?? DateTime.now();
-    // 안읽음 탭 배지: 채팅이 유지 중인 모든 모임의 unread를 합산.
-    final unreadTotal = repository.allMeetings
-        .where((m) => chatStillAlive(m, n))
-        .fold<int>(
-            0, (sum, m) => sum + ChatPreview.forMeeting(m).unreadCount);
-
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        backgroundColor: AppColors.bgPrimary,
-        appBar: AppBar(
-          backgroundColor: AppColors.bgPrimary,
-          elevation: 0,
-          title: const Text('채팅',
-              style: TextStyle(
-                  fontSize: 18, fontWeight: FontWeight.w700)),
-          bottom: TabBar(
-            labelColor: AppColors.textPrimary,
-            unselectedLabelColor: AppColors.textTertiary,
-            indicatorColor: AppColors.textPrimary,
-            labelStyle:
-                const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-            tabs: [
-              const Tab(text: '전체'),
-              Tab(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text('안읽음'),
-                    if (unreadTotal > 0) ...[
-                      const SizedBox(width: 6),
-                      _UnreadBadge(count: unreadTotal),
-                    ],
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        body: TabBarView(
-          children: [
-            _ChatList(repository: repository, now: n, onlyUnread: false),
-            _ChatList(repository: repository, now: n, onlyUnread: true),
-          ],
-        ),
-      ),
-    );
-  }
+  State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _UnreadBadge extends StatelessWidget {
-  const _UnreadBadge({required this.count});
-  final int count;
-
+class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-      constraints: const BoxConstraints(minWidth: 20),
-      decoration: BoxDecoration(
-        color: AppColors.textDanger,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Text('$count',
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-              fontSize: 11,
-              color: Colors.white,
-              fontWeight: FontWeight.w600)),
-    );
-  }
-}
+    final n = widget.now ?? DateTime.now();
+    final repo = widget.repository;
 
-class _ChatList extends StatelessWidget {
-  const _ChatList({
-    required this.repository,
-    required this.now,
-    required this.onlyUnread,
-  });
-
-  final MeetingRepository repository;
-  final DateTime? now;
-  final bool onlyUnread;
-
-  @override
-  Widget build(BuildContext context) {
-    final n = now ?? DateTime.now();
-
+    final pending = <Meeting>[];
     final upcoming = <Meeting>[];
     final ongoing = <Meeting>[];
     final ended = <Meeting>[];
-    for (final m in repository.allMeetings) {
-      if (!chatStillAlive(m, n)) continue; // 51시간 지난 채팅방은 사라짐
+
+    for (final m in repo.allMeetings) {
+      if (repo.isPending(m)) {
+        pending.add(m);
+        continue;
+      }
+      if (!repo.isJoined(m)) continue;
+      if (!chatStillAlive(m, n)) continue;
       switch (meetingPhase(m, n)) {
         case MeetingPhase.upcoming:
           upcoming.add(m);
@@ -120,52 +47,111 @@ class _ChatList extends StatelessWidget {
           ended.add(m);
       }
     }
+    pending.sort((a, b) => a.startTime.compareTo(b.startTime));
     upcoming.sort((a, b) => a.startTime.compareTo(b.startTime));
     ongoing.sort((a, b) => a.startTime.compareTo(b.startTime));
     ended.sort((a, b) => b.startTime.compareTo(a.startTime));
 
-    List<Meeting> applyFilter(List<Meeting> list) {
-      if (!onlyUnread) return list;
-      return list
-          .where((m) => ChatPreview.forMeeting(m).unreadCount > 0)
-          .toList();
-    }
+    final hasAny = pending.isNotEmpty ||
+        ongoing.isNotEmpty ||
+        upcoming.isNotEmpty ||
+        ended.isNotEmpty;
 
-    final sections = <_Section>[
-      _Section('다가오는 모임', applyFilter(upcoming),
-          (m) => upcomingLabel(m, n)),
-      _Section('진행중인 모임', applyFilter(ongoing), (m) => ongoingLabel(m)),
-      _Section('종료된 모임', applyFilter(ended), (m) => endedLabel(m, n)),
-    ].where((s) => s.meetings.isNotEmpty).toList();
-
-    if (sections.isEmpty) {
-      return Center(
-        child: Text(
-          onlyUnread ? '읽지 않은 채팅이 없어요' : '아직 채팅이 없어요',
-          style: const TextStyle(
-              fontSize: 14, color: AppColors.textTertiary),
-        ),
-      );
-    }
-
-    return ListView(
-      children: [
-        for (final s in sections) ...[
-          _SectionHeader(s.title),
-          for (final m in s.meetings)
-            ChatRoomCell(meeting: m, timeLabel: s.timeLabel(m)),
-        ],
-        const SizedBox(height: 12),
-      ],
+    return Scaffold(
+      backgroundColor: AppColors.bgPrimary,
+      appBar: AppBar(
+        backgroundColor: AppColors.bgPrimary,
+        elevation: 0,
+        title: const Text('내모임',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+      ),
+      body: !hasAny
+          ? const Center(
+              child: Text('아직 참여 중인 모임이 없어요',
+                  style: TextStyle(
+                      fontSize: 14, color: AppColors.textTertiary)),
+            )
+          : ListView(
+              children: [
+                if (pending.isNotEmpty) ...[
+                  const _SectionHeader('신청 대기중'),
+                  for (final m in pending)
+                    _PendingMeetingCell(
+                      meeting: m,
+                      onCancel: () => _confirmCancel(m),
+                    ),
+                ],
+                if (ongoing.isNotEmpty) ...[
+                  const _SectionHeader('진행중인 모임'),
+                  for (final m in ongoing)
+                    ChatRoomCell(
+                      meeting: m,
+                      timeLabel: ongoingLabel(m),
+                      isHost: repo.isHost(m),
+                    ),
+                ],
+                if (upcoming.isNotEmpty) ...[
+                  const _SectionHeader('다가오는 모임'),
+                  for (final m in upcoming) ...[
+                    ChatRoomCell(
+                      meeting: m,
+                      timeLabel: upcomingLabel(m, n),
+                      isHost: repo.isHost(m),
+                    ),
+                    if (repo.isHost(m))
+                      _HostActionButton(
+                        icon: Icons.fact_check_outlined,
+                        label: '신청자 ${pendingApplicantsFor(m)}명 검토하기',
+                        onPressed: () {},
+                      ),
+                  ],
+                ],
+                if (ended.isNotEmpty) ...[
+                  const _SectionHeader('종료된 모임'),
+                  for (final m in ended) ...[
+                    ChatRoomCell(
+                      meeting: m,
+                      timeLabel: endedLabel(m, n),
+                      isHost: repo.isHost(m),
+                    ),
+                    if (repo.isHost(m))
+                      _HostActionButton(
+                        icon: Icons.star_outline_rounded,
+                        label: '팀원 매너 평가하기',
+                        onPressed: () {},
+                      ),
+                  ],
+                ],
+                const SizedBox(height: 12),
+              ],
+            ),
     );
   }
-}
 
-class _Section {
-  _Section(this.title, this.meetings, this.timeLabel);
-  final String title;
-  final List<Meeting> meetings;
-  final String Function(Meeting) timeLabel;
+  Future<void> _confirmCancel(Meeting m) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('신청 취소'),
+        content: Text('"${m.title}" 신청을 취소할까요?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('아니오'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.textDanger),
+            child: const Text('취소하기'),
+          ),
+        ],
+      ),
+    );
+    if (ok == true) {
+      setState(() => widget.repository.cancelPending(m.id));
+      myMeetingsRevision.value++;
+    }
+  }
 }
 
 class _SectionHeader extends StatelessWidget {
@@ -181,6 +167,114 @@ class _SectionHeader extends StatelessWidget {
               fontSize: 13,
               fontWeight: FontWeight.w600,
               color: AppColors.textSecondary)),
+    );
+  }
+}
+
+/// 신청 대기중 셀. 오른쪽 안읽음 배지 자리에 "신청 취소" 버튼이 들어간다.
+class _PendingMeetingCell extends StatelessWidget {
+  const _PendingMeetingCell({required this.meeting, required this.onCancel});
+
+  final Meeting meeting;
+  final VoidCallback onCancel;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: meeting.category.chipBackground,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(meeting.category.icon,
+                size: 24, color: meeting.category.chipForeground),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(meeting.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                        fontSize: 15, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 4),
+                Text(
+                  meeting.description.isNotEmpty
+                      ? meeting.description
+                      : meeting.placeLabel,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                      height: 1.35),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          OutlinedButton(
+            onPressed: onCancel,
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.textDanger,
+              side: const BorderSide(color: AppColors.borderTertiary),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              minimumSize: const Size(0, 32),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
+              textStyle: const TextStyle(
+                  fontSize: 12, fontWeight: FontWeight.w600),
+            ),
+            child: const Text('신청 취소'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 셀 아래에 가로로 길게 들어가는 방장 액션 버튼.
+class _HostActionButton extends StatelessWidget {
+  const _HostActionButton({
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+      child: SizedBox(
+        width: double.infinity,
+        child: FilledButton.tonalIcon(
+          onPressed: onPressed,
+          icon: Icon(icon, size: 18),
+          label: Text(label),
+          style: FilledButton.styleFrom(
+            backgroundColor: AppColors.bgSecondary,
+            foregroundColor: AppColors.textPrimary,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10)),
+            textStyle:
+                const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+          ),
+        ),
+      ),
     );
   }
 }

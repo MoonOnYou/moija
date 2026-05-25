@@ -7,36 +7,26 @@ import 'package:moija/features/chat/chat_screen.dart';
 import 'package:moija/models/meeting.dart';
 import 'package:moija/models/meeting_category.dart';
 
-/// 시드 데이터 영향 없이 정해진 목록만 노출하는 저장소.
-class _TestRepo extends MeetingRepository {
-  _TestRepo(this._list);
-  final List<Meeting> _list;
-
-  @override
-  List<Meeting> get allMeetings => List.unmodifiable(_list);
-
-  @override
-  void add(Meeting m) => _list.add(m);
-
-  @override
-  List<Meeting> meetingsOn(DateTime day) => _list
-      .where((m) =>
-          m.startTime.year == day.year &&
-          m.startTime.month == day.month &&
-          m.startTime.day == day.day)
-      .toList();
-}
-
-Meeting _m(String id, String title, DateTime start) => Meeting(
+Meeting _m(
+  String id,
+  String title,
+  DateTime start, {
+  MeetingCategory category = MeetingCategory.cafe,
+  String description = '강남에서 즐기는 카페 모임이에요.',
+  int currentMembers = 3,
+  int maxMembers = 6,
+}) =>
+    Meeting(
       id: id,
       title: title,
-      category: MeetingCategory.cafe,
+      category: category,
       startTime: start,
       location: '강남 카페',
       region: '강남',
       locationId: 'seoul-line2',
-      currentMembers: 1,
-      maxMembers: 4,
+      currentMembers: currentMembers,
+      maxMembers: maxMembers,
+      description: description,
     );
 
 void main() {
@@ -44,134 +34,189 @@ void main() {
     await initializeDateFormatting('ko_KR');
   });
 
-  testWidgets('전체 탭은 다가오는·진행중·종료된 섹션과 라벨을 보여준다', (tester) async {
-    final now = DateTime(2026, 5, 23, 12, 0);
-    final repo = _TestRepo([
-      _m('upcoming-1', '미래 모임', now.add(const Duration(days: 2, hours: 7))),
-      _m('ongoing-1', '진행중 모임', now.subtract(const Duration(hours: 1))),
-      _m('ended-1', '끝난 모임', now.subtract(const Duration(hours: 10))),
-      // 채팅 만료(시작 +51h 이상): 노출되지 않아야 한다.
-      _m('expired-1', '만료된 채팅',
-          now.subtract(const Duration(hours: 60))),
-    ]);
+  testWidgets('내모임은 신청대기→진행중→다가오는→종료된 순으로 노출된다', (tester) async {
+    final now = DateTime(2026, 5, 25, 12, 0);
+    final pending = _m('p1', '대기 카페', now.add(const Duration(days: 2)));
+    final ongoing = _m('o1', '진행 등산', now.subtract(const Duration(hours: 1)));
+    final upcoming = _m('u1', '다가오는 한잔', now.add(const Duration(days: 1)));
+    final ended = _m('e1', '끝난 보드게임', now.subtract(const Duration(hours: 10)));
+
+    final repo = MeetingRepository.test(
+      meetings: [pending, ongoing, upcoming, ended],
+      joined: {'o1', 'u1', 'e1'},
+      pending: {'p1'},
+    );
 
     await tester.pumpWidget(MaterialApp(
       home: ChatScreen(repository: repo, now: now),
     ));
     await tester.pumpAndSettle();
 
-    // 섹션 헤더와 모임 제목.
-    expect(find.text('다가오는 모임'), findsOneWidget);
+    // 네 섹션 모두 노출.
+    expect(find.text('신청 대기중'), findsOneWidget);
     expect(find.text('진행중인 모임'), findsOneWidget);
+    expect(find.text('다가오는 모임'), findsOneWidget);
     expect(find.text('종료된 모임'), findsOneWidget);
-    expect(find.text('미래 모임'), findsOneWidget);
-    expect(find.text('진행중 모임'), findsOneWidget);
-    expect(find.text('끝난 모임'), findsOneWidget);
 
-    // 만료된 채팅은 빠진다.
-    expect(find.text('만료된 채팅'), findsNothing);
-
-    // 시간 라벨: 다가오는(D-N), 진행중(시작 시각), 종료된(남은 시간).
-    expect(find.text('D-2'), findsOneWidget);
-    expect(find.text('오전 11:00'), findsOneWidget);
-    expect(find.textContaining('남음'), findsOneWidget);
+    // 위→아래 순서 확인.
+    double y(String t) => tester.getTopLeft(find.text(t)).dy;
+    expect(y('신청 대기중'), lessThan(y('진행중인 모임')));
+    expect(y('진행중인 모임'), lessThan(y('다가오는 모임')));
+    expect(y('다가오는 모임'), lessThan(y('종료된 모임')));
   });
 
-  testWidgets('안읽음 탭은 unread>0 모임만 보여준다', (tester) async {
-    final now = DateTime(2026, 5, 23, 12, 0);
+  testWidgets('내모임에는 내가 참가한(또는 대기 중인) 모임만 보인다', (tester) async {
+    final now = DateTime(2026, 5, 25, 12, 0);
+    final mine = _m('mine', '내 모임', now.add(const Duration(days: 1)));
+    final others = _m('other', '남의 모임', now.add(const Duration(days: 1)));
 
-    // ChatPreview는 id.hashCode % 5 에 따라 unread를 결정한다.
-    // 결정적이라 id별로 unread 여부를 미리 알 수 있어, 두 그룹으로 나눠 시드한다.
-    Meeting future(String id) => _m(id, '미래 $id', now.add(const Duration(days: 1)));
-
-    final candidates = [
-      'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
-    ].map(future).toList();
-    final withUnread =
-        candidates.where((m) => ChatPreview.forMeeting(m).unreadCount > 0).toList();
-    final noUnread =
-        candidates.where((m) => ChatPreview.forMeeting(m).unreadCount == 0).toList();
-    // 두 그룹이 모두 비어 있지 않아야 의미 있는 테스트가 된다.
-    expect(withUnread, isNotEmpty);
-    expect(noUnread, isNotEmpty);
-
-    final repo = _TestRepo(candidates);
-    await tester.pumpWidget(MaterialApp(
-      home: ChatScreen(repository: repo, now: now),
-    ));
-    await tester.pumpAndSettle();
-
-    // 안읽음 탭으로 이동.
-    await tester.tap(find.text('안읽음'));
-    await tester.pumpAndSettle();
-
-    for (final m in withUnread) {
-      expect(find.text(m.title), findsOneWidget, reason: '${m.id} 노출');
-    }
-    for (final m in noUnread) {
-      expect(find.text(m.title), findsNothing, reason: '${m.id} 미노출');
-    }
-  });
-
-  testWidgets('안읽음 탭에 미읽음 합계 배지가 표시된다', (tester) async {
-    final now = DateTime(2026, 5, 23, 12, 0);
-
-    // ChatPreview.forMeeting는 id.hashCode % 5 로 unread를 결정한다.
-    // 모두 unread>0인 id만 모아 합계가 노출되는지 확인한다.
-    Meeting future(String id) => _m(id, '미래 $id', now.add(const Duration(days: 1)));
-    final candidates = [
-      'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
-    ].map(future).toList();
-    final withUnread =
-        candidates.where((m) => ChatPreview.forMeeting(m).unreadCount > 0).toList();
-    final expectedTotal = withUnread.fold<int>(
-        0, (sum, m) => sum + ChatPreview.forMeeting(m).unreadCount);
-    expect(withUnread, isNotEmpty);
-    expect(expectedTotal, greaterThan(0));
-
-    await tester.pumpWidget(MaterialApp(
-      home: ChatScreen(repository: _TestRepo(withUnread), now: now),
-    ));
-    await tester.pumpAndSettle();
-
-    // 탭 라벨 옆 배지 텍스트(합계)가 노출된다.
-    expect(find.text('$expectedTotal'), findsOneWidget);
-  });
-
-  testWidgets('미읽음이 없으면 배지가 표시되지 않는다', (tester) async {
-    final now = DateTime(2026, 5, 23, 12, 0);
-
-    Meeting future(String id) => _m(id, '미래 $id', now.add(const Duration(days: 1)));
-    final candidates = [
-      'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
-    ].map(future).toList();
-    final noUnread = candidates
-        .where((m) => ChatPreview.forMeeting(m).unreadCount == 0)
-        .toList();
-    expect(noUnread, isNotEmpty);
-
-    await tester.pumpWidget(MaterialApp(
-      home: ChatScreen(repository: _TestRepo(noUnread), now: now),
-    ));
-    await tester.pumpAndSettle();
-
-    // 배지 컨테이너(textDanger 배경)는 그려지지 않아야 한다.
-    // 안읽음 라벨은 한 번만 보여야 한다(배지 텍스트가 추가로 잡히지 않음).
-    expect(find.text('안읽음'), findsOneWidget);
-  });
-
-  testWidgets('채팅이 없으면 안내 문구', (tester) async {
-    final now = DateTime(2026, 5, 23, 12, 0);
-    final repo = _TestRepo([
-      // 만료된 채팅만 → 어떤 섹션에도 안 들어감.
-      _m('old', '오래된 채팅', now.subtract(const Duration(hours: 100))),
-    ]);
+    final repo = MeetingRepository.test(
+      meetings: [mine, others],
+      joined: {'mine'},
+    );
 
     await tester.pumpWidget(MaterialApp(
       home: ChatScreen(repository: repo, now: now),
     ));
     await tester.pumpAndSettle();
 
-    expect(find.text('아직 채팅이 없어요'), findsOneWidget);
+    expect(find.text('내 모임'), findsOneWidget);
+    expect(find.text('남의 모임'), findsNothing);
+  });
+
+  testWidgets('신청 대기 셀은 요약과 "신청 취소" 버튼을 보여준다', (tester) async {
+    final now = DateTime(2026, 5, 25, 12, 0);
+    final pending = _m('p1', '잠실 야구 직관', now.add(const Duration(days: 2)),
+        description: '같이 응원해요. 자리는 미리 예약돼 있어요!');
+
+    final repo = MeetingRepository.test(
+      meetings: [pending],
+      pending: {'p1'},
+    );
+
+    await tester.pumpWidget(MaterialApp(
+      home: ChatScreen(repository: repo, now: now),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.text('잠실 야구 직관'), findsOneWidget);
+    expect(find.text('같이 응원해요. 자리는 미리 예약돼 있어요!'), findsOneWidget);
+    expect(find.text('신청 취소'), findsOneWidget);
+  });
+
+  testWidgets('신청 취소를 확정하면 해당 셀이 사라진다', (tester) async {
+    final now = DateTime(2026, 5, 25, 12, 0);
+    final pending = _m('p1', '잠실 야구 직관', now.add(const Duration(days: 2)));
+    final repo = MeetingRepository.test(
+      meetings: [pending],
+      pending: {'p1'},
+    );
+
+    await tester.pumpWidget(MaterialApp(
+      home: ChatScreen(repository: repo, now: now),
+    ));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('신청 취소'));
+    await tester.pumpAndSettle();
+    // 확인 다이얼로그에서 "취소하기" 선택.
+    await tester.tap(find.widgetWithText(TextButton, '취소하기'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('잠실 야구 직관'), findsNothing);
+    expect(find.text('아직 참여 중인 모임이 없어요'), findsOneWidget);
+    expect(repo.isPending(pending), isFalse);
+  });
+
+  testWidgets('방장 다가오는 모임 아래에 신청자 검토 버튼이 노출된다', (tester) async {
+    final now = DateTime(2026, 5, 25, 12, 0);
+    final hostMeeting =
+        _m('u-host', '방장 다가오는', now.add(const Duration(days: 2)));
+    final repo = MeetingRepository.test(
+      meetings: [hostMeeting],
+      joined: {'u-host'},
+      hosted: {'u-host'},
+    );
+
+    await tester.pumpWidget(MaterialApp(
+      home: ChatScreen(repository: repo, now: now),
+    ));
+    await tester.pumpAndSettle();
+
+    final n = pendingApplicantsFor(hostMeeting);
+    expect(find.text('신청자 $n명 검토하기'), findsOneWidget);
+    expect(find.text('방장'), findsOneWidget); // 셀의 방장 칩.
+  });
+
+  testWidgets('방장 종료된 모임 아래에 매너 평가 버튼이 노출된다', (tester) async {
+    final now = DateTime(2026, 5, 25, 12, 0);
+    final hostEnded =
+        _m('e-host', '방장 끝난', now.subtract(const Duration(hours: 10)));
+    final repo = MeetingRepository.test(
+      meetings: [hostEnded],
+      joined: {'e-host'},
+      hosted: {'e-host'},
+    );
+
+    await tester.pumpWidget(MaterialApp(
+      home: ChatScreen(repository: repo, now: now),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.text('팀원 매너 평가하기'), findsOneWidget);
+  });
+
+  testWidgets('비방장 모임에는 액션 버튼이 없다', (tester) async {
+    final now = DateTime(2026, 5, 25, 12, 0);
+    final guest =
+        _m('u-guest', '게스트 다가오는', now.add(const Duration(days: 1)));
+    final repo = MeetingRepository.test(
+      meetings: [guest],
+      joined: {'u-guest'},
+    );
+
+    await tester.pumpWidget(MaterialApp(
+      home: ChatScreen(repository: repo, now: now),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('검토하기'), findsNothing);
+    expect(find.textContaining('평가하기'), findsNothing);
+    expect(find.text('방장'), findsNothing);
+  });
+
+  testWidgets('참여 중인 모임이 없으면 안내 문구가 노출된다', (tester) async {
+    final now = DateTime(2026, 5, 25, 12, 0);
+    final repo = MeetingRepository.test();
+
+    await tester.pumpWidget(MaterialApp(
+      home: ChatScreen(repository: repo, now: now),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.text('아직 참여 중인 모임이 없어요'), findsOneWidget);
+  });
+
+  test('배지 합계 = 채팅 안읽음 + 방장 액션 카드(대기는 제외)', () {
+    final now = DateTime(2026, 5, 25, 12, 0);
+
+    final upHost = _m('u-host', '방장 다가오는', now.add(const Duration(days: 1)));
+    final endHost =
+        _m('e-host', '방장 끝난', now.subtract(const Duration(hours: 5)));
+    final guest = _m('u-guest', '게스트 다가오는', now.add(const Duration(days: 1)));
+    final pending = _m('p1', '대기', now.add(const Duration(days: 3)));
+
+    final repo = MeetingRepository.test(
+      meetings: [upHost, endHost, guest, pending],
+      joined: {'u-host', 'e-host', 'u-guest'},
+      hosted: {'u-host', 'e-host'},
+      pending: {'p1'},
+    );
+
+    final chatUnread = ChatPreview.forMeeting(upHost).unreadCount +
+        ChatPreview.forMeeting(endHost).unreadCount +
+        ChatPreview.forMeeting(guest).unreadCount;
+    // 방장 액션 2개 = +2. 대기는 ChatPreview 합산에서 제외.
+    expect(myMeetingsBadgeTotal(repo, now), chatUnread + 2);
   });
 }

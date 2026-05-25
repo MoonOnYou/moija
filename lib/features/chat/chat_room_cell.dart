@@ -11,6 +11,7 @@ class ChatRoomCell extends StatelessWidget {
     required this.timeLabel,
     this.preview,
     this.onTap,
+    this.isHost = false,
   });
 
   final Meeting meeting;
@@ -22,6 +23,9 @@ class ChatRoomCell extends StatelessWidget {
   final ChatPreview? preview;
 
   final VoidCallback? onTap;
+
+  /// 내가 방장인 모임이면 제목 옆 "방장" 칩이 표시된다.
+  final bool isHost;
 
   @override
   Widget build(BuildContext context) {
@@ -48,11 +52,21 @@ class ChatRoomCell extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(meeting.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          fontSize: 15, fontWeight: FontWeight.w600)),
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(meeting.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                                fontSize: 15, fontWeight: FontWeight.w600)),
+                      ),
+                      if (isHost) ...[
+                        const SizedBox(width: 6),
+                        const _HostChip(),
+                      ],
+                    ],
+                  ),
                   const SizedBox(height: 4),
                   Text('${chat.lastSender}: ${chat.lastMessage}',
                       maxLines: 1,
@@ -95,6 +109,26 @@ class ChatRoomCell extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _HostChip extends StatelessWidget {
+  const _HostChip();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+      decoration: BoxDecoration(
+        color: AppColors.bgInfo,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: const Text('방장',
+          style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textInfo)),
     );
   }
 }
