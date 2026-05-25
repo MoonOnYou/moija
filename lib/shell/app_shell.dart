@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 import '../data/meeting_repository.dart';
 import '../features/chat/chat_preview.dart';
 import '../features/chat/chat_screen.dart';
+import '../features/common/force_update_dialog.dart';
 import '../features/home/home_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../theme/app_colors.dart';
 import 'app_navigation.dart';
 
 class AppShell extends StatefulWidget {
-  const AppShell({super.key});
+  const AppShell({super.key, this.showForceUpdate = true});
+
+  /// 앱 진입 시 강제 업데이트 다이얼로그를 띄울지 여부. 테스트에서는 false로 끈다.
+  final bool showForceUpdate;
 
   @override
   State<AppShell> createState() => _AppShellState();
@@ -17,6 +21,16 @@ class AppShell extends StatefulWidget {
 class _AppShellState extends State<AppShell> {
   // 홈과 내모임이 같은 모임 데이터를 공유하도록 한 인스턴스를 셸에서 보유한다.
   final MeetingRepository _repository = MeetingRepository();
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.showForceUpdate) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) ForceUpdateDialog.show(context);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
