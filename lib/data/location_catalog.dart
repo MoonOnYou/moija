@@ -229,11 +229,14 @@ class LocationCatalog {
     return null;
   }
 
-  /// 표시용 라벨. 역이면 노선명을 앞에 붙여 동명 역을 구분한다(예: "2호선 시청").
+  /// 표시용 라벨. region → "OO 전체", 노선 → "X호선 전체",
+  /// 역 → "노선명 역명"(동명 역 구분), 그 외 노드는 label 그대로.
   static String displayLabel(String id) {
     if (isRegion(id)) return '$id 전체';
     final node = nodeById(id);
     if (node == null) return id;
+    // 자식(역)을 가진 노선은 "전체"를 붙여 단위가 분명히 드러나게 한다.
+    if (childrenOf(id).isNotEmpty) return '${node.label} 전체';
     final dash = id.lastIndexOf('-');
     if (dash > 0) {
       final parentId = id.substring(0, dash);

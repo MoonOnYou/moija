@@ -110,7 +110,8 @@ void main() {
     await tester.tap(find.text('2호선 전체'));
     await tester.pumpAndSettle();
 
-    expect(find.text('2호선'), findsOneWidget); // 피커 필드 라벨
+    // 피커 필드에도 "2호선 전체"로 표기되어야 한다.
+    expect(find.text('2호선 전체'), findsOneWidget);
     expect(find.text('지역 선택'), findsNothing);
   });
 
