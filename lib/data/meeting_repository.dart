@@ -101,6 +101,9 @@ class MeetingRepository {
     Member(nickname: '태현', birthYear: 1997, gender: Gender.male, mannerScore: 4.3, totalActivities: 9, timesMetWithMe: 0, intro: '게임·보드게임 환영!'),
   ];
 
+  /// 멤버 풀 전체(읽기 전용). 신청자 mock 생성 등 외부 헬퍼가 참조한다.
+  List<Member> get memberPool => List.unmodifiable(_memberPool);
+
   /// 모임 참가자(결정적). 첫 번째가 호스트.
   List<Member> participantsOf(Meeting m) {
     final n = m.currentMembers.clamp(0, _memberPool.length);
