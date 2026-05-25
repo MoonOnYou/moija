@@ -3,6 +3,7 @@ import '../data/meeting_repository.dart';
 import '../features/chat/chat_preview.dart';
 import '../features/chat/chat_screen.dart';
 import '../features/home/home_screen.dart';
+import '../features/profile/profile_screen.dart';
 import '../theme/app_colors.dart';
 import 'app_navigation.dart';
 
@@ -34,7 +35,7 @@ class _AppShellState extends State<AppShell> {
             children: [
               HomeScreen(repository: _repository),
               ChatScreen(repository: _repository),
-              const _Placeholder(label: '프로필'),
+              const ProfileScreen(),
             ],
           ),
           bottomNavigationBar: NavigationBarTheme(
@@ -100,19 +101,3 @@ class _BadgedIcon extends StatelessWidget {
   }
 }
 
-class _Placeholder extends StatelessWidget {
-  const _Placeholder({required this.label});
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.bgPrimary,
-      body: Center(
-        child: Text('$label (준비 중)',
-            style: const TextStyle(
-                fontSize: 15, color: AppColors.textTertiary)),
-      ),
-    );
-  }
-}
