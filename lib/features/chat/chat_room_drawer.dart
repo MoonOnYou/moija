@@ -94,15 +94,24 @@ class ChatRoomDrawer extends StatelessWidget {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(m.nickname,
+                  Row(
+                    children: [
+                      Text(m.nickname,
+                          style: const TextStyle(
+                              fontSize: 15, fontWeight: FontWeight.w700)),
+                      const SizedBox(width: 8),
+                      Text(_memberSummary(m),
+                          style: const TextStyle(
+                              fontSize: 12, color: AppColors.textTertiary)),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(_memberActivity(m),
                       style: const TextStyle(
-                          fontSize: 15, fontWeight: FontWeight.w700)),
-                  const SizedBox(width: 8),
-                  Text(_memberSummary(m),
-                      style: const TextStyle(
-                          fontSize: 12, color: AppColors.textTertiary)),
+                          fontSize: 12, color: AppColors.textSecondary)),
                 ],
               ),
             ),
@@ -169,10 +178,10 @@ class ChatRoomDrawer extends StatelessWidget {
   }
 }
 
-String _memberSummary(Member m) {
-  final age = DateTime.now().year - m.birthYear;
-  return '$age · ${m.gender.label}';
-}
+String _memberSummary(Member m) => '${m.birthYear}년생 · ${m.gender.label}';
+
+String _memberActivity(Member m) =>
+    '활동 ${m.totalActivities}회 · 나와 ${m.timesMetWithMe}번 만남';
 
 class _Header extends StatelessWidget {
   const _Header({required this.meeting});
@@ -222,10 +231,21 @@ class _Header extends StatelessWidget {
           _InfoRow(icon: Icons.schedule, text: timeLabel),
           const SizedBox(height: 6),
           _InfoRow(icon: Icons.place_outlined, text: meeting.placeLabel),
+          const SizedBox(height: 6),
+          _InfoRow(
+              icon: Icons.payments_outlined, text: meeting.cost.display),
+          const SizedBox(height: 6),
+          _InfoRow(icon: Icons.people_outline, text: _membersLine(meeting)),
         ],
       ),
     );
   }
+}
+
+String _membersLine(Meeting m) {
+  final left = m.spotsLeft;
+  final tail = left > 0 ? '$left자리 남음' : '정원 마감';
+  return '${m.currentMembers}/${m.maxMembers}명 · $tail';
 }
 
 class _InfoRow extends StatelessWidget {
@@ -275,6 +295,7 @@ class _MemberTile extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             CircleAvatar(
               radius: 18,
@@ -285,35 +306,46 @@ class _MemberTile extends StatelessWidget {
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Flexible(
-                    child: Text(member.nickname,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.w600)),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(_memberSummary(member),
-                      style: const TextStyle(
-                          fontSize: 11, color: AppColors.textTertiary)),
-                  if (isHost) ...[
-                    const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 1),
-                      decoration: BoxDecoration(
-                        color: AppColors.bgInfo,
-                        borderRadius: BorderRadius.circular(4),
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(member.nickname,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600)),
                       ),
-                      child: const Text('방장',
-                          style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textInfo)),
-                    ),
-                  ],
+                      const SizedBox(width: 6),
+                      Text(_memberSummary(member),
+                          style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.textTertiary)),
+                      if (isHost) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: AppColors.bgInfo,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text('방장',
+                              style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textInfo)),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(_memberActivity(member),
+                      style: const TextStyle(
+                          fontSize: 11, color: AppColors.textSecondary)),
                 ],
               ),
             ),

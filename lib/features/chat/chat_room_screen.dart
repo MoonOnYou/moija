@@ -7,7 +7,7 @@ import 'chat_message.dart';
 import 'chat_room_drawer.dart';
 
 /// 모임 채팅방 화면. 리스트에서 채팅 셀을 누르면 진입한다.
-class ChatRoomScreen extends StatelessWidget {
+class ChatRoomScreen extends StatefulWidget {
   const ChatRoomScreen({
     super.key,
     required this.repository,
@@ -18,9 +18,52 @@ class ChatRoomScreen extends StatelessWidget {
   final Meeting meeting;
 
   @override
+  State<ChatRoomScreen> createState() => _ChatRoomScreenState();
+}
+
+class _ChatRoomScreenState extends State<ChatRoomScreen> {
+  final TextEditingController _controller = TextEditingController();
+  final ScrollController _scroll = ScrollController();
+  final List<ChatMessage> _sent = <ChatMessage>[];
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  void _send() {
+    final text = _controller.text.trim();
+    if (text.isEmpty) return;
+    setState(() {
+      _sent.add(ChatMessage(
+        id: 'me-${DateTime.now().microsecondsSinceEpoch}',
+        type: ChatMessageType.user,
+        text: text,
+        sentAt: DateTime.now(),
+        sender: kMyNickname,
+        mine: true,
+      ));
+      _controller.clear();
+    });
+    // reverse 리스트라 최신은 offset 0(화면 하단).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scroll.hasClients) {
+        _scroll.animateTo(
+          0,
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final participants = repository.participantsOf(meeting);
-    final messages = mockMessagesFor(meeting, participants);
+    final m = widget.meeting;
+    final participants = widget.repository.participantsOf(m);
+    final messages = <ChatMessage>[...mockMessagesFor(m, participants), ..._sent];
 
     // 날짜가 바뀔 때마다 _DateDivider 한 줄을 끼워 넣어 펼친다.
     final items = <Widget>[];
@@ -42,13 +85,15 @@ class ChatRoomScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.bgSecondary,
+      // 우측 가장자리 드래그가 뒤로가기 제스처와 겹쳐 어색하므로 햄버거 버튼으로만 열도록.
+      endDrawerEnableOpenDragGesture: false,
       appBar: AppBar(
         backgroundColor: AppColors.bgPrimary,
         elevation: 0,
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
         foregroundColor: AppColors.textPrimary,
-        title: Text(meeting.title,
+        title: Text(m.title,
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
         actions: [
           Builder(
@@ -61,10 +106,24 @@ class ChatRoomScreen extends StatelessWidget {
         ],
       ),
       endDrawer:
-          ChatRoomDrawer(repository: repository, meeting: meeting),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        children: items,
+          ChatRoomDrawer(repository: widget.repository, meeting: m),
+      body: Column(
+        children: [
+          Expanded(
+            // reverse:true 로 최신 메시지를 화면 하단에 고정한다.
+            // 키보드가 올라와 viewport가 줄어도 최신 메시지가 자동으로 따라 올라온다.
+            child: ListView(
+              controller: _scroll,
+              reverse: true,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              children: items.reversed.toList(growable: false),
+            ),
+          ),
+          _MessageComposer(
+            controller: _controller,
+            onSend: _send,
+          ),
+        ],
       ),
     );
   }
@@ -216,6 +275,80 @@ class _MyBubble extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// 본문 하단의 입력창 + 전송 버튼.
+/// 키보드 엔터는 줄바꿈으로 동작하고, 전송은 우측 아이콘에서만 일어난다.
+class _MessageComposer extends StatelessWidget {
+  const _MessageComposer({required this.controller, required this.onSend});
+
+  final TextEditingController controller;
+  final VoidCallback onSend;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      top: false,
+      child: Container(
+        decoration: const BoxDecoration(
+          color: AppColors.bgPrimary,
+          border: Border(
+            top: BorderSide(color: AppColors.borderTertiary, width: 0.5),
+          ),
+        ),
+        padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Expanded(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 120),
+                child: TextField(
+                  key: const Key('chat-composer-input'),
+                  controller: controller,
+                  minLines: 1,
+                  maxLines: null,
+                  keyboardType: TextInputType.multiline,
+                  textInputAction: TextInputAction.newline,
+                  style: const TextStyle(fontSize: 14, height: 1.35),
+                  decoration: InputDecoration(
+                    hintText: '메시지 입력',
+                    hintStyle: const TextStyle(
+                        fontSize: 14, color: AppColors.textTertiary),
+                    filled: true,
+                    fillColor: AppColors.bgSecondary,
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 10),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(18),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 4),
+            ValueListenableBuilder<TextEditingValue>(
+              valueListenable: controller,
+              builder: (_, value, child) {
+                final enabled = value.text.trim().isNotEmpty;
+                return IconButton(
+                  key: const Key('chat-composer-send'),
+                  tooltip: '전송',
+                  onPressed: enabled ? onSend : null,
+                  icon: const Icon(Icons.send_rounded),
+                  color: enabled
+                      ? AppColors.textInfo
+                      : AppColors.textTertiary,
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

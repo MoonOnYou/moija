@@ -141,4 +141,100 @@ void main() {
 
     expect(repo.isJoined(m), isFalse);
   });
+
+  testWidgets('전송 버튼은 빈 입력에는 비활성, 텍스트가 있으면 활성·전송 후 입력 비움', (tester) async {
+    final m = _m('chat-send', '입력 모임', DateTime(2026, 5, 25, 18, 0));
+    final repo = MeetingRepository.test(meetings: [m], joined: {'chat-send'});
+
+    await tester.pumpWidget(_wrap(
+      ChatRoomScreen(repository: repo, meeting: m),
+    ));
+    await tester.pumpAndSettle();
+
+    final sendBtn = find.byKey(const Key('chat-composer-send'));
+    expect(tester.widget<IconButton>(sendBtn).onPressed, isNull,
+        reason: '빈 입력일 때 전송 비활성');
+
+    await tester.enterText(
+        find.byKey(const Key('chat-composer-input')), '테스트 보내는 메시지 입니다');
+    await tester.pump();
+    expect(tester.widget<IconButton>(sendBtn).onPressed, isNotNull);
+
+    await tester.tap(sendBtn);
+    await tester.pumpAndSettle();
+
+    // 내 메시지로 노출되고 입력은 비워진다.
+    expect(find.text('테스트 보내는 메시지 입니다'), findsOneWidget);
+    expect(
+        tester
+            .widget<TextField>(find.byKey(const Key('chat-composer-input')))
+            .controller!
+            .text,
+        '');
+  });
+
+  testWidgets('입력창은 멀티라인이며 키보드 액션은 줄바꿈이다', (tester) async {
+    final m = _m('chat-ml', '멀티라인', DateTime(2026, 5, 25, 18, 0));
+    final repo = MeetingRepository.test(meetings: [m], joined: {'chat-ml'});
+
+    await tester.pumpWidget(_wrap(
+      ChatRoomScreen(repository: repo, meeting: m),
+    ));
+    await tester.pumpAndSettle();
+
+    final field = tester
+        .widget<TextField>(find.byKey(const Key('chat-composer-input')));
+    expect(field.maxLines, isNull, reason: '무제한 줄');
+    expect(field.minLines, 1);
+    expect(field.keyboardType, TextInputType.multiline);
+    expect(field.textInputAction, TextInputAction.newline);
+  });
+
+  testWidgets('endDrawer 가장자리 드래그는 비활성화돼 있다', (tester) async {
+    final m = _m('chat-d2', '드래그 차단', DateTime(2026, 5, 25, 18, 0));
+    final repo = MeetingRepository.test(meetings: [m], joined: {'chat-d2'});
+
+    await tester.pumpWidget(_wrap(
+      ChatRoomScreen(repository: repo, meeting: m),
+    ));
+    await tester.pumpAndSettle();
+
+    final scaffold = tester.widget<Scaffold>(find.byType(Scaffold).first);
+    expect(scaffold.endDrawerEnableOpenDragGesture, isFalse);
+  });
+
+  testWidgets('드로어 헤더에 비용·남은 자리가 노출된다', (tester) async {
+    final m = _m('chat-info', '정보 보강', DateTime(2026, 5, 25, 18, 0),
+        currentMembers: 3, maxMembers: 6);
+    final repo = MeetingRepository.test(meetings: [m], joined: {'chat-info'});
+
+    await tester.pumpWidget(_wrap(
+      ChatRoomScreen(repository: repo, meeting: m),
+    ));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('더보기'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('더치페이'), findsOneWidget); // 기본 split cost 라벨
+    expect(find.textContaining('3/6명'), findsOneWidget);
+    expect(find.textContaining('3자리 남음'), findsOneWidget);
+  });
+
+  testWidgets('멤버 행에 년생·활동·만난 횟수가 보인다', (tester) async {
+    final m = _m('chat-prof', '프로필 표기', DateTime(2026, 5, 25, 18, 0));
+    final repo = MeetingRepository.test(meetings: [m], joined: {'chat-prof'});
+
+    await tester.pumpWidget(_wrap(
+      ChatRoomScreen(repository: repo, meeting: m),
+    ));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('더보기'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('년생'), findsAtLeastNWidgets(1));
+    expect(find.textContaining('활동'), findsAtLeastNWidgets(1));
+    expect(find.textContaining('나와'), findsAtLeastNWidgets(1));
+  });
 }
