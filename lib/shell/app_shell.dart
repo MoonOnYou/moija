@@ -18,17 +18,33 @@ class AppShell extends StatefulWidget {
   State<AppShell> createState() => _AppShellState();
 }
 
-class _AppShellState extends State<AppShell> {
+class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
   // 홈과 내모임이 같은 모임 데이터를 공유하도록 한 인스턴스를 셸에서 보유한다.
   final MeetingRepository _repository = MeetingRepository();
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     if (widget.showForceUpdate) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) ForceUpdateDialog.show(context);
       });
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // 백그라운드에서 자정을 넘어 돌아오면 시간 의존 화면(내모임 D-N, 진행중 라벨 등)을
+    // 다시 그려야 한다. setState로 IndexedStack 자식들의 build를 한 번 강제.
+    if (state == AppLifecycleState.resumed && mounted) {
+      setState(() {});
     }
   }
 

@@ -31,9 +31,9 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   static DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
-  late final DateTime _today = _dateOnly(widget.today ?? DateTime.now());
+  late DateTime _today = _dateOnly(widget.today ?? DateTime.now());
 
   late final MeetingRepository _repository =
       widget.repository ?? MeetingRepository();
@@ -45,6 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadFilter();
     pendingFocusDay.addListener(_consumePendingFocus);
     // 위젯이 살아있는 동안 누적된 요청이 있으면 마운트 직후 1회 처리.
@@ -53,8 +54,32 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     pendingFocusDay.removeListener(_consumePendingFocus);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) return;
+    _refreshTodayIfChanged();
+  }
+
+  /// 자정을 넘긴 뒤 앱이 복귀하면 _today를 새 날짜로 교체한다.
+  /// 사용자가 보고 있던 날짜가 옛 today였다면(평상시), 선택 날짜·캘린더도 새 today로 따라간다.
+  /// 다른 날짜를 보고 있었다면 그대로 유지.
+  void _refreshTodayIfChanged() {
+    if (widget.today != null) return; // 테스트가 today를 주입하면 자동 갱신 안 함
+    final newToday = _dateOnly(DateTime.now());
+    if (newToday == _today) return;
+    setState(() {
+      final followToday = _selectedDay == _today;
+      _today = newToday;
+      if (followToday) {
+        _selectedDay = newToday;
+        _windowStart = weekStartOf(newToday);
+      }
+    });
   }
 
   /// 외부(예: 모임 생성 흐름)에서 요청한 날짜로 캘린더를 이동시킨 뒤
