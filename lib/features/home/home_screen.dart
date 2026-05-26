@@ -181,7 +181,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: AppColors.textPrimary,
+        backgroundColor: AppColors.coral,
         foregroundColor: AppColors.bgPrimary,
         onPressed: () async {
           final created = await Navigator.push<Meeting>(
@@ -195,7 +195,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             setState(() {});
           }
         },
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.add_rounded),
       ),
     );
   }

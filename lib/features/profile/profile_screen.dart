@@ -3,6 +3,7 @@ import '../../data/wallet.dart';
 import '../../models/member.dart';
 import '../../theme/app_colors.dart';
 import '../meeting/diamond_recharge_screen.dart';
+import 'edit_text_screen.dart';
 
 /// 프로필 메인 화면.
 /// 헤더(편집) · 자기소개(편집) · 다이아 충전 카드 · 정책/계정 메뉴.
@@ -23,90 +24,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
   static const int _totalActivities = 12;
 
   Future<void> _editNickname() async {
-    final result = await _showSingleLineEdit(
+    final result = await EditTextScreen.show(
+      context,
       title: '닉네임 수정',
       initial: _nickname,
+      hint: '닉네임을 입력해 주세요',
       maxLength: 12,
-      hint: '닉네임',
     );
-    if (result != null && result.trim().isNotEmpty) {
-      setState(() => _nickname = result.trim());
+    if (result != null && result.isNotEmpty && mounted) {
+      setState(() => _nickname = result);
     }
   }
 
   Future<void> _editIntro() async {
-    final result = await _showMultiLineEdit(
+    final result = await EditTextScreen.show(
+      context,
       title: '자기소개 수정',
       initial: _intro,
-      hint: '간단한 자기소개를 적어주세요',
+      hint: '함께하는 모임에서 나를 소개해 주세요',
+      maxLength: 200,
+      multiline: true,
     );
-    if (result != null) {
-      setState(() => _intro = result.trim());
+    if (result != null && mounted) {
+      setState(() => _intro = result);
     }
-  }
-
-  Future<String?> _showSingleLineEdit({
-    required String title,
-    required String initial,
-    required String hint,
-    int? maxLength,
-  }) {
-    final controller = TextEditingController(text: initial);
-    return showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(title),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          maxLength: maxLength,
-          decoration: InputDecoration(hintText: hint),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('취소'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(controller.text),
-            child: const Text('저장'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<String?> _showMultiLineEdit({
-    required String title,
-    required String initial,
-    required String hint,
-  }) {
-    final controller = TextEditingController(text: initial);
-    return showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(title),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          minLines: 3,
-          maxLines: 6,
-          maxLength: 200,
-          keyboardType: TextInputType.multiline,
-          decoration: InputDecoration(hintText: hint),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('취소'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(controller.text),
-            child: const Text('저장'),
-          ),
-        ],
-      ),
-    );
   }
 
   void _stub(String label) {
@@ -152,7 +93,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bgSecondary,
+      backgroundColor: AppColors.bgPrimary,
       appBar: AppBar(
         backgroundColor: AppColors.bgPrimary,
         elevation: 0,
@@ -197,15 +138,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: 20),
           const _SectionTitle('약관 · 정책'),
           _MenuTile(
-              icon: Icons.description_outlined,
+              icon: Icons.description_rounded,
               label: '서비스 이용약관',
               onTap: () => _stub('이용약관')),
           _MenuTile(
-              icon: Icons.shield_outlined,
+              icon: Icons.shield_rounded,
               label: '개인정보 처리방침',
               onTap: () => _stub('개인정보 처리방침')),
           _MenuTile(
-              icon: Icons.place_outlined,
+              icon: Icons.place_rounded,
               label: '위치기반서비스 이용약관',
               onTap: () => _stub('위치기반서비스 이용약관')),
           _MenuTile(
@@ -302,7 +243,7 @@ class _ProfileHeader extends StatelessWidget {
                     IconButton(
                       key: const Key('edit-nickname'),
                       onPressed: onEditNickname,
-                      icon: const Icon(Icons.edit_outlined,
+                      icon: const Icon(Icons.edit_rounded,
                           size: 16, color: AppColors.textTertiary),
                       tooltip: '닉네임 수정',
                       padding: EdgeInsets.zero,
@@ -318,7 +259,7 @@ class _ProfileHeader extends StatelessWidget {
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    const Icon(Icons.star,
+                    const Icon(Icons.star_rounded,
                         size: 14, color: Color(0xFFE6A700)),
                     const SizedBox(width: 2),
                     Text(mannerScore.toStringAsFixed(1),
@@ -383,7 +324,7 @@ class _IntroCard extends StatelessWidget {
           IconButton(
             key: const Key('edit-intro'),
             onPressed: onEdit,
-            icon: const Icon(Icons.edit_outlined,
+            icon: const Icon(Icons.edit_rounded,
                 size: 18, color: AppColors.textTertiary),
             tooltip: '자기소개 수정',
             splashRadius: 18,
@@ -411,7 +352,7 @@ class _DiamondCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.diamond_outlined,
+          const Icon(Icons.diamond_rounded,
               size: 22, color: AppColors.textInfo),
           const SizedBox(width: 10),
           Expanded(

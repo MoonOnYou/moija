@@ -3,6 +3,7 @@ import '../../data/meeting_repository.dart';
 import '../../models/meeting.dart';
 import '../../models/member.dart';
 import '../../theme/app_colors.dart';
+import '../common/block_reason_screen.dart';
 
 /// 종료된 모임의 팀원 매너를 평가하는 화면.
 /// 멤버 카드마다 별점 1~5 선택 → 제출, 또는 차단/건너뛰기 중 하나로 처리한다.
@@ -84,11 +85,19 @@ class _MannerReviewScreenState extends State<MannerReviewScreen> {
         ).animate(slideAndFade),
         child: FadeTransition(
           opacity: slideAndFade,
+          // ValueKey로 State 식별 — 없으면 카드 dismiss 후 다음 카드가 옛 State(별점)를 재사용한다.
           child: _MannerCard(
+            key: ValueKey('manner-card-${m.nickname}'),
             member: m,
             onSubmit: (stars) =>
                 _dismiss(m, toast: '${m.nickname}님에게 ★$stars점을 줬어요'),
-            onBlock: () => _dismiss(m, toast: '${m.nickname}님을 차단했어요'),
+            onBlock: () async {
+              final reason =
+                  await BlockReasonScreen.show(context, m.nickname);
+              if (reason != null && mounted) {
+                _dismiss(m, toast: '${m.nickname}님을 차단했어요');
+              }
+            },
             onSkip: () => _dismiss(m),
           ),
         ),
@@ -99,7 +108,7 @@ class _MannerReviewScreenState extends State<MannerReviewScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bgSecondary,
+      backgroundColor: AppColors.bgPrimary,
       appBar: AppBar(
         backgroundColor: AppColors.bgPrimary,
         elevation: 0,
@@ -116,7 +125,7 @@ class _MannerReviewScreenState extends State<MannerReviewScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.check_circle_outline,
+                  Icon(Icons.check_circle_rounded,
                       size: 48, color: AppColors.textTertiary),
                   SizedBox(height: 12),
                   Text('모두 평가했어요',
@@ -146,6 +155,7 @@ class _MannerReviewScreenState extends State<MannerReviewScreen> {
 
 class _MannerCard extends StatefulWidget {
   const _MannerCard({
+    super.key,
     required this.member,
     required this.onSubmit,
     required this.onBlock,
@@ -276,7 +286,7 @@ class _MannerCardState extends State<_MannerCard> {
                 child: FilledButton(
                   onPressed: canSubmit ? () => widget.onSubmit(_stars) : null,
                   style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.textPrimary,
+                    backgroundColor: AppColors.coral,
                     foregroundColor: AppColors.bgPrimary,
                     disabledBackgroundColor: AppColors.bgTertiary,
                     disabledForegroundColor: AppColors.textTertiary,

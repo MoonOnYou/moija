@@ -57,7 +57,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
         appBar: AppBar(
           backgroundColor: AppColors.bgPrimary,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
+            icon: const Icon(Icons.arrow_back_rounded),
             onPressed: _back,
           ),
           title: Text(_line?.label ?? _region ?? '장소 선택'),
@@ -77,7 +77,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                     width: double.infinity,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.textPrimary,
+                        backgroundColor: AppColors.coral,
                         foregroundColor: AppColors.bgPrimary,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
@@ -110,7 +110,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
-                  color: AppColors.textInfo,
+                  color: AppColors.textPrimary,
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Text(
@@ -131,7 +131,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
           ListTile(
             title: Text(region),
             trailing:
-                const Icon(Icons.chevron_right, color: AppColors.textTertiary),
+                const Icon(Icons.chevron_right_rounded, color: AppColors.textTertiary),
             onTap: () => setState(() => _region = region),
           ),
       ],
@@ -153,6 +153,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
               : CheckboxListTile(
                   value: _selected.contains(region),
                   title: Text('$region 전체'),
+                  activeColor: AppColors.textPrimary,
                   controlAffinity: ListTileControlAffinity.trailing,
                   onChanged: (_) => _toggle(region),
                 ),
@@ -160,7 +161,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
           if (LocationCatalog.childrenOf(node.id).isNotEmpty) // 자식(역) 있는 노선 → 드릴다운
             ListTile(
               title: Text(node.label),
-              trailing: const Icon(Icons.chevron_right,
+              trailing: const Icon(Icons.chevron_right_rounded,
                   color: AppColors.textTertiary),
               onTap: () => setState(() => _line = node),
             )
@@ -173,6 +174,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
             CheckboxListTile(
               value: _selected.contains(node.id),
               title: Text(node.label),
+              activeColor: AppColors.textPrimary,
               controlAffinity: ListTileControlAffinity.trailing,
               onChanged: (_) => _toggle(node.id),
             ),
@@ -190,6 +192,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
         : CheckboxListTile(
             value: _selected.contains(id),
             title: Text(label),
+            activeColor: AppColors.textPrimary,
             controlAffinity: ListTileControlAffinity.trailing,
             onChanged: (_) => _toggle(id),
           );

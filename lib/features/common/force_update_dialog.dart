@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/moija_logo.dart';
 
 /// 강제 업데이트 안내 다이얼로그.
 /// 닫기·뒤로가기로 빠져나갈 수 없고, "지금 업데이트" 버튼이 유일한 액션이다.
@@ -50,19 +51,7 @@ class ForceUpdateDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 72,
-              height: 72,
-              decoration: const BoxDecoration(
-                color: AppColors.bgInfo,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.rocket_launch_rounded,
-                size: 36,
-                color: AppColors.textInfo,
-              ),
-            ),
+            const MoijaLogo(size: 72),
             const SizedBox(height: 18),
             const Text(
               '새 버전이 출시되었어요',
@@ -112,7 +101,7 @@ class ForceUpdateDialog extends StatelessWidget {
                 key: const Key('force-update-button'),
                 onPressed: onUpdate,
                 style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.textInfo,
+                  backgroundColor: AppColors.coral,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(

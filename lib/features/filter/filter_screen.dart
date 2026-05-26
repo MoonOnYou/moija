@@ -97,7 +97,7 @@ class _FilterScreenState extends State<FilterScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.bgPrimary,
         leading: IconButton(
-          icon: const Icon(Icons.close),
+          icon: const Icon(Icons.close_rounded),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text('필터'),
@@ -150,7 +150,7 @@ class _FilterScreenState extends State<FilterScreen> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  const Icon(Icons.chevron_right, color: AppColors.textTertiary),
+                  const Icon(Icons.chevron_right_rounded, color: AppColors.textTertiary),
                 ],
               ),
             ),
@@ -187,7 +187,7 @@ class _FilterScreenState extends State<FilterScreen> {
                 child: ElevatedButton(
                   onPressed: _save,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.textPrimary,
+                    backgroundColor: AppColors.coral,
                     foregroundColor: AppColors.bgPrimary,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
@@ -208,19 +208,41 @@ class _FilterScreenState extends State<FilterScreen> {
       );
 
   Widget _chip(String label, bool selected, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-        decoration: BoxDecoration(
-          color: selected ? AppColors.textInfo : AppColors.bgTertiary,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Text(
-          selected ? '$label ✓' : label,
-          style: TextStyle(
-            fontSize: 12,
-            color: selected ? Colors.white : AppColors.textPrimary,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          padding:
+              const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color:
+                selected ? AppColors.textPrimary : AppColors.bgSecondary,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: selected
+                  ? AppColors.textPrimary
+                  : AppColors.borderTertiary,
+              width: selected ? 1.0 : 0.5,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (selected) ...[
+                const Icon(Icons.check_rounded,
+                    size: 14, color: Colors.white),
+                const SizedBox(width: 4),
+              ],
+              Text(label,
+                  style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color:
+                          selected ? Colors.white : AppColors.textPrimary)),
+            ],
           ),
         ),
       ),
@@ -264,8 +286,14 @@ class _FilterScreenState extends State<FilterScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
-          color: selected ? AppColors.textInfo : AppColors.bgTertiary,
+          color: selected ? AppColors.textPrimary : AppColors.bgSecondary,
           borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: selected
+                ? AppColors.textPrimary
+                : AppColors.borderTertiary,
+            width: selected ? 1.0 : 0.5,
+          ),
         ),
         child: Column(
           children: [

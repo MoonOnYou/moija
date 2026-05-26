@@ -68,13 +68,13 @@ class MeetingDetailScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: AppColors.bgPrimary,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => Navigator.pop(context),
         ),
         actions: const [
-          Icon(Icons.share_outlined, color: AppColors.textSecondary),
+          Icon(Icons.share_rounded, color: AppColors.textSecondary),
           SizedBox(width: 12),
-          Icon(Icons.flag_outlined, color: AppColors.textSecondary),
+          Icon(Icons.flag_rounded, color: AppColors.textSecondary),
           SizedBox(width: 16),
         ],
       ),
@@ -95,10 +95,10 @@ class MeetingDetailScreen extends StatelessWidget {
               style:
                   const TextStyle(fontSize: 22, fontWeight: FontWeight.w600)),
           const SizedBox(height: 16),
-          _infoRow(Icons.schedule, dateTime),
-          _infoRow(Icons.location_on_outlined, meeting.placeLabel),
-          _infoRow(Icons.payments_outlined, meeting.cost.display),
-          _infoRow(Icons.people_outline,
+          _infoRow(Icons.schedule_rounded, dateTime),
+          _infoRow(Icons.location_on_rounded, meeting.placeLabel),
+          _infoRow(Icons.payments_rounded, meeting.cost.display),
+          _infoRow(Icons.people_rounded,
               '${meeting.currentMembers}/${meeting.maxMembers}명 · ${spots > 0 ? '$spots자리 남음' : '마감'}'),
           const SizedBox(height: 16),
           Text(meeting.description,
@@ -122,7 +122,7 @@ class MeetingDetailScreen extends StatelessWidget {
             width: double.infinity,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.textPrimary,
+                backgroundColor: AppColors.coral,
                 foregroundColor: AppColors.bgPrimary,
                 padding: const EdgeInsets.symmetric(vertical: 12),
               ),

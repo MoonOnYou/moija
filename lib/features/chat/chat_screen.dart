@@ -126,7 +126,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       // 선착순은 신청 검토 단계가 없으므로 승인제일 때만 노출.
                       if (repo.isHost(m) && m.joinMethod == JoinMethod.approval)
                         _HostActionButton(
-                          icon: Icons.fact_check_outlined,
+                          icon: Icons.fact_check_rounded,
                           label: '신청자 ${pendingApplicantsFor(m)}명 검토하기',
                           onPressed: () => _openApplicantReview(m),
                         ),

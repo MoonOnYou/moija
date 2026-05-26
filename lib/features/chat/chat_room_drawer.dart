@@ -5,6 +5,7 @@ import '../../models/meeting.dart';
 import '../../models/member.dart';
 import '../../shell/app_navigation.dart';
 import '../../theme/app_colors.dart';
+import '../common/block_reason_screen.dart';
 
 /// 채팅방 우측에서 열리는 더보기 패널.
 /// 모임 정보 + 팀원 리스트(차단·신고 액션) + 모임 나가기.
@@ -82,60 +83,100 @@ class ChatRoomDrawer extends StatelessWidget {
   }
 
   Future<void> _showMemberSheet(BuildContext context, Member m) async {
-    await showModalBottomSheet<void>(
+    final isMale = m.gender == Gender.male;
+    final avatarBg = isMale ? AppColors.bgInfo : AppColors.bgPink;
+    final avatarFg = isMale ? AppColors.textInfo : AppColors.textPink;
+
+    await showDialog<void>(
       context: context,
-      backgroundColor: AppColors.bgPrimary,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(m.nickname,
-                          style: const TextStyle(
-                              fontSize: 15, fontWeight: FontWeight.w700)),
-                      const SizedBox(width: 8),
-                      Text(_memberSummary(m),
-                          style: const TextStyle(
-                              fontSize: 12, color: AppColors.textTertiary)),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(_memberActivity(m),
-                      style: const TextStyle(
-                          fontSize: 12, color: AppColors.textSecondary)),
-                ],
+      barrierColor: Colors.black54,
+      builder: (ctx) => Dialog(
+        backgroundColor: AppColors.bgPrimary,
+        elevation: 0,
+        insetPadding:
+            const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircleAvatar(
+                radius: 30,
+                backgroundColor: avatarBg,
+                child: Text(m.nickname.characters.first,
+                    style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                        color: avatarFg)),
               ),
-            ),
-            const Divider(height: 1, color: AppColors.borderTertiary),
-            ListTile(
-              leading: const Icon(Icons.block_rounded,
-                  color: AppColors.textPrimary),
-              title: const Text('차단하기'),
-              onTap: () {
-                Navigator.of(ctx).pop();
-                _toast(context, '${m.nickname}님을 차단했어요');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.flag_outlined,
-                  color: AppColors.textDanger),
-              title: const Text('신고하기',
-                  style: TextStyle(color: AppColors.textDanger)),
-              onTap: () {
-                Navigator.of(ctx).pop();
-                _toast(context, '${m.nickname}님 신고를 접수했어요');
-              },
-            ),
-          ],
+              const SizedBox(height: 12),
+              Text(m.nickname,
+                  style: const TextStyle(
+                      fontSize: 17, fontWeight: FontWeight.w700)),
+              const SizedBox(height: 4),
+              Text(_memberSummary(m),
+                  style: const TextStyle(
+                      fontSize: 12, color: AppColors.textSecondary)),
+              const SizedBox(height: 2),
+              Text(_memberActivity(m),
+                  style: const TextStyle(
+                      fontSize: 12, color: AppColors.textTertiary)),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.block_rounded, size: 16),
+                  label: const Text('차단하기'),
+                  onPressed: () async {
+                    Navigator.of(ctx).pop();
+                    final reason =
+                        await BlockReasonScreen.show(context, m.nickname);
+                    if (reason != null && context.mounted) {
+                      _toast(context, '${m.nickname}님을 차단했어요');
+                    }
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.textPrimary,
+                    side: const BorderSide(color: AppColors.borderTertiary),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                    textStyle: const TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  icon: const Icon(Icons.flag_rounded, size: 16),
+                  label: const Text('신고하기'),
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                    _toast(context, '${m.nickname}님 신고를 접수했어요');
+                  },
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.textDanger,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                    textStyle: const TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 4),
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                style: TextButton.styleFrom(
+                    foregroundColor: AppColors.textSecondary),
+                child: const Text('닫기'),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -224,14 +265,14 @@ class _Header extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          _InfoRow(icon: Icons.schedule, text: timeLabel),
+          _InfoRow(icon: Icons.schedule_rounded, text: timeLabel),
           const SizedBox(height: 6),
-          _InfoRow(icon: Icons.place_outlined, text: meeting.placeLabel),
+          _InfoRow(icon: Icons.place_rounded, text: meeting.placeLabel),
           const SizedBox(height: 6),
           _InfoRow(
-              icon: Icons.payments_outlined, text: meeting.cost.display),
+              icon: Icons.payments_rounded, text: meeting.cost.display),
           const SizedBox(height: 6),
-          _InfoRow(icon: Icons.people_outline, text: _membersLine(meeting)),
+          _InfoRow(icon: Icons.people_rounded, text: _membersLine(meeting)),
         ],
       ),
     );
@@ -336,7 +377,7 @@ class _LeaveMeetingDialogState extends State<_LeaveMeetingDialog> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _NoticeRow(
-                        icon: Icons.diamond_outlined,
+                        icon: Icons.diamond_rounded,
                         iconColor: AppColors.textInfo,
                         text: '$diamond 다이아는 환불되지 않아요'),
                     const SizedBox(height: 10),

@@ -24,7 +24,7 @@ class FilterBar extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const Icon(Icons.filter_list, size: 18, color: AppColors.textPrimary),
+            const Icon(Icons.filter_list_rounded, size: 18, color: AppColors.textPrimary),
             const SizedBox(width: 8),
             const Text('필터',
                 style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
@@ -33,7 +33,7 @@ class FilterBar extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
                 decoration: BoxDecoration(
-                  color: AppColors.textInfo,
+                  color: AppColors.textPrimary,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text('$activeCount',
@@ -45,7 +45,7 @@ class FilterBar extends StatelessWidget {
             const Spacer(),
             const Text('카테고리 · 장소 · 시간',
                 style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
-            const Icon(Icons.chevron_right, size: 18, color: AppColors.textTertiary),
+            const Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.textTertiary),
           ],
         ),
       ),

@@ -84,7 +84,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.bgSecondary,
+      backgroundColor: AppColors.bgPrimary,
       // 우측 가장자리 드래그가 뒤로가기 제스처와 겹쳐 어색하므로 햄버거 버튼으로만 열도록.
       endDrawerEnableOpenDragGesture: false,
       appBar: AppBar(
@@ -261,7 +261,7 @@ class _MyBubble extends StatelessWidget {
               padding:
                   const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
               decoration: const BoxDecoration(
-                color: AppColors.textInfo,
+                color: AppColors.coral,
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(14),
                   topRight: Radius.circular(4),

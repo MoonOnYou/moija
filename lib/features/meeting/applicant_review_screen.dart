@@ -100,7 +100,7 @@ class _ApplicantReviewScreenState extends State<ApplicantReviewScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bgSecondary,
+      backgroundColor: AppColors.bgPrimary,
       appBar: AppBar(
         backgroundColor: AppColors.bgPrimary,
         elevation: 0,
@@ -218,7 +218,7 @@ class _ApplicantCard extends StatelessWidget {
                                   fontWeight: FontWeight.w700)),
                         ),
                         const SizedBox(width: 8),
-                        const Icon(Icons.star,
+                        const Icon(Icons.star_rounded,
                             size: 14, color: Color(0xFFE6A700)),
                         const SizedBox(width: 2),
                         Text(m.mannerScore.toStringAsFixed(1),
@@ -260,7 +260,7 @@ class _ApplicantCard extends StatelessWidget {
                 children: [
                   const Row(
                     children: [
-                      Icon(Icons.chat_bubble_outline,
+                      Icon(Icons.chat_bubble_rounded,
                           size: 13, color: AppColors.textSecondary),
                       SizedBox(width: 6),
                       Text('방장에게 한마디',
@@ -303,7 +303,7 @@ class _ApplicantCard extends StatelessWidget {
                 child: FilledButton(
                   onPressed: onAccept,
                   style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.textPrimary,
+                    backgroundColor: AppColors.coral,
                     foregroundColor: AppColors.bgPrimary,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(

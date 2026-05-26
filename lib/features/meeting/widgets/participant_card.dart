@@ -64,7 +64,7 @@ class ParticipantCard extends StatelessWidget {
                       ),
                     ],
                     const Spacer(),
-                    const Icon(Icons.star, size: 13, color: Color(0xFFE6A700)),
+                    const Icon(Icons.star_rounded, size: 13, color: Color(0xFFE6A700)),
                     const SizedBox(width: 2),
                     Text(member.mannerScore.toStringAsFixed(1),
                         style: const TextStyle(

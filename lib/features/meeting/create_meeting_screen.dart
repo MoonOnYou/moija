@@ -264,7 +264,7 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.bgPrimary,
         leading: IconButton(
-          icon: const Icon(Icons.close),
+          icon: const Icon(Icons.close_rounded),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text('모임 만들기'),
@@ -304,12 +304,12 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
           Row(
             children: [
               Expanded(
-                child: _pickerField(const Key('date'), Icons.calendar_today,
+                child: _pickerField(const Key('date'), Icons.calendar_today_rounded,
                     dateLabel, _date != null, _pickDate),
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: _pickerField(const Key('time'), Icons.schedule,
+                child: _pickerField(const Key('time'), Icons.schedule_rounded,
                     timeLabel, _time != null, _pickTime),
               ),
             ],
@@ -321,14 +321,14 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
             contentPadding: EdgeInsets.zero,
             title: const Text('온라인 모임', style: TextStyle(fontSize: 14)),
             value: _online,
-            activeThumbColor: AppColors.textInfo,
+            activeThumbColor: AppColors.textPrimary,
             onChanged: (v) => setState(() => _online = v),
           ),
           if (!_online) ...[
             const SizedBox(height: 4),
             _pickerField(
               const Key('location'),
-              Icons.location_on_outlined,
+              Icons.location_on_rounded,
               _locationId == null
                   ? '지역 선택'
                   : LocationCatalog.displayLabel(_locationId!),
@@ -346,7 +346,7 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
           _sectionTitle('인원 (방장 포함)'),
           Row(
             children: [
-              _stepBtn(const Key('members-minus'), Icons.remove,
+              _stepBtn(const Key('members-minus'), Icons.remove_rounded,
                   _members > _minMembers
                       ? () => _setMembers(_members - 1)
                       : null),
@@ -370,7 +370,7 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
                   ),
                 ),
               ),
-              _stepBtn(const Key('members-plus'), Icons.add,
+              _stepBtn(const Key('members-plus'), Icons.add_rounded,
                   _members < _maxMembers
                       ? () => _setMembers(_members + 1)
                       : null),
@@ -431,7 +431,7 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
                 child: ElevatedButton(
                   key: const Key('submit'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.textPrimary,
+                    backgroundColor: AppColors.coral,
                     foregroundColor: AppColors.bgPrimary,
                     disabledBackgroundColor: AppColors.bgTertiary,
                     disabledForegroundColor: AppColors.textTertiary,
@@ -459,6 +459,8 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
 
   InputDecoration _inputDeco(String hint) => InputDecoration(
         hintText: hint,
+        hintStyle:
+            const TextStyle(fontSize: 14, color: AppColors.textTertiary),
         isDense: true,
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
@@ -470,22 +472,50 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
           borderRadius: BorderRadius.circular(10),
           borderSide: const BorderSide(color: AppColors.borderTertiary),
         ),
+        // 포커스 하이라이트는 코랄 대신 검정 톤.
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide:
+              const BorderSide(color: AppColors.textPrimary, width: 1.4),
+        ),
       );
 
   Widget _chip(String label, bool selected, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-        decoration: BoxDecoration(
-          color: selected ? AppColors.textInfo : AppColors.bgTertiary,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Text(
-          selected ? '$label ✓' : label,
-          style: TextStyle(
-            fontSize: 12,
-            color: selected ? Colors.white : AppColors.textPrimary,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          padding:
+              const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color:
+                selected ? AppColors.textPrimary : AppColors.bgSecondary,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: selected
+                  ? AppColors.textPrimary
+                  : AppColors.borderTertiary,
+              width: selected ? 1.0 : 0.5,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (selected) ...[
+                const Icon(Icons.check_rounded,
+                    size: 14, color: Colors.white),
+                const SizedBox(width: 4),
+              ],
+              Text(label,
+                  style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color:
+                          selected ? Colors.white : AppColors.textPrimary)),
+            ],
           ),
         ),
       ),
@@ -578,7 +608,9 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
         decoration: BoxDecoration(
           color: AppColors.bgPrimary,
           border: Border.all(
-            color: selected ? AppColors.textInfo : AppColors.borderTertiary,
+            color: selected
+                ? AppColors.textPrimary
+                : AppColors.borderTertiary,
             width: selected ? 1.5 : 1,
           ),
           borderRadius: BorderRadius.circular(12),
@@ -587,9 +619,11 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(
-              selected ? Icons.radio_button_checked : Icons.radio_button_off,
+              selected ? Icons.radio_button_checked_rounded : Icons.radio_button_unchecked_rounded,
               size: 20,
-              color: selected ? AppColors.textInfo : AppColors.textTertiary,
+              color: selected
+                  ? AppColors.textPrimary
+                  : AppColors.textTertiary,
             ),
             const SizedBox(width: 12),
             Expanded(

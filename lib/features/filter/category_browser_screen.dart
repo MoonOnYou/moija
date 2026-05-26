@@ -81,7 +81,7 @@ class _CategoryBrowserScreenState extends State<CategoryBrowserScreen> {
                   child: ElevatedButton(
                     key: const Key('category-browser-done'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.textPrimary,
+                      backgroundColor: AppColors.coral,
                       foregroundColor: AppColors.bgPrimary,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
@@ -143,7 +143,8 @@ class _CategoryChip extends StatelessWidget {
           padding:
               const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
-            color: selected ? AppColors.textPrimary : AppColors.bgSecondary,
+            color:
+                selected ? AppColors.textPrimary : AppColors.bgSecondary,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: selected

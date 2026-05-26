@@ -27,7 +27,7 @@ class DayCell extends StatelessWidget {
 
   Color _numberColor() {
     if (isSelected) return Colors.white;
-    if (isToday) return AppColors.textInfo;
+    if (isToday) return AppColors.coral;
     switch (date.weekday) {
       case DateTime.sunday:
         return AppColors.textDanger;
@@ -56,7 +56,7 @@ class DayCell extends StatelessWidget {
         height: 22,
         alignment: Alignment.center,
         decoration: const BoxDecoration(
-          color: AppColors.textInfo,
+          color: AppColors.coral,
           shape: BoxShape.circle,
         ),
         child: number,
@@ -68,7 +68,7 @@ class DayCell extends StatelessWidget {
         alignment: Alignment.center,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          border: Border.all(color: AppColors.textInfo, width: 1.5),
+          border: Border.all(color: AppColors.coral, width: 1.5),
         ),
         child: number,
       );
@@ -78,8 +78,8 @@ class DayCell extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(6),
-        color: isSelected ? AppColors.bgInfo : null,
-        border: isSelected ? Border.all(color: AppColors.borderInfo) : null,
+        color: isSelected ? AppColors.bgCoral : null,
+        border: isSelected ? Border.all(color: AppColors.coral) : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

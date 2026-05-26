@@ -68,29 +68,38 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
               const ProfileScreen(),
             ],
           ),
-          bottomNavigationBar: NavigationBarTheme(
-            data: const NavigationBarThemeData(
-              backgroundColor: Colors.white,
-              surfaceTintColor: Colors.transparent,
-              indicatorColor: AppColors.bgSecondary,
-              elevation: 0,
-              labelTextStyle: WidgetStatePropertyAll(
-                TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+          bottomNavigationBar: Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              border: Border(
+                top: BorderSide(color: AppColors.borderTertiary, width: 0.5),
               ),
             ),
-            child: NavigationBar(
-              height: 64,
-              selectedIndex: index,
-              onDestinationSelected: (i) => selectedTab.value = i,
-              destinations: [
+            child: NavigationBarTheme(
+              data: const NavigationBarThemeData(
+                backgroundColor: Colors.white,
+                surfaceTintColor: Colors.transparent,
+                // 눌림 효과 제거 — 아이콘 outlined↔rounded 전환만 보이도록.
+                indicatorColor: Colors.transparent,
+                overlayColor: WidgetStatePropertyAll(Colors.transparent),
+                elevation: 0,
+                labelTextStyle: WidgetStatePropertyAll(
+                  TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                ),
+              ),
+              child: NavigationBar(
+                height: 64,
+                selectedIndex: index,
+                onDestinationSelected: (i) => selectedTab.value = i,
+                destinations: [
                 const NavigationDestination(
-                  icon: Icon(Icons.home_outlined),
+                  icon: Icon(Icons.home_rounded),
                   selectedIcon: Icon(Icons.home_rounded),
                   label: '홈',
                 ),
                 NavigationDestination(
                   icon: _BadgedIcon(
-                    icon: Icons.groups_outlined,
+                    icon: Icons.groups_rounded,
                     count: unread,
                   ),
                   selectedIcon: _BadgedIcon(
@@ -105,6 +114,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
                   label: '프로필',
                 ),
               ],
+              ),
             ),
           ),
         );

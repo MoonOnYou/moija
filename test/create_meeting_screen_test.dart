@@ -201,7 +201,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // 칩에 사용자 라벨이 노출된다(메인 11개에는 없음).
-    expect(find.text('배드민턴 ✓'), findsOneWidget);
+    expect(find.text('배드민턴'), findsAtLeastNWidgets(1));
 
     await tester.ensureVisible(find.byKey(const Key('submit')));
     await tester.tap(find.byKey(const Key('submit')));

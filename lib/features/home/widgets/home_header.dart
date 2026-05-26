@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../theme/app_colors.dart';
+import '../../../theme/moija_logo.dart';
 
 class HomeHeader extends StatelessWidget {
   const HomeHeader({
@@ -21,13 +22,18 @@ class HomeHeader extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          const MoijaLogo(size: 36),
+          const SizedBox(width: 10),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
                 '모이자',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500),
+                style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: -0.4),
               ),
               const SizedBox(height: 2),
               Text(
@@ -51,7 +57,7 @@ class HomeHeader extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.diamond,
+                  const Icon(Icons.diamond_rounded,
                       size: 15, color: AppColors.textInfo),
                   const SizedBox(width: 4),
                   Text(
@@ -67,9 +73,9 @@ class HomeHeader extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          const Icon(Icons.search, size: 20, color: AppColors.textSecondary),
+          const Icon(Icons.search_rounded, size: 20, color: AppColors.textSecondary),
           const SizedBox(width: 12),
-          const Icon(Icons.notifications_none,
+          const Icon(Icons.notifications_none_rounded,
               size: 20, color: AppColors.textSecondary),
         ],
       ),

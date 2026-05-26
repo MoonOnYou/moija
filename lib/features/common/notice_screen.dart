@@ -53,7 +53,7 @@ class NoticeScreen extends StatelessWidget {
         backgroundColor: AppColors.bgPrimary,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close, color: AppColors.textSecondary),
+          icon: const Icon(Icons.close_rounded, color: AppColors.textSecondary),
           onPressed: () => Navigator.pop(context, false),
         ),
       ),
@@ -119,7 +119,7 @@ class NoticeScreen extends StatelessWidget {
                   child: ElevatedButton(
                     key: const Key('notice-agree'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.textPrimary,
+                      backgroundColor: AppColors.coral,
                       foregroundColor: AppColors.bgPrimary,
                       padding: const EdgeInsets.symmetric(vertical: 15),
                       shape: RoundedRectangleBorder(
@@ -219,16 +219,16 @@ class Notices {
 
   /// #22 모임 만들기 전 안내.
   static NoticeScreen createMeeting() => const NoticeScreen(
-        icon: Icons.event_available,
+        icon: Icons.event_available_rounded,
         iconColor: AppColors.textInfo,
         iconBg: AppColors.bgInfo,
         title: '모임을 만들기 전에\n확인해주세요',
         items: [
-          NoticeItem(Icons.diamond_outlined, AppColors.textInfo,
+          NoticeItem(Icons.diamond_rounded, AppColors.textInfo,
               '다이아 300개로 모임을 만들어요'),
-          NoticeItem(Icons.schedule, AppColors.textSecondary,
+          NoticeItem(Icons.schedule_rounded, AppColors.textSecondary,
               '모임 시작 후 48시간까지 채팅이 유지돼요', '정산을 마무리 해 주세요'),
-          NoticeItem(Icons.fact_check_outlined, AppColors.textSecondary,
+          NoticeItem(Icons.fact_check_rounded, AppColors.textSecondary,
               '방장은 출석 체크와 정산 확인을 해주세요'),
           NoticeItem(Icons.warning_amber_rounded, AppColors.textDanger,
               '피치 못 할 경우 미리 방장을 넘겨주세요',
@@ -239,18 +239,18 @@ class Notices {
 
   /// #23 선착순 참가 전 안내.
   static NoticeScreen joinFirstCome() => const NoticeScreen(
-        icon: Icons.bolt,
+        icon: Icons.bolt_rounded,
         iconColor: AppColors.textSuccess,
         iconBg: AppColors.bgSuccess,
         title: '바로 참가하기 전에\n확인해주세요',
         badge: '선착순 모임 · 즉시 확정',
         badgeColor: AppColors.textSuccess,
         items: [
-          NoticeItem(Icons.diamond_outlined, AppColors.textInfo,
+          NoticeItem(Icons.diamond_rounded, AppColors.textInfo,
               '바로 참가하고 50 다이아를 사용해요', '즉시 채팅방에 입장헤요'),
-          NoticeItem(Icons.star_border, AppColors.textWarning,
+          NoticeItem(Icons.star_border_rounded, AppColors.textWarning,
               '참여하면 멤버들이 내 매너점수를 매길 수 있어요'),
-          NoticeItem(Icons.schedule, AppColors.textSecondary,
+          NoticeItem(Icons.schedule_rounded, AppColors.textSecondary,
               '모임이 시작 후 48시간까지 채팅이 유지돼요', '정산을 마무리 해 주세요'),
           NoticeItem(Icons.warning_amber_rounded, AppColors.textDanger,
               '무단 이탈·노쇼·미정산은 제한을 받을 수 있어요',
@@ -261,7 +261,7 @@ class Notices {
 
   /// #23b 승인제 참가 신청 전 안내.
   static NoticeScreen joinApproval() => const NoticeScreen(
-        icon: Icons.how_to_reg_outlined,
+        icon: Icons.how_to_reg_rounded,
         iconColor: AppColors.textInfo,
         iconBg: AppColors.bgInfo,
         title: '참가 신청하기 전에\n확인해주세요',
@@ -269,11 +269,11 @@ class Notices {
         badgeColor: AppColors.textInfo,
         showHostMessage: true,
         items: [
-          NoticeItem(Icons.diamond_outlined, AppColors.textInfo,
+          NoticeItem(Icons.diamond_rounded, AppColors.textInfo,
               '방장이 수락하면 50 다이아를 사용해요', '신청은 무료 · 거절되면 차감 없어요'),
-          NoticeItem(Icons.star_border, AppColors.textWarning,
+          NoticeItem(Icons.star_border_rounded, AppColors.textWarning,
               '참여하면 멤버들이 내 매너점수를 매길 수 있어요'),
-          NoticeItem(Icons.schedule, AppColors.textSecondary,
+          NoticeItem(Icons.schedule_rounded, AppColors.textSecondary,
               '모임이 시작 후 48시간까지 채팅이 유지돼요', '정산을 마무리 해 주세요'),
           NoticeItem(Icons.warning_amber_rounded, AppColors.textDanger,
               '무단 이탈·노쇼·미정산은 제한을 받을 수 있어요',

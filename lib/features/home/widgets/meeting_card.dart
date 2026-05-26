@@ -49,7 +49,7 @@ class MeetingCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    const Icon(Icons.schedule,
+                    const Icon(Icons.schedule_rounded,
                         size: 12, color: AppColors.textSecondary),
                     const SizedBox(width: 4),
                     Text(time,
@@ -58,7 +58,7 @@ class MeetingCard extends StatelessWidget {
                     const Text('  ·  ',
                         style: TextStyle(
                             fontSize: 11, color: AppColors.textSecondary)),
-                    const Icon(Icons.location_on_outlined,
+                    const Icon(Icons.location_on_rounded,
                         size: 12, color: AppColors.textSecondary),
                     const SizedBox(width: 4),
                     Flexible(
@@ -74,7 +74,7 @@ class MeetingCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    const Icon(Icons.payments_outlined,
+                    const Icon(Icons.payments_rounded,
                         size: 12, color: AppColors.textSecondary),
                     const SizedBox(width: 4),
                     Flexible(

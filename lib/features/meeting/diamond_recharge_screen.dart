@@ -38,7 +38,7 @@ class _DiamondRechargeScreenState extends State<DiamondRechargeScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.bgPrimary,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text('다이아 충전'),
@@ -65,7 +65,7 @@ class _DiamondRechargeScreenState extends State<DiamondRechargeScreen> {
             width: double.infinity,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.textPrimary,
+                backgroundColor: AppColors.coral,
                 foregroundColor: AppColors.bgPrimary,
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
@@ -94,7 +94,7 @@ class _DiamondRechargeScreenState extends State<DiamondRechargeScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.diamond, size: 28, color: AppColors.textInfo),
+                const Icon(Icons.diamond_rounded, size: 28, color: AppColors.textInfo),
                 const SizedBox(width: 8),
                 Text(_fmt.format(widget.currentDiamonds),
                     style: const TextStyle(
@@ -127,7 +127,7 @@ class _DiamondRechargeScreenState extends State<DiamondRechargeScreen> {
           children: [
             Row(
               children: [
-                const Icon(Icons.diamond, size: 24, color: AppColors.textInfo),
+                const Icon(Icons.diamond_rounded, size: 24, color: AppColors.textInfo),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -182,7 +182,7 @@ class _DiamondRechargeScreenState extends State<DiamondRechargeScreen> {
         ),
         child: Row(
           children: [
-            const Icon(Icons.play_circle_outline,
+            const Icon(Icons.play_circle_rounded,
                 size: 22, color: AppColors.textWarning),
             const SizedBox(width: 12),
             const Expanded(
@@ -229,9 +229,9 @@ class _DiamondRechargeScreenState extends State<DiamondRechargeScreen> {
             const Text('다이아는 어디에 쓰나요?',
                 style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
             const SizedBox(height: 10),
-            _usageRow(Icons.add, '모임 만들기', '300 다이아'),
+            _usageRow(Icons.add_rounded, '모임 만들기', '300 다이아'),
             const SizedBox(height: 8),
-            _usageRow(Icons.chat_bubble_outline, '채팅방 참가', '50 다이아'),
+            _usageRow(Icons.chat_bubble_rounded, '채팅방 참가', '50 다이아'),
           ],
         ),
       );

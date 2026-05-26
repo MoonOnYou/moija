@@ -27,8 +27,25 @@ class MoijaApp extends StatelessWidget {
       supportedLocales: const [Locale('ko', 'KR')],
       theme: ThemeData(
         useMaterial3: true,
+        // 배경은 흰색 단일, 강조는 coral 시드.
         scaffoldBackgroundColor: AppColors.bgPrimary,
-        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.textInfo),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppColors.coral,
+          brightness: Brightness.light,
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: AppColors.bgPrimary,
+          surfaceTintColor: Colors.transparent,
+          foregroundColor: AppColors.textPrimary,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          centerTitle: false,
+          titleTextStyle: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
+          ),
+        ),
         fontFamily: 'Pretendard',
       ),
       home: const AppShell(),
