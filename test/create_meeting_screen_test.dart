@@ -18,7 +18,7 @@ void main() {
 
   // 필수 항목을 모두 채운다(설명·구체장소 제외).
   Future<void> fillRequired(WidgetTester tester) async {
-    await tester.tap(find.text('카페')); // 카테고리
+    await tester.tap(find.text('맛집')); // 카테고리(메인 칩)
     await tester.pump();
     await tester.enterText(find.byKey(const Key('title')), '주말 카페 모임');
     await tester.pump();
@@ -173,30 +173,35 @@ void main() {
     expect(selectedTab.value, 1); // 채팅 탭으로 이동
   });
 
-  testWidgets('카테고리 직접 입력: customCategory로 저장된다', (tester) async {
+  testWidgets('전체보기에서 enum에 없는 라벨 선택 → customCategory로 저장된다',
+      (tester) async {
+    tester.view.physicalSize = const Size(400, 1600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
     final repo = MeetingRepository();
     await tester.pumpWidget(MaterialApp(
       home: CreateMeetingScreen(repository: repo, currentDiamonds: 1000),
     ));
     await tester.pumpAndSettle();
-    await fillRequired(tester); // 카페 선택됨
+    await fillRequired(tester); // 맛집 선택됨
 
-    // 카테고리 영역으로 올라가 직접 입력 칩을 연다.
+    // 카테고리 영역으로 올라가 전체보기 칩을 연다.
     await tester.scrollUntilVisible(
-      find.text('+ 직접 입력하기'),
+      find.byKey(const Key('category-browser-open')),
       -100,
       scrollable: find.byType(Scrollable).first,
     );
-    await tester.ensureVisible(find.text('+ 직접 입력하기'));
-    await tester.pump();
-    await tester.tap(find.text('+ 직접 입력하기'));
-    await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField).last, '클라이밍');
-    await tester.tap(find.text('추가'));
+    await tester.tap(find.byKey(const Key('category-browser-open')));
     await tester.pumpAndSettle();
 
-    // 입력한 이름이 칩으로 노출되고 프리셋(카페)은 해제된다.
-    expect(find.text('클라이밍 ✓'), findsOneWidget);
+    // enum에 없는 라벨(예: 배드민턴) 단일 선택 → 즉시 pop.
+    await tester.tap(find.text('배드민턴'));
+    await tester.pumpAndSettle();
+
+    // 칩에 사용자 라벨이 노출된다(메인 11개에는 없음).
+    expect(find.text('배드민턴 ✓'), findsOneWidget);
 
     await tester.ensureVisible(find.byKey(const Key('submit')));
     await tester.tap(find.byKey(const Key('submit')));
@@ -204,8 +209,8 @@ void main() {
     await tester.tap(find.byKey(const Key('notice-agree')));
     await tester.pumpAndSettle();
 
-    expect(repo.allMeetings.last.customCategory, '클라이밍');
-    expect(repo.allMeetings.last.categoryLabel, '클라이밍');
+    expect(repo.allMeetings.last.customCategory, '배드민턴');
+    expect(repo.allMeetings.last.categoryLabel, '배드민턴');
   });
 
   testWidgets('인원: 직접 입력 가능하고 99 초과는 99로 잘린다', (tester) async {

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import '../../data/category_catalog.dart';
 import '../../data/location_catalog.dart';
 import '../../models/meeting_category.dart';
 import '../../models/meeting_filter.dart';
 import '../../models/time_band.dart';
 import '../../theme/app_colors.dart';
+import 'category_browser_screen.dart';
 import 'location_picker_screen.dart';
 
 /// 카테고리·장소·시간대 필터 화면. 저장 시 MeetingFilter를 pop으로 반환.
@@ -59,28 +61,33 @@ class _FilterScreenState extends State<FilterScreen> {
     }
   }
 
-  Future<void> _addCustom() async {
-    final controller = TextEditingController();
-    final text = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('직접 입력'),
-        content: TextField(controller: controller, autofocus: true),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('취소'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, controller.text),
-            child: const Text('추가'),
-          ),
-        ],
+  /// 전체보기 화면으로 들어가 모든 서브 라벨 중에서 다중 선택을 받는다.
+  /// 라벨이 enum에 매핑되면 _categories에, 안 되면 _customCategories에 들어간다.
+  Future<void> _openCategoryBrowser() async {
+    final initial = <String>{
+      ..._categories.map((c) => c.label),
+      ..._customCategories,
+    };
+    final result = await Navigator.push<Object>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CategoryBrowserScreen(initial: initial),
       ),
     );
-    if (text != null && text.trim().isNotEmpty) {
-      setState(() => _customCategories.add(text.trim()));
-    }
+    if (result is! Set<String>) return;
+    if (!mounted) return;
+    setState(() {
+      _categories.clear();
+      _customCategories.clear();
+      for (final label in result) {
+        final c = CategoryCatalog.categoryFor(label);
+        if (c == MeetingCategory.etc && label != '기타') {
+          _customCategories.add(label);
+        } else {
+          _categories.add(c);
+        }
+      }
+    });
   }
 
   @override
@@ -103,7 +110,7 @@ class _FilterScreenState extends State<FilterScreen> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              for (final c in MeetingCategory.values)
+              for (final c in CategoryCatalog.mainShortcuts)
                 _chip(
                   c.label,
                   _categories.contains(c),
@@ -111,10 +118,11 @@ class _FilterScreenState extends State<FilterScreen> {
                     if (!_categories.add(c)) _categories.remove(c);
                   }),
                 ),
+              // 전체보기에서 enum 매핑된 것 외에 추가된 라벨은 그대로 칩으로 노출.
               for (final custom in _customCategories)
                 _chip(custom, true,
                     () => setState(() => _customCategories.remove(custom))),
-              _dashedChip('+ 직접 입력하기', _addCustom),
+              _browserChip(),
             ],
           ),
           const SizedBox(height: 20),
@@ -219,19 +227,30 @@ class _FilterScreenState extends State<FilterScreen> {
     );
   }
 
-  Widget _dashedChip(String label, VoidCallback onTap) {
+  Widget _browserChip() {
     return GestureDetector(
-      onTap: onTap,
+      key: const Key('category-browser-open'),
+      onTap: _openCategoryBrowser,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
         decoration: BoxDecoration(
-          color: AppColors.bgPrimary,
+          color: AppColors.bgSecondary,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.textTertiary),
+          border: Border.all(color: AppColors.borderTertiary, width: 0.5),
         ),
-        child: Text(label,
-            style: const TextStyle(
-                fontSize: 12, color: AppColors.textSecondary)),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.grid_view_rounded,
+                size: 13, color: AppColors.textSecondary),
+            SizedBox(width: 4),
+            Text('전체보기',
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textSecondary)),
+          ],
+        ),
       ),
     );
   }

@@ -65,20 +65,25 @@ void main() {
     expect(holder.value!.isEmpty, isTrue);
   });
 
-  testWidgets('adding a custom category saves it', (tester) async {
+  testWidgets('전체보기에서 enum에 없는 라벨을 고르면 customCategories에 저장된다',
+      (tester) async {
     final holder = _Holder();
     await tester.pumpWidget(_host(holder));
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('+ 직접 입력하기'));
+    await tester.tap(find.byKey(const Key('category-browser-open')));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField), '플로깅');
-    await tester.tap(find.text('추가'));
+
+    // 표의 '자기개발' 같이 enum에 없는 라벨을 다중 선택.
+    await tester.tap(find.text('자기개발'));
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('category-browser-done')));
+    await tester.pumpAndSettle();
+
     await tester.tap(find.text('저장하기'));
     await tester.pumpAndSettle();
 
-    expect(holder.value!.customCategories, contains('플로깅'));
+    expect(holder.value!.customCategories, contains('자기개발'));
   });
 }
