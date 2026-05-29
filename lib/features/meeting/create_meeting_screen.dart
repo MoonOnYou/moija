@@ -41,6 +41,7 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
   bool _online = false;
   String? _locationId;
   final _place = TextEditingController();
+  final _placeFocus = FocusNode();
   int _members = 4;
   final _membersCtrl = TextEditingController(text: '4');
   CostType? _costType;
@@ -65,6 +66,7 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
   void dispose() {
     _title.dispose();
     _place.dispose();
+    _placeFocus.dispose();
     _amount.dispose();
     _costEtc.dispose();
     _membersCtrl.dispose();
@@ -131,8 +133,7 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
   }
 
   Future<void> _pickDate() async {
-    // 피커를 열기 전에 입력 포커스를 거둬, 닫힌 뒤 텍스트필드가 다시 포커스를
-    // 가져 키보드가 올라오는 것을 막는다.
+    // 피커를 열기 전에 입력 포커스를 거둔다.
     FocusScope.of(context).unfocus();
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -143,6 +144,7 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
       lastDate: DateTime(now.year + 2, 12, 31),
     );
     if (picked != null) setState(() => _date = picked);
+    _dismissKeyboard();
   }
 
   Future<void> _pickTime() async {
@@ -152,6 +154,16 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
       initialTime: _time ?? const TimeOfDay(hour: 19, minute: 0),
     );
     if (picked != null) setState(() => _time = picked);
+    _dismissKeyboard();
+  }
+
+  /// 피커가 닫히면 Flutter가 직전 텍스트필드로 포커스를 복원해 키보드가 다시
+  /// 올라온다. 닫힌 직후와 다음 프레임에 포커스를 거둬 키보드를 내린다.
+  void _dismissKeyboard() {
+    FocusManager.instance.primaryFocus?.unfocus();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FocusManager.instance.primaryFocus?.unfocus();
+    });
   }
 
   Future<void> _pickLocation() async {
@@ -166,6 +178,11 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
     );
     if (result != null && result.isNotEmpty) {
       setState(() => _locationId = result.first);
+      // 장소를 고르면 곧바로 구체적 장소 입력으로 커서를 옮긴다. 피커가 닫히며
+      // 포커스 복원이 끝난 뒤 잡도록 다음 프레임에 요청한다.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _placeFocus.requestFocus();
+      });
     }
   }
 
@@ -347,6 +364,7 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
             TextField(
               key: const Key('place'),
               controller: _place,
+              focusNode: _placeFocus,
               decoration: _inputDeco('구체적인 장소 (예: 강남역 2번 출구)'),
             ),
           ],
