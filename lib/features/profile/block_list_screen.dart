@@ -110,8 +110,10 @@ class _BlockListScreenState extends State<BlockListScreen> {
   }
 
   Future<void> _report(_BlockedUser user) async {
-    final reason = await ReportScreen.show(context, user.name);
-    if (reason != null && mounted) {
+    // 이미 차단된 상대이므로 "차단도 같이하기" 옵션은 숨긴다.
+    final result =
+        await ReportScreen.show(context, user.name, allowAlsoBlock: false);
+    if (result != null && mounted) {
       ScaffoldMessenger.maybeOf(context)?.showSnackBar(
         SnackBar(
           content: Text('${user.name} 님 신고를 접수했어요'),

@@ -130,11 +130,16 @@ class ChatRoomDrawer extends StatelessWidget {
                   icon: const Icon(Icons.block_rounded, size: 16),
                   label: const Text('차단하기'),
                   onPressed: () async {
-                    Navigator.of(ctx).pop();
+                    // drawer를 닫아도 살아있는 안정 참조를 먼저 확보한다.
+                    final scaffold = Scaffold.of(context);
+                    final screenContext = scaffold.context;
+                    Navigator.of(ctx).pop(); // 멤버 시트 닫기
                     final memo =
-                        await BlockScreen.show(context, m.nickname);
-                    if (memo != null && context.mounted) {
-                      _toast(context, '${m.nickname}님을 차단했어요');
+                        await BlockScreen.show(screenContext, m.nickname);
+                    if (memo == null) return;
+                    if (scaffold.mounted) scaffold.closeEndDrawer();
+                    if (screenContext.mounted) {
+                      await _showBlockedDialog(screenContext, m.nickname);
                     }
                   },
                   style: OutlinedButton.styleFrom(
@@ -155,11 +160,24 @@ class ChatRoomDrawer extends StatelessWidget {
                   icon: const Icon(Icons.flag_rounded, size: 16),
                   label: const Text('신고하기'),
                   onPressed: () async {
-                    Navigator.of(ctx).pop();
-                    final reason =
-                        await ReportScreen.show(context, m.nickname);
-                    if (reason != null && context.mounted) {
-                      _toast(context, '${m.nickname}님 신고를 접수했어요');
+                    final scaffold = Scaffold.of(context);
+                    final screenContext = scaffold.context;
+                    final messenger = ScaffoldMessenger.of(context);
+                    Navigator.of(ctx).pop(); // 멤버 시트 닫기
+                    final result =
+                        await ReportScreen.show(screenContext, m.nickname);
+                    if (result == null) return;
+                    if (scaffold.mounted) scaffold.closeEndDrawer();
+                    // 차단도 함께 선택했으면 토스트 대신 차단 안내 팝업을 띄운다.
+                    if (result.alsoBlock) {
+                      if (screenContext.mounted) {
+                        await _showBlockedDialog(screenContext, m.nickname);
+                      }
+                    } else {
+                      messenger.showSnackBar(SnackBar(
+                        content: Text('${m.nickname}님 신고를 접수했어요'),
+                        duration: const Duration(seconds: 2),
+                      ));
                     }
                   },
                   style: FilledButton.styleFrom(
@@ -217,6 +235,68 @@ class ChatRoomDrawer extends StatelessWidget {
       content: Text(message),
       duration: const Duration(seconds: 2),
     ));
+  }
+
+  /// 차단 완료 안내 팝업. 지금 함께 있는 모임은 유지된다는 점을 분명히 한다.
+  Future<void> _showBlockedDialog(BuildContext context, String name) {
+    return showDialog<void>(
+      context: context,
+      barrierColor: Colors.black54,
+      builder: (ctx) => Dialog(
+        backgroundColor: AppColors.bgPrimary,
+        elevation: 0,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 26, 24, 18),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: const BoxDecoration(
+                    color: AppColors.bgSecondary, shape: BoxShape.circle),
+                child: const Icon(Icons.block_rounded,
+                    size: 28, color: AppColors.textPrimary),
+              ),
+              const SizedBox(height: 16),
+              Text('$name님을 차단했어요',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary)),
+              const SizedBox(height: 10),
+              Text(
+                '이제부터 $name님이 만들거나 참가한 모임은 보이지 않아요\n'
+                '지금 같이 있는 이 모임은 그대로 진행돼요',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    fontSize: 13.5, height: 1.55, color: AppColors.textSecondary),
+              ),
+              const SizedBox(height: 22),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: FilledButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.textPrimary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(13)),
+                    textStyle: const TextStyle(
+                        fontSize: 15, fontWeight: FontWeight.w700),
+                  ),
+                  child: const Text('확인'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 

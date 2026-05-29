@@ -1,18 +1,40 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 
+/// 신고 화면의 확정 결과. [reason]은 "사유 · 상세" 형태, [alsoBlock]은 차단 동반 여부.
+class ReportResult {
+  const ReportResult({required this.reason, required this.alsoBlock});
+
+  final String reason;
+  final bool alsoBlock;
+}
+
 /// 사용자 신고 화면. 사유(프리셋) + 자세한 내용을 받아 운영팀에 전달한다.
-/// 확정 시 사유 문자열을 pop으로 반환(취소는 null).
+/// 확정 시 [ReportResult]를 pop으로 반환(취소는 null).
 class ReportScreen extends StatefulWidget {
-  const ReportScreen({super.key, required this.targetName});
+  const ReportScreen({
+    super.key,
+    required this.targetName,
+    this.allowAlsoBlock = true,
+  });
 
   /// 신고 대상 닉네임(헤더에 노출).
   final String targetName;
 
-  static Future<String?> show(BuildContext context, String targetName) {
-    return Navigator.of(context).push<String>(
+  /// "차단도 같이하기" 옵션 노출 여부. 이미 차단된 상대(차단 목록)에서는 false.
+  final bool allowAlsoBlock;
+
+  static Future<ReportResult?> show(
+    BuildContext context,
+    String targetName, {
+    bool allowAlsoBlock = true,
+  }) {
+    return Navigator.of(context).push<ReportResult>(
       MaterialPageRoute(
-        builder: (_) => ReportScreen(targetName: targetName),
+        builder: (_) => ReportScreen(
+          targetName: targetName,
+          allowAlsoBlock: allowAlsoBlock,
+        ),
       ),
     );
   }
@@ -24,6 +46,7 @@ class ReportScreen extends StatefulWidget {
 class _ReportScreenState extends State<ReportScreen> {
   final _controller = TextEditingController();
   String? _selected;
+  bool _alsoBlock = false;
 
   static const _presets = <String>[
     '욕설·폭언',
@@ -94,6 +117,13 @@ class _ReportScreenState extends State<ReportScreen> {
             hint: '있었던 일을 적어주세요. 운영팀 검토에 참고돼요.',
             onChanged: () => setState(() {}),
           ),
+          if (widget.allowAlsoBlock) ...[
+            const SizedBox(height: 20),
+            _AlsoBlockToggle(
+              value: _alsoBlock,
+              onChanged: (v) => setState(() => _alsoBlock = v),
+            ),
+          ],
         ],
       ),
       bottomNavigationBar: SafeArea(
@@ -110,7 +140,10 @@ class _ReportScreenState extends State<ReportScreen> {
                         if (_controller.text.trim().isNotEmpty)
                           _controller.text.trim(),
                       ].join(' · ');
-                      Navigator.of(context).pop(reason);
+                      Navigator.of(context).pop(ReportResult(
+                        reason: reason,
+                        alsoBlock: widget.allowAlsoBlock && _alsoBlock,
+                      ));
                     }
                   : null,
               style: FilledButton.styleFrom(
@@ -223,6 +256,65 @@ class _MemoField extends StatelessWidget {
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.textPrimary, width: 1.4),
+        ),
+      ),
+    );
+  }
+}
+
+/// "차단도 같이하기" 토글. 켜면 신고와 동시에 상대를 차단한다.
+class _AlsoBlockToggle extends StatelessWidget {
+  const _AlsoBlockToggle({required this.value, required this.onChanged});
+
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => onChanged(!value),
+        borderRadius: BorderRadius.circular(12),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          padding: const EdgeInsets.fromLTRB(14, 10, 8, 10),
+          decoration: BoxDecoration(
+            color: value ? AppColors.bgCoral : AppColors.bgSecondary,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: value ? AppColors.textDanger : AppColors.borderTertiary,
+              width: value ? 1.0 : 0.5,
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.block_rounded,
+                  size: 18,
+                  color:
+                      value ? AppColors.textDanger : AppColors.textTertiary),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('차단도 같이하기',
+                        style: TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.w700)),
+                    SizedBox(height: 2),
+                    Text('신고와 함께 이 사용자를 차단해요',
+                        style: TextStyle(
+                            fontSize: 12, color: AppColors.textSecondary)),
+                  ],
+                ),
+              ),
+              Switch(
+                value: value,
+                onChanged: onChanged,
+                activeTrackColor: AppColors.textDanger,
+              ),
+            ],
+          ),
         ),
       ),
     );
