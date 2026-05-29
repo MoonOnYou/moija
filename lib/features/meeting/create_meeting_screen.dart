@@ -137,11 +137,13 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
     FocusScope.of(context).unfocus();
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
+    // 오늘로부터 50일까지만 모임 날짜로 선택할 수 있다.
+    final lastDate = today.add(const Duration(days: 50));
     final picked = await showDatePicker(
       context: context,
       initialDate: _date ?? today,
       firstDate: today,
-      lastDate: DateTime(now.year + 2, 12, 31),
+      lastDate: lastDate,
     );
     if (picked != null) setState(() => _date = picked);
     _dismissKeyboard();

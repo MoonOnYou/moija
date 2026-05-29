@@ -39,6 +39,48 @@ class _HostState extends State<_Host> {
   }
 }
 
+/// 자정 롤오버를 흉내내는 호스트 — 버튼을 누르면 today와 selectedDay가 다음 날로 간다.
+class _RolloverHost extends StatefulWidget {
+  const _RolloverHost({required this.onDayChanged});
+  final ValueChanged<DateTime> onDayChanged;
+  @override
+  State<_RolloverHost> createState() => _RolloverHostState();
+}
+
+class _RolloverHostState extends State<_RolloverHost> {
+  DateTime _today = DateTime(2026, 5, 16);
+  DateTime _sel = DateTime(2026, 5, 16);
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        body: Column(
+          children: [
+            TextButton(
+              onPressed: () => setState(() {
+                _today = DateTime(2026, 5, 17);
+                _sel = DateTime(2026, 5, 17);
+              }),
+              child: const Text('rollover'),
+            ),
+            Expanded(
+              child: DayMeetingsPager(
+                selectedDay: _sel,
+                today: _today,
+                repository: MeetingRepository(),
+                onDayChanged: (d) {
+                  widget.onDayChanged(d);
+                  setState(() => _sel = d);
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 void main() {
   setUpAll(() async {
     await initializeDateFormatting('ko_KR');
@@ -80,6 +122,18 @@ void main() {
         d == DateTime(2026, 5, 18) ||
         d == DateTime(2026, 5, 19));
     expect(intermediates, isEmpty);
+  });
+
+  testWidgets('자정 롤오버 후 새 오늘 이전으로는 스와이프 불가', (tester) async {
+    final changes = <DateTime>[];
+    await tester.pumpWidget(_RolloverHost(onDayChanged: changes.add));
+    await tester.tap(find.text('rollover')); // today/selectedDay 5/16 → 5/17
+    await tester.pumpAndSettle();
+    changes.clear();
+    // 이전 날(오른쪽) 스와이프 시도 → 새 오늘(5/17) 이전으로 넘어가면 안 됨.
+    await tester.fling(find.byType(PageView), const Offset(400, 0), 1000);
+    await tester.pumpAndSettle();
+    expect(changes, isEmpty);
   });
 
   testWidgets('pull-to-refresh invokes onRefresh', (tester) async {

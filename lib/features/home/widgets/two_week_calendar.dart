@@ -7,6 +7,8 @@ import 'day_cell.dart';
 
 /// 2주 윈도우를 좌우 스와이프(슬라이드 애니메이션)로 페이징하는 달력.
 /// page 0 = 오늘 주 → 과거 창으로는 넘길 수 없다. 과거 날짜는 선택 불가.
+/// 미래는 오늘로부터 [maxAheadDays]일까지만 보이며, 그 이후는 선택 불가.
+const int kCalendarMaxAheadDays = 50;
 class TwoWeekCalendar extends StatefulWidget {
   const TwoWeekCalendar({
     super.key,
@@ -37,21 +39,42 @@ class _TwoWeekCalendarState extends State<TwoWeekCalendar> {
 
   late final DateTime _baseWindow = weekStartOf(widget.today);
 
+  // 자정 롤오버로 widget.today가 바뀌면 과거/범위 판정도 즉시 따라가도록 getter로 둔다.
+  DateTime get _today =>
+      DateTime(widget.today.year, widget.today.month, widget.today.day);
+
+  /// 선택 가능한 마지막 날짜 — 오늘로부터 [kCalendarMaxAheadDays]일.
+  DateTime get _maxDate =>
+      _today.add(const Duration(days: kCalendarMaxAheadDays));
+
+  /// _maxDate를 포함하는 윈도우까지만 페이징할 수 있도록 페이지 개수를 제한한다.
+  late final int _pageCount =
+      (_maxDate.difference(_baseWindow).inDays ~/ 14) + 1;
+
   late final PageController _controller =
       PageController(initialPage: _pageOf(widget.windowStart));
 
   int _pageOf(DateTime windowStart) {
     final ws = DateTime(windowStart.year, windowStart.month, windowStart.day);
-    return ws.difference(_baseWindow).inDays ~/ 14;
+    final page = ws.difference(_baseWindow).inDays ~/ 14;
+    return page.clamp(0, _pageCount - 1);
   }
 
   DateTime _windowOf(int page) => _baseWindow.add(Duration(days: 14 * page));
 
   bool _isPast(DateTime d) {
     final day = DateTime(d.year, d.month, d.day);
-    final t = DateTime(widget.today.year, widget.today.month, widget.today.day);
-    return day.isBefore(t);
+    return day.isBefore(_today);
   }
+
+  /// 오늘로부터 [kCalendarMaxAheadDays]일을 넘어선 날짜.
+  bool _isBeyond(DateTime d) {
+    final day = DateTime(d.year, d.month, d.day);
+    return day.isAfter(_maxDate);
+  }
+
+  /// 과거이거나 표시 범위를 넘어서 선택할 수 없는 날짜.
+  bool _isDisabled(DateTime d) => _isPast(d) || _isBeyond(d);
 
   @override
   void didUpdateWidget(TwoWeekCalendar oldWidget) {
@@ -86,6 +109,7 @@ class _TwoWeekCalendarState extends State<TwoWeekCalendar> {
           child: PageView.builder(
             controller: _controller,
             onPageChanged: _onPageChanged,
+            itemCount: _pageCount,
             itemBuilder: (context, page) {
               final days = twoWeekGridFrom(_windowOf(page));
               return Column(
@@ -118,10 +142,10 @@ class _TwoWeekCalendarState extends State<TwoWeekCalendar> {
                         .meetingsOn(date)
                         .where(widget.filter.matches)
                         .toList(),
-                    isPast: _isPast(date),
+                    isPast: _isDisabled(date),
                     isToday: isSameDay(date, widget.today),
                     isSelected: isSameDay(date, widget.selectedDay),
-                    onTap: _isPast(date)
+                    onTap: _isDisabled(date)
                         ? null
                         : () => widget.onDaySelected(date),
                   ),
