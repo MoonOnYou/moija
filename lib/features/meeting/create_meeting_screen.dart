@@ -282,13 +282,13 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
                     () => setState(() {
                           _category = c;
                           _customCategory = null;
-                        })),
+                        }), showCheck: false),
               if (_customCategory != null)
                 _chip(_customCategory!, true,
                     () => setState(() {
                           _customCategory = null;
                           _category = null;
-                        })),
+                        }), showCheck: false),
               _browserChip(),
             ],
           ),
@@ -480,7 +480,8 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
         ),
       );
 
-  Widget _chip(String label, bool selected, VoidCallback onTap) {
+  Widget _chip(String label, bool selected, VoidCallback onTap,
+      {bool showCheck = true}) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -504,7 +505,7 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (selected) ...[
+              if (selected && showCheck) ...[
                 const Icon(Icons.check_rounded,
                     size: 14, color: Colors.white),
                 const SizedBox(width: 4),
@@ -527,21 +528,21 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
       key: const Key('category-browser-open'),
       onTap: _openCategoryBrowser,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
           color: AppColors.bgSecondary,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(color: AppColors.borderTertiary, width: 0.5),
         ),
         child: const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.grid_view_rounded,
-                size: 13, color: AppColors.textSecondary),
+                size: 14, color: AppColors.textSecondary),
             SizedBox(width: 4),
             Text('전체보기',
                 style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textSecondary)),
           ],

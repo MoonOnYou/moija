@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import '../models/meeting_category.dart';
 
 /// 전체보기 화면에 노출할 카테고리 그룹·서브 라벨.
@@ -21,10 +22,12 @@ class CategoryCatalog {
     MeetingCategory.movie,
   ];
 
-  /// 큰 그룹 → 서브 라벨 목록. 표 그대로.
-  static const List<({String title, List<String> items})> groups = [
+  /// 큰 그룹 → 대표 아이콘 + 서브 라벨 목록. 표 그대로.
+  static const List<({String title, IconData icon, List<String> items})>
+      groups = [
     (
       title: '운동·스포츠',
+      icon: Icons.sports_basketball_rounded,
       items: [
         '배드민턴', '테니스', '탁구', '스쿼시',
         '볼링', '풋살', '농구', '당구',
@@ -35,10 +38,12 @@ class CategoryCatalog {
     ),
     (
       title: '맛집·술·카페',
+      icon: Icons.restaurant_rounded,
       items: ['맛집', '카페', '술한잔', '비건'],
     ),
     (
       title: '자기개발·스터디',
+      icon: Icons.menu_book_rounded,
       items: [
         '자기개발', '모닝 루틴', '어학', '독서모임',
         '글쓰기·블로그', '재테크·부업', '컨퍼런스·세미나',
@@ -46,6 +51,7 @@ class CategoryCatalog {
     ),
     (
       title: '문화·예술',
+      icon: Icons.palette_rounded,
       items: [
         '전시', '공연', '영화', '콘서트·페스티벌',
         '사진 출사', '드로잉', '책방 투어', 'LP·재즈바',
@@ -53,6 +59,7 @@ class CategoryCatalog {
     ),
     (
       title: '놀이·게임',
+      icon: Icons.sports_esports_rounded,
       items: [
         '보드게임', '방탈출', '노래방', '다트',
         'VR·오락실', '마작·포커', 'PC방·이스포츠', '닌텐도 스위치',
@@ -60,6 +67,7 @@ class CategoryCatalog {
     ),
     (
       title: '야외·체험',
+      icon: Icons.park_rounded,
       items: [
         '캠핑·차박·글램핑', '피크닉·한강', '동네 산책·도시 탐방',
         '페스티벌 동행', '워터파크·놀이공원', '플리마켓', '봉사활동',
@@ -67,6 +75,7 @@ class CategoryCatalog {
     ),
     (
       title: '만들기·공방',
+      icon: Icons.handyman_rounded,
       items: [
         '도자기·공예', '베이킹·쿠킹', '향초·향수·디퓨저',
         '가죽·금속 공예', '칵테일·바리스타 클래스',
@@ -74,6 +83,7 @@ class CategoryCatalog {
     ),
     (
       title: '기타',
+      icon: Icons.more_horiz_rounded,
       items: ['기타'],
     ),
   ];

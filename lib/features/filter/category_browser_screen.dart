@@ -46,7 +46,7 @@ class _CategoryBrowserScreenState extends State<CategoryBrowserScreen> {
         padding: const EdgeInsets.only(bottom: 16),
         children: [
           for (final group in CategoryCatalog.groups) ...[
-            _GroupHeader(title: group.title),
+            _GroupHeader(title: group.title, icon: group.icon),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
               child: Wrap(
@@ -102,18 +102,25 @@ class _CategoryBrowserScreenState extends State<CategoryBrowserScreen> {
 }
 
 class _GroupHeader extends StatelessWidget {
-  const _GroupHeader({required this.title});
+  const _GroupHeader({required this.title, required this.icon});
   final String title;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 6),
-      child: Text(title,
-          style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textSecondary)),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: AppColors.coral),
+          const SizedBox(width: 6),
+          Text(title,
+              style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textSecondary)),
+        ],
+      ),
     );
   }
 }
@@ -153,22 +160,11 @@ class _CategoryChip extends StatelessWidget {
               width: selected ? 1.0 : 0.5,
             ),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (selected) ...[
-                const Icon(Icons.check_rounded,
-                    size: 14, color: Colors.white),
-                const SizedBox(width: 4),
-              ],
-              Text(label,
-                  style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color:
-                          selected ? Colors.white : AppColors.textPrimary)),
-            ],
-          ),
+          child: Text(label,
+              style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: selected ? Colors.white : AppColors.textPrimary)),
         ),
       ),
     );

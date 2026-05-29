@@ -46,18 +46,20 @@ class _SignupCategoriesScreenState extends State<SignupCategoriesScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (count > 0) _SelectedPills(
-            labels: _selected.toList(),
-            onRemove: _toggle,
-          ),
           for (final group in CategoryCatalog.groups) ...[
             const SizedBox(height: 18),
-            Text(group.title,
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textSecondary,
-                )),
+            Row(
+              children: [
+                Icon(group.icon, size: 16, color: AppColors.coral),
+                const SizedBox(width: 6),
+                Text(group.title,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textSecondary,
+                    )),
+              ],
+            ),
             const SizedBox(height: 10),
             Wrap(
               spacing: 8,
@@ -72,55 +74,6 @@ class _SignupCategoriesScreenState extends State<SignupCategoriesScreen> {
               ],
             ),
           ],
-        ],
-      ),
-    );
-  }
-}
-
-class _SelectedPills extends StatelessWidget {
-  const _SelectedPills({required this.labels, required this.onRemove});
-  final List<String> labels;
-  final void Function(String) onRemove;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
-      decoration: BoxDecoration(
-        color: AppColors.bgSecondary,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Wrap(
-        spacing: 6,
-        runSpacing: 6,
-        children: [
-          for (final l in labels)
-            GestureDetector(
-              onTap: () => onRemove(l),
-              child: Container(
-                padding: const EdgeInsets.fromLTRB(10, 6, 8, 6),
-                decoration: BoxDecoration(
-                  color: AppColors.coral,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(l,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        )),
-                    const SizedBox(width: 4),
-                    const Icon(Icons.close_rounded,
-                        size: 13, color: Colors.white),
-                  ],
-                ),
-              ),
-            ),
         ],
       ),
     );
@@ -148,28 +101,20 @@ class _CategoryChip extends StatelessWidget {
           duration: const Duration(milliseconds: 120),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
           decoration: BoxDecoration(
-            color: selected ? AppColors.coral : AppColors.bgPrimary,
+            color: selected ? AppColors.textPrimary : AppColors.bgPrimary,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: selected ? AppColors.coral : AppColors.borderTertiary,
+              color:
+                  selected ? AppColors.textPrimary : AppColors.borderTertiary,
               width: selected ? 1.0 : 0.5,
             ),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (selected) ...[
-                const Icon(Icons.check_rounded, size: 14, color: Colors.white),
-                const SizedBox(width: 4),
-              ],
-              Text(label,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: selected ? Colors.white : AppColors.textPrimary,
-                  )),
-            ],
-          ),
+          child: Text(label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: selected ? Colors.white : AppColors.textPrimary,
+              )),
         ),
       ),
     );

@@ -228,22 +228,11 @@ class _FilterScreenState extends State<FilterScreen> {
               width: selected ? 1.0 : 0.5,
             ),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (selected) ...[
-                const Icon(Icons.check_rounded,
-                    size: 14, color: Colors.white),
-                const SizedBox(width: 4),
-              ],
-              Text(label,
-                  style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color:
-                          selected ? Colors.white : AppColors.textPrimary)),
-            ],
-          ),
+          child: Text(label,
+              style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: selected ? Colors.white : AppColors.textPrimary)),
         ),
       ),
     );
@@ -254,21 +243,21 @@ class _FilterScreenState extends State<FilterScreen> {
       key: const Key('category-browser-open'),
       onTap: _openCategoryBrowser,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
           color: AppColors.bgSecondary,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(color: AppColors.borderTertiary, width: 0.5),
         ),
         child: const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.grid_view_rounded,
-                size: 13, color: AppColors.textSecondary),
+                size: 14, color: AppColors.textSecondary),
             SizedBox(width: 4),
             Text('전체보기',
                 style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textSecondary)),
           ],
