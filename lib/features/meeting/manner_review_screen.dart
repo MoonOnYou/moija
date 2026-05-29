@@ -3,7 +3,7 @@ import '../../data/meeting_repository.dart';
 import '../../models/meeting.dart';
 import '../../models/member.dart';
 import '../../theme/app_colors.dart';
-import '../common/block_reason_screen.dart';
+import '../common/block_screen.dart';
 
 /// 종료된 모임의 팀원 매너를 평가하는 화면.
 /// 멤버 카드마다 별점 1~5 선택 → 제출, 또는 차단/건너뛰기 중 하나로 처리한다.
@@ -92,9 +92,8 @@ class _MannerReviewScreenState extends State<MannerReviewScreen> {
             onSubmit: (stars) =>
                 _dismiss(m, toast: '${m.nickname}님에게 ★$stars점을 줬어요'),
             onBlock: () async {
-              final reason =
-                  await BlockReasonScreen.show(context, m.nickname);
-              if (reason != null && mounted) {
+              final memo = await BlockScreen.show(context, m.nickname);
+              if (memo != null && mounted) {
                 _dismiss(m, toast: '${m.nickname}님을 차단했어요');
               }
             },

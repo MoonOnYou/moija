@@ -5,7 +5,8 @@ import '../../models/meeting.dart';
 import '../../models/member.dart';
 import '../../shell/app_navigation.dart';
 import '../../theme/app_colors.dart';
-import '../common/block_reason_screen.dart';
+import '../common/block_screen.dart';
+import '../common/report_screen.dart';
 
 /// 채팅방 우측에서 열리는 더보기 패널.
 /// 모임 정보 + 팀원 리스트(차단·신고 액션) + 모임 나가기.
@@ -130,9 +131,9 @@ class ChatRoomDrawer extends StatelessWidget {
                   label: const Text('차단하기'),
                   onPressed: () async {
                     Navigator.of(ctx).pop();
-                    final reason =
-                        await BlockReasonScreen.show(context, m.nickname);
-                    if (reason != null && context.mounted) {
+                    final memo =
+                        await BlockScreen.show(context, m.nickname);
+                    if (memo != null && context.mounted) {
                       _toast(context, '${m.nickname}님을 차단했어요');
                     }
                   },
@@ -153,9 +154,13 @@ class ChatRoomDrawer extends StatelessWidget {
                 child: FilledButton.icon(
                   icon: const Icon(Icons.flag_rounded, size: 16),
                   label: const Text('신고하기'),
-                  onPressed: () {
+                  onPressed: () async {
                     Navigator.of(ctx).pop();
-                    _toast(context, '${m.nickname}님 신고를 접수했어요');
+                    final reason =
+                        await ReportScreen.show(context, m.nickname);
+                    if (reason != null && context.mounted) {
+                      _toast(context, '${m.nickname}님 신고를 접수했어요');
+                    }
                   },
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.textDanger,

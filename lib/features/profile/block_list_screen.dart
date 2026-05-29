@@ -14,7 +14,6 @@ class _BlockedUser {
   const _BlockedUser({
     required this.name,
     required this.date,
-    required this.reason,
     this.memo = '',
     required this.avatarBg,
     required this.avatarFg,
@@ -22,7 +21,6 @@ class _BlockedUser {
 
   final String name;
   final String date;
-  final String reason;
   final String memo;
   final Color avatarBg;
   final Color avatarFg;
@@ -33,7 +31,6 @@ class _BlockListScreenState extends State<BlockListScreen> {
     const _BlockedUser(
       name: '방탈마스터',
       date: '2026.05.20',
-      reason: '무례·매너',
       memo: '모임에서 무례했어요. 자꾸 시간 안 지킴.',
       avatarBg: AppColors.bgInfo,
       avatarFg: AppColors.textInfo,
@@ -41,7 +38,6 @@ class _BlockListScreenState extends State<BlockListScreen> {
     const _BlockedUser(
       name: 'jin_92',
       date: '2026.05.12',
-      reason: '사기·금전',
       memo: '정산하고 돈 안 줬음. 조심.',
       avatarBg: AppColors.bgSecondary,
       avatarFg: AppColors.textSecondary,
@@ -49,14 +45,12 @@ class _BlockListScreenState extends State<BlockListScreen> {
     const _BlockedUser(
       name: '수영러버',
       date: '2026.04.30',
-      reason: '메모 없음',
       avatarBg: AppColors.bgPink,
       avatarFg: AppColors.textPink,
     ),
     const _BlockedUser(
       name: '등산왕김씨',
       date: '2026.04.22',
-      reason: '노쇼·약속 불이행',
       memo: '두 번이나 말도 없이 안 나옴.',
       avatarBg: AppColors.bgSuccess,
       avatarFg: AppColors.textSuccess,
@@ -64,7 +58,6 @@ class _BlockListScreenState extends State<BlockListScreen> {
     const _BlockedUser(
       name: 'coffee_holic',
       date: '2026.04.15',
-      reason: '스팸·광고',
       memo: '단톡방에 계속 광고 링크 도배.',
       avatarBg: AppColors.bgWarning,
       avatarFg: AppColors.textWarning,
@@ -72,14 +65,12 @@ class _BlockListScreenState extends State<BlockListScreen> {
     const _BlockedUser(
       name: '주말보드러',
       date: '2026.04.03',
-      reason: '욕설·비방',
       avatarBg: AppColors.bgInfo,
       avatarFg: AppColors.textInfo,
     ),
     const _BlockedUser(
       name: 'mina__',
       date: '2026.03.28',
-      reason: '무례·매너',
       memo: '반말에 무시하는 말투. 불편했음.',
       avatarBg: AppColors.bgPink,
       avatarFg: AppColors.textPink,
@@ -87,14 +78,12 @@ class _BlockListScreenState extends State<BlockListScreen> {
     const _BlockedUser(
       name: '러닝크루대장',
       date: '2026.03.19',
-      reason: '메모 없음',
       avatarBg: AppColors.bgSuccess,
       avatarFg: AppColors.textSuccess,
     ),
     const _BlockedUser(
       name: 'park_dev',
       date: '2026.03.05',
-      reason: '사기·금전',
       memo: '회비 걷고 잠수 탔어요.',
       avatarBg: AppColors.bgSecondary,
       avatarFg: AppColors.textSecondary,
@@ -102,7 +91,6 @@ class _BlockListScreenState extends State<BlockListScreen> {
     const _BlockedUser(
       name: '카페투어__',
       date: '2026.02.21',
-      reason: '불쾌한 언행',
       memo: '자꾸 사적인 연락 시도해서 차단함.',
       avatarBg: AppColors.bgWarning,
       avatarFg: AppColors.textWarning,
@@ -212,7 +200,7 @@ class _BlockedCard extends StatelessWidget {
                         style: const TextStyle(
                             fontSize: 14, fontWeight: FontWeight.w500)),
                     const SizedBox(height: 2),
-                    Text('${user.date} 차단 · ${user.reason}',
+                    Text('${user.date} 차단',
                         style: const TextStyle(
                             fontSize: 11, color: AppColors.textTertiary)),
                   ],
