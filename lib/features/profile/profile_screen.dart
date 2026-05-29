@@ -217,7 +217,6 @@ class _ProfileHeader extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.bgPrimary,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.borderTertiary, width: 0.5),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -300,7 +299,6 @@ class _IntroCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.bgPrimary,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.borderTertiary, width: 0.5),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -438,7 +436,6 @@ class _MenuTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.bgPrimary,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.borderTertiary, width: 0.5),
       ),
       child: InkWell(
         onTap: onTap,

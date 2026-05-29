@@ -99,13 +99,13 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
                   onDestinationSelected: (i) => selectedTab.value = i,
                   destinations: [
                     const NavigationDestination(
-                      icon: Icon(Icons.home_rounded),
+                      icon: Icon(Icons.home_outlined),
                       selectedIcon: Icon(Icons.home_rounded),
                       label: '홈',
                     ),
                     NavigationDestination(
                       icon: _BadgedIcon(
-                        icon: Icons.groups_rounded,
+                        icon: Icons.groups_outlined,
                         count: unread,
                       ),
                       selectedIcon: _BadgedIcon(
