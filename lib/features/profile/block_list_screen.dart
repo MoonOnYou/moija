@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../models/member.dart';
 import '../../theme/app_colors.dart';
+import '../common/report_screen.dart';
 
 /// 차단한 사용자 목록 (docs/page/15_차단목록.html 참고).
 /// 차단 해제 시 목록에서 제거된다. mock 데이터.
@@ -14,16 +16,19 @@ class _BlockedUser {
   const _BlockedUser({
     required this.name,
     required this.date,
+    required this.gender,
     this.memo = '',
-    required this.avatarBg,
-    required this.avatarFg,
   });
 
   final String name;
   final String date;
+  final Gender gender;
   final String memo;
-  final Color avatarBg;
-  final Color avatarFg;
+
+  Color get avatarBg =>
+      gender == Gender.male ? AppColors.bgInfo : AppColors.bgPink;
+  Color get avatarFg =>
+      gender == Gender.male ? AppColors.textInfo : AppColors.textPink;
 }
 
 class _BlockListScreenState extends State<BlockListScreen> {
@@ -31,69 +36,59 @@ class _BlockListScreenState extends State<BlockListScreen> {
     const _BlockedUser(
       name: '방탈마스터',
       date: '2026.05.20',
+      gender: Gender.male,
       memo: '모임에서 무례했어요. 자꾸 시간 안 지킴.',
-      avatarBg: AppColors.bgInfo,
-      avatarFg: AppColors.textInfo,
     ),
     const _BlockedUser(
       name: 'jin_92',
       date: '2026.05.12',
+      gender: Gender.male,
       memo: '정산하고 돈 안 줬음. 조심.',
-      avatarBg: AppColors.bgSecondary,
-      avatarFg: AppColors.textSecondary,
     ),
     const _BlockedUser(
       name: '수영러버',
       date: '2026.04.30',
-      avatarBg: AppColors.bgPink,
-      avatarFg: AppColors.textPink,
+      gender: Gender.female,
     ),
     const _BlockedUser(
       name: '등산왕김씨',
       date: '2026.04.22',
+      gender: Gender.male,
       memo: '두 번이나 말도 없이 안 나옴.',
-      avatarBg: AppColors.bgSuccess,
-      avatarFg: AppColors.textSuccess,
     ),
     const _BlockedUser(
       name: 'coffee_holic',
       date: '2026.04.15',
+      gender: Gender.female,
       memo: '단톡방에 계속 광고 링크 도배.',
-      avatarBg: AppColors.bgWarning,
-      avatarFg: AppColors.textWarning,
     ),
     const _BlockedUser(
       name: '주말보드러',
       date: '2026.04.03',
-      avatarBg: AppColors.bgInfo,
-      avatarFg: AppColors.textInfo,
+      gender: Gender.male,
     ),
     const _BlockedUser(
       name: 'mina__',
       date: '2026.03.28',
+      gender: Gender.female,
       memo: '반말에 무시하는 말투. 불편했음.',
-      avatarBg: AppColors.bgPink,
-      avatarFg: AppColors.textPink,
     ),
     const _BlockedUser(
       name: '러닝크루대장',
       date: '2026.03.19',
-      avatarBg: AppColors.bgSuccess,
-      avatarFg: AppColors.textSuccess,
+      gender: Gender.male,
     ),
     const _BlockedUser(
       name: 'park_dev',
       date: '2026.03.05',
+      gender: Gender.male,
       memo: '회비 걷고 잠수 탔어요.',
-      avatarBg: AppColors.bgSecondary,
-      avatarFg: AppColors.textSecondary,
     ),
     const _BlockedUser(
       name: '카페투어__',
       date: '2026.02.21',
+      gender: Gender.female,
       memo: '자꾸 사적인 연락 시도해서 차단함.',
-      avatarBg: AppColors.bgWarning,
-      avatarFg: AppColors.textWarning,
     ),
   ];
 
@@ -108,6 +103,18 @@ class _BlockListScreenState extends State<BlockListScreen> {
       ScaffoldMessenger.maybeOf(context)?.showSnackBar(
         SnackBar(
           content: Text('${user.name} 님을 차단 해제했어요'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  Future<void> _report(_BlockedUser user) async {
+    final reason = await ReportScreen.show(context, user.name);
+    if (reason != null && mounted) {
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+        SnackBar(
+          content: Text('${user.name} 님 신고를 접수했어요'),
           duration: const Duration(seconds: 2),
         ),
       );
@@ -148,7 +155,11 @@ class _BlockListScreenState extends State<BlockListScreen> {
                   ),
                 ),
                 for (final user in _users)
-                  _BlockedCard(user: user, onUnblock: () => _unblock(user)),
+                  _BlockedCard(
+                    user: user,
+                    onUnblock: () => _unblock(user),
+                    onReport: () => _report(user),
+                  ),
               ],
             ),
     );
@@ -156,9 +167,14 @@ class _BlockListScreenState extends State<BlockListScreen> {
 }
 
 class _BlockedCard extends StatelessWidget {
-  const _BlockedCard({required this.user, required this.onUnblock});
+  const _BlockedCard({
+    required this.user,
+    required this.onUnblock,
+    required this.onReport,
+  });
   final _BlockedUser user;
   final VoidCallback onUnblock;
+  final VoidCallback onReport;
 
   @override
   Widget build(BuildContext context) {
@@ -207,7 +223,15 @@ class _BlockedCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              _UnblockButton(onTap: onUnblock),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _ActionButton(label: '차단 해제', onTap: onUnblock),
+                  const SizedBox(height: 6),
+                  _ActionButton(
+                      label: '신고하기', danger: true, onTap: onReport),
+                ],
+              ),
             ],
           ),
           if (user.memo.isNotEmpty) ...[
@@ -337,26 +361,36 @@ class _UnblockDialog extends StatelessWidget {
   }
 }
 
-class _UnblockButton extends StatelessWidget {
-  const _UnblockButton({required this.onTap});
+class _ActionButton extends StatelessWidget {
+  const _ActionButton({
+    required this.label,
+    required this.onTap,
+    this.danger = false,
+  });
+
+  final String label;
   final VoidCallback onTap;
+  final bool danger;
 
   @override
   Widget build(BuildContext context) {
+    final color = danger ? AppColors.textDanger : AppColors.textSecondary;
+    final border =
+        danger ? AppColors.textDanger.withValues(alpha: 0.4) : AppColors.borderTertiary;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(9),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        width: 76,
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(vertical: 7),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(9),
-          border: Border.all(color: AppColors.borderTertiary, width: 0.5),
+          border: Border.all(color: border, width: 0.5),
         ),
-        child: const Text('차단 해제',
+        child: Text(label,
             style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: AppColors.textSecondary)),
+                fontSize: 12, fontWeight: FontWeight.w500, color: color)),
       ),
     );
   }
