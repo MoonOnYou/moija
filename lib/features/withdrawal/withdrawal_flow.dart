@@ -44,8 +44,8 @@ class WithdrawalSession {
   /// 방장으로 운영 중인 모임이 있는지 — 있으면 위임 안내를 띄운다.
   final bool hostsMeeting;
 
-  /// 떠나는 이유(선택). 화면 1에서 채워진다.
-  String? reason;
+  /// 떠나는 이유(선택, 복수 선택 가능). 화면 1에서 채워진다.
+  final List<String> reasons = [];
   String detail = '';
 
   String get formattedPhone {

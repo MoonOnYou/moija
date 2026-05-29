@@ -23,12 +23,12 @@ class _WithdrawalReasonScreenState extends State<WithdrawalReasonScreen> {
   ];
 
   final TextEditingController _detail = TextEditingController();
-  String? _selected;
+  final Set<String> _selected = {};
 
   @override
   void initState() {
     super.initState();
-    _selected = widget.session.reason;
+    _selected.addAll(widget.session.reasons);
     _detail.text = widget.session.detail;
   }
 
@@ -39,9 +39,10 @@ class _WithdrawalReasonScreenState extends State<WithdrawalReasonScreen> {
   }
 
   void _next() {
-    widget.session
-      ..reason = _selected
-      ..detail = _detail.text.trim();
+    widget.session.reasons
+      ..clear()
+      ..addAll(_selected);
+    widget.session.detail = _detail.text.trim();
     Navigator.of(context).push(withdrawalRoute(
       (_) => WithdrawalConfirmScreen(session: widget.session),
     ));
@@ -52,11 +53,11 @@ class _WithdrawalReasonScreenState extends State<WithdrawalReasonScreen> {
     return WithdrawalScaffold(
       appBarTitle: '회원 탈퇴',
       heading: '떠나는 이유를 알려주세요',
-      subtitle: const Text('더 나은 모이자를 만드는 데 도움이 돼요.'),
+      subtitle: const Text('해당하는 항목을 모두 선택해 주세요. 더 나은 모이자를 만드는 데 도움이 돼요.'),
       actions: [
         WithdrawalButton.primary(
           label: '다음',
-          onPressed: _selected == null ? null : _next,
+          onPressed: _selected.isEmpty ? null : _next,
         ),
       ],
       child: Column(
@@ -65,9 +66,11 @@ class _WithdrawalReasonScreenState extends State<WithdrawalReasonScreen> {
           for (final reason in _reasons)
             _ReasonTile(
               label: reason,
-              selected: _selected == reason,
+              selected: _selected.contains(reason),
               onTap: () => setState(
-                () => _selected = _selected == reason ? null : reason,
+                () => _selected.contains(reason)
+                    ? _selected.remove(reason)
+                    : _selected.add(reason),
               ),
             ),
           const SizedBox(height: 14),
@@ -106,7 +109,7 @@ class _WithdrawalReasonScreenState extends State<WithdrawalReasonScreen> {
   }
 }
 
-/// 라디오 한 줄(원형 마커 + 라벨). 점선 대신 가는 하단 구분선.
+/// 체크박스 한 줄(둥근 사각 마커 + 라벨). 복수 선택용. 가는 하단 구분선.
 class _ReasonTile extends StatelessWidget {
   const _ReasonTile({
     required this.label,
@@ -137,7 +140,7 @@ class _ReasonTile extends StatelessWidget {
               height: 20,
               decoration: BoxDecoration(
                 color: selected ? AppColors.coral : Colors.transparent,
-                shape: BoxShape.circle,
+                borderRadius: BorderRadius.circular(6),
                 border: Border.all(
                   color: selected ? AppColors.coral : const Color(0xFFD4D2C9),
                   width: 1.5,
