@@ -4,6 +4,7 @@ import '../../models/member.dart';
 import '../../theme/app_colors.dart';
 import '../meeting/diamond_recharge_screen.dart';
 import '../signup/signup_start_screen.dart';
+import '../withdrawal/withdrawal_flow.dart';
 import 'block_list_screen.dart';
 import 'edit_text_screen.dart';
 
@@ -60,27 +61,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ));
   }
 
-  Future<void> _confirmLeaveAccount() async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('회원 탈퇴'),
-        content: const Text(
-            '탈퇴하면 모든 모임 이력과 다이아가 사라져요. 정말 탈퇴할까요?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('취소'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            style: TextButton.styleFrom(foregroundColor: AppColors.textDanger),
-            child: const Text('탈퇴'),
-          ),
-        ],
+  void _leaveAccount() {
+    WithdrawalFlow.start(
+      context,
+      session: WithdrawalSession(
+        // 등록된 휴대폰 번호(목). 추후 백엔드 사용자 정보로 교체.
+        phone: '01012345678',
+        diamonds: Wallet.myDiamonds,
+        mannerScore: _mannerScore,
+        activities: _totalActivities,
+        blockCount: 3,
+        joinedCount: 3,
       ),
     );
-    if (ok == true) _stub('회원 탈퇴');
   }
 
   Future<void> _openRecharge() async {
@@ -181,7 +174,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               icon: Icons.person_remove_rounded,
               label: '회원 탈퇴',
               danger: true,
-              onTap: _confirmLeaveAccount),
+              onTap: _leaveAccount),
           const SizedBox(height: 24),
         ],
       ),
