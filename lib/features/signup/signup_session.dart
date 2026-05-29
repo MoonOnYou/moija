@@ -15,6 +15,9 @@ class SignupSession {
   // 전화번호 · 인증
   String phone = ''; // 숫자만 (예: 01012345678)
 
+  // 로그인 비밀번호 (영문+숫자 8자 이상)
+  String password = '';
+
   // 프로필
   String nickname = '';
   Gender? gender;

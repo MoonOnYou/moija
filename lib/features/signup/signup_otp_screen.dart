@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../theme/app_colors.dart';
 import 'signup_flow.dart';
-import 'signup_nickname_screen.dart';
+import 'signup_password_screen.dart';
 import 'signup_scaffold.dart';
 import 'signup_session.dart';
 
@@ -59,7 +59,7 @@ class _SignupOtpScreenState extends State<SignupOtpScreen> {
 
   void _next() {
     Navigator.of(context).push(signupRoute(
-      (_) => SignupNicknameScreen(session: widget.session),
+      (_) => SignupPasswordScreen(session: widget.session),
     ));
   }
 
@@ -87,7 +87,7 @@ class _SignupOtpScreenState extends State<SignupOtpScreen> {
     final timeout = _remaining <= 0;
     return SignupScaffold(
       step: 3,
-      totalSteps: 7,
+      totalSteps: 8,
       title: '인증번호 6자리를 입력해 주세요',
       subtitle: '${_formatPhone(widget.session.phone)} 으로 보냈어요.',
       primaryLabel: '인증 완료',

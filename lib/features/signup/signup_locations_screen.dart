@@ -54,8 +54,8 @@ class _SignupLocationsScreenState extends State<SignupLocationsScreen> {
     final ids = _selected.toList();
     final count = ids.length;
     return SignupScaffold(
-      step: 7,
-      totalSteps: 7,
+      step: 8,
+      totalSteps: 8,
       title: '주로 어디서 만나요?',
       subtitle: '관심 동네에서 열리는 모임을 먼저 보여드려요.\n노선·지역 단위로도 고를 수 있어요.',
       primaryLabel: count == 0 ? '1개 이상 골라 주세요' : '$count곳 선택 · 완료',

@@ -55,7 +55,7 @@ class _SignupPhoneScreenState extends State<SignupPhoneScreen> {
   Widget build(BuildContext context) {
     return SignupScaffold(
       step: 2,
-      totalSteps: 7,
+      totalSteps: 8,
       title: '전화번호를 알려 주세요',
       subtitle: '문자로 인증번호를 보내드려요.\n번호는 본인 확인과 알림 외에는 쓰이지 않아요.',
       primaryLabel: '인증번호 받기',

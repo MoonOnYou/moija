@@ -91,7 +91,7 @@ class _SignupTermsScreenState extends State<SignupTermsScreen> {
   Widget build(BuildContext context) {
     return SignupScaffold(
       step: 1,
-      totalSteps: 7,
+      totalSteps: 8,
       title: '먼저 약관에 동의해 주세요',
       subtitle: '꼭 필요한 항목만 받아요. 선택은 언제든 끌 수 있어요.',
       primaryLabel: '동의하고 다음',

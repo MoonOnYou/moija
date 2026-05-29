@@ -63,8 +63,8 @@ class _SignupNicknameScreenState extends State<SignupNicknameScreen> {
   Widget build(BuildContext context) {
     final err = _error;
     return SignupScaffold(
-      step: 4,
-      totalSteps: 7,
+      step: 5,
+      totalSteps: 8,
       title: '닉네임을 정해 주세요',
       subtitle: '모임에서 다른 사람들에게 보일 이름이에요.\n나중에 프로필에서 바꿀 수 있어요.',
       primaryLabel: '다음',
