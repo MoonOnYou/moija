@@ -144,19 +144,19 @@ class MeetingDetailScreen extends StatelessWidget {
   Widget _categoryChip() => Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-            color: meeting.category.chipBackground,
+            color: AppColors.bgSecondary,
             borderRadius: BorderRadius.circular(14)),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(meeting.category.icon,
-                size: 14, color: meeting.category.chipForeground),
+                size: 14, color: AppColors.textPrimary),
             const SizedBox(width: 4),
             Text(meeting.categoryLabel,
                 style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
-                    color: meeting.category.chipForeground)),
+                    color: AppColors.textPrimary)),
           ],
         ),
       );

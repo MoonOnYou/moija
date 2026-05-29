@@ -274,13 +274,13 @@ class _PendingMeetingCell extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: meeting.category.chipBackground,
+              color: AppColors.bgSecondary,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
               meeting.category.icon,
               size: 24,
-              color: meeting.category.chipForeground,
+              color: AppColors.textPrimary,
             ),
           ),
           const SizedBox(width: 12),
@@ -361,8 +361,8 @@ class _HostActionButton extends StatelessWidget {
           icon: Icon(icon, size: 18),
           label: Text(label),
           style: FilledButton.styleFrom(
-            backgroundColor: AppColors.bgSecondary,
-            foregroundColor: AppColors.textPrimary,
+            backgroundColor: AppColors.coral,
+            foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 12),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),

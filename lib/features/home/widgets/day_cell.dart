@@ -134,14 +134,14 @@ class DayCell extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 4),
       alignment: Alignment.centerLeft,
       decoration: BoxDecoration(
-        color: isSelected ? AppColors.bgPrimary : m.category.chipBackground,
+        color: isSelected ? AppColors.bgPrimary : AppColors.bgSecondary,
         borderRadius: BorderRadius.circular(3),
       ),
       child: Text(
         text,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: TextStyle(fontSize: 11, color: m.category.chipForeground),
+        style: TextStyle(fontSize: 11, color: AppColors.textPrimary),
       ),
     );
   }

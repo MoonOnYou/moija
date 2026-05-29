@@ -239,11 +239,11 @@ class _Header extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: meeting.category.chipBackground,
+                  color: AppColors.bgSecondary,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(meeting.category.icon,
-                    color: meeting.category.chipForeground, size: 22),
+                    color: AppColors.textPrimary, size: 22),
               ),
               const SizedBox(width: 10),
               Expanded(
