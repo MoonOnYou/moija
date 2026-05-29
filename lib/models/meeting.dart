@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'join_method.dart';
 import 'meeting_category.dart';
 import 'meeting_cost.dart';
@@ -14,6 +15,7 @@ class Meeting {
     required this.currentMembers,
     required this.maxMembers,
     this.customCategory = '',
+    this.customIcon,
     this.description = '',
     this.nearestStation = '',
     this.cost = const MeetingCost(CostType.split),
@@ -39,6 +41,10 @@ class Meeting {
   /// 이때 [category]는 보통 [MeetingCategory.etc]로 저장된다.
   final String customCategory;
 
+  /// 전체보기에서 고른 카테고리처럼 enum 아이콘으로 매핑되지 않는 경우의
+  /// 대체 아이콘. null이면 [category]의 기본 아이콘을 쓴다.
+  final IconData? customIcon;
+
   /// 상세 화면 정보(저장소가 채움).
   final String description;
   final String nearestStation;
@@ -48,6 +54,10 @@ class Meeting {
   /// 칩·달력에 표시할 카테고리 이름. 직접 입력값이 있으면 그걸 우선한다.
   String get categoryLabel =>
       customCategory.isNotEmpty ? customCategory : category.label;
+
+  /// 리스트·상세에 표시할 아이콘. 직접 지정한 아이콘이 있으면 그걸, 없으면
+  /// 카테고리 기본 아이콘을 쓴다.
+  IconData get icon => customIcon ?? category.icon;
 
   /// 리스트·상세에 공통으로 쓰는 장소 표시. 인근역 정보가 있고 장소와 다르면
   /// "인근역 · 장소" 형태로, 아니면 장소만 보여준다.

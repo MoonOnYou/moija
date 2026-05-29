@@ -44,7 +44,7 @@ class ChatRoomCell extends StatelessWidget {
                 color: AppColors.bgSecondary,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(meeting.category.icon,
+              child: Icon(meeting.icon,
                   size: 24, color: AppColors.textPrimary),
             ),
             const SizedBox(width: 12),

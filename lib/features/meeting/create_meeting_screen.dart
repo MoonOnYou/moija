@@ -131,6 +131,9 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
   }
 
   Future<void> _pickDate() async {
+    // 피커를 열기 전에 입력 포커스를 거둬, 닫힌 뒤 텍스트필드가 다시 포커스를
+    // 가져 키보드가 올라오는 것을 막는다.
+    FocusScope.of(context).unfocus();
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final picked = await showDatePicker(
@@ -143,6 +146,7 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
   }
 
   Future<void> _pickTime() async {
+    FocusScope.of(context).unfocus();
     final picked = await showTimePicker(
       context: context,
       initialTime: _time ?? const TimeOfDay(hour: 19, minute: 0),
@@ -228,6 +232,10 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
       title: _title.text.trim(),
       category: _category!,
       customCategory: _customCategory ?? '',
+      // 전체보기에서 고른(enum에 없는) 카테고리는 해당 그룹 대표 아이콘으로.
+      customIcon: (_customCategory != null && _customCategory!.isNotEmpty)
+          ? CategoryCatalog.iconForLabel(_customCategory!)
+          : null,
       startTime: start,
       location: _online
           ? (placeText.isEmpty ? '온라인' : placeText)
@@ -282,13 +290,13 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
                     () => setState(() {
                           _category = c;
                           _customCategory = null;
-                        }), showCheck: false),
+                        })),
               if (_customCategory != null)
                 _chip(_customCategory!, true,
                     () => setState(() {
                           _customCategory = null;
                           _category = null;
-                        }), showCheck: false),
+                        })),
               _browserChip(),
             ],
           ),
@@ -480,8 +488,7 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
         ),
       );
 
-  Widget _chip(String label, bool selected, VoidCallback onTap,
-      {bool showCheck = true}) {
+  Widget _chip(String label, bool selected, VoidCallback onTap) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -502,22 +509,11 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
               width: selected ? 1.0 : 0.5,
             ),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (selected && showCheck) ...[
-                const Icon(Icons.check_rounded,
-                    size: 14, color: Colors.white),
-                const SizedBox(width: 4),
-              ],
-              Text(label,
-                  style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color:
-                          selected ? Colors.white : AppColors.textPrimary)),
-            ],
-          ),
+          child: Text(label,
+              style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: selected ? Colors.white : AppColors.textPrimary)),
         ),
       ),
     );

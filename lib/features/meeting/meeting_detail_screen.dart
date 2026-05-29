@@ -149,7 +149,7 @@ class MeetingDetailScreen extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(meeting.category.icon,
+            Icon(meeting.icon,
                 size: 14, color: AppColors.textPrimary),
             const SizedBox(width: 4),
             Text(meeting.categoryLabel,

@@ -104,4 +104,13 @@ class CategoryCatalog {
         return MeetingCategory.etc;
     }
   }
+
+  /// 라벨이 속한 큰 그룹의 대표 아이콘. 전체보기에서 고른 라벨이 enum 아이콘과
+  /// 매핑되지 않을 때(직접 입력 카테고리) 방 아이콘으로 쓴다.
+  static IconData iconForLabel(String label) {
+    for (final g in groups) {
+      if (g.items.contains(label)) return g.icon;
+    }
+    return MeetingCategory.etc.icon;
+  }
 }

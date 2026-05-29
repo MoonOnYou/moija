@@ -33,7 +33,7 @@ class MeetingCard extends StatelessWidget {
               color: AppColors.bgSecondary,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(meeting.category.icon,
+            child: Icon(meeting.icon,
                 size: 28, color: AppColors.textPrimary),
           ),
           const SizedBox(width: 12),

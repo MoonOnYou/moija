@@ -278,7 +278,7 @@ class _PendingMeetingCell extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
-              meeting.category.icon,
+              meeting.icon,
               size: 24,
               color: AppColors.textPrimary,
             ),

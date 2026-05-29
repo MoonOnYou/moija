@@ -242,7 +242,7 @@ class _Header extends StatelessWidget {
                   color: AppColors.bgSecondary,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(meeting.category.icon,
+                child: Icon(meeting.icon,
                     color: AppColors.textPrimary, size: 22),
               ),
               const SizedBox(width: 10),
