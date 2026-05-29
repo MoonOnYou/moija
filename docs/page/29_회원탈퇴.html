@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>모이자 — 회원 탈퇴 (#29)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
+<style>
+  :root{
+    --co:#EE7A4D;--mt:#4FB286;--am:#F4B740;
+    --bg:#fff;--cream:#FAF6EE;--sub:#F4F1E8;
+    --tx:#2C2C2A;--t2:#5F5E5A;--t3:#888780;--bd:rgba(0,0,0,0.12);
+    --su:#3B6D11;--wn:#854F0B;--dg:#A32D2D;--di:#185FA5;
+    --bgw:#FCEFE6;--bgr:#FCEBEB;--bgs:#EAF6EF;--bgam:#FFF6DD;--bgi:#E9F3FB;
+  }
+  body{margin:0;background:#EFECE3;font-family:-apple-system,"Apple SD Gothic Neo",sans-serif;color:var(--tx);padding:28px 0;}
+  .stage{display:flex;flex-wrap:wrap;gap:26px;justify-content:center;align-items:flex-start;max-width:1240px;margin:0 auto;}
+  .device{width:360px;}
+  .cap{font-size:12px;color:var(--t2);font-weight:600;margin-bottom:8px;text-align:center;}
+  .cap small{display:block;font-weight:400;color:var(--t3);font-size:10.5px;margin-top:2px;}
+  .frame{width:360px;height:720px;background:var(--bg);border-radius:28px;border:0.5px solid var(--bd);overflow:hidden;display:flex;flex-direction:column;}
+  .sbar{flex:none;height:32px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:12px;font-weight:500;}
+  .hdr{flex:none;display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:0.5px solid var(--bd);}
+  .ttl{flex:none;padding:14px 20px 4px;}
+  .h1{font-size:20px;font-weight:500;letter-spacing:-0.015em;line-height:1.3;}
+  .sb{font-size:12.5px;color:var(--t2);line-height:1.55;margin-top:6px;}
+  .body{flex:1;overflow-y:auto;padding:12px 20px 14px;}
+  .cta{flex:none;padding:11px 16px 16px;background:var(--bg);border-top:0.5px solid var(--bd);display:flex;gap:9px;}
+  .btn{flex:1;text-align:center;font-size:14.5px;font-weight:500;padding:14px;border-radius:13px;}
+  .btn.pr{background:var(--co);color:#fff;}
+  .btn.sc{background:var(--sub);color:var(--t2);}
+  .btn.dg{background:var(--dg);color:#fff;}
+  .btn.dis{background:#E1DED4;color:#fff;}
+  .rd{display:flex;align-items:center;gap:11px;padding:13px 0;border-bottom:0.5px solid var(--bd);}
+  .rd .o{width:20px;height:20px;border-radius:10px;border:1.5px solid #d4d2c9;flex-shrink:0;}
+  .rd.on .o{border-color:var(--co);background:var(--co);}
+  .rd.on .o::after{content:"";display:block;width:8px;height:8px;border-radius:4px;background:#fff;margin:4px;}
+  .rd .lb{font-size:14px;}
+  .lose{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px dashed var(--bd);}
+  .lose:last-child{border-bottom:none;}
+  .lose .ic{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .lose .nm{font-size:12.5px;flex:1;}
+  .lose .v{font-size:12px;color:var(--t3);}
+  .warn{background:var(--bgam);border:1px solid #ecd9b0;border-radius:13px;padding:14px;margin-top:14px;}
+  .warn .ti{font-size:12.5px;font-weight:500;color:var(--wn);display:flex;align-items:center;gap:6px;}
+  .warn p{font-size:12px;color:var(--t2);margin:7px 0 0;line-height:1.55;}
+  .danger{background:var(--bgr);border:1px solid #f0c5c5;border-radius:13px;padding:14px;margin-top:11px;display:flex;gap:10px;align-items:flex-start;}
+  .danger i.lf{font-size:20px;color:var(--dg);flex-shrink:0;margin-top:1px;}
+  .danger .tt b{font-size:13px;font-weight:500;color:var(--dg);}
+  .danger .tt p{font-size:11.5px;color:var(--t2);margin:4px 0 0;line-height:1.5;}
+  .danger .tt .go{display:inline-block;font-size:12px;color:#fff;background:var(--dg);padding:7px 13px;border-radius:9px;margin-top:9px;font-weight:500;}
+  .otp{display:flex;gap:8px;justify-content:space-between;margin-top:8px;}
+  .otp .d{flex:1;height:54px;border:1px solid var(--bd);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:500;background:var(--bg);}
+  .otp .d.fill{border-color:var(--co);background:#fff5ee;}
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <!-- 1 사유 선택 -->
+  <div class="device">
+    <div class="cap">1 · 떠나는 이유 (선택) <small>운영 인사이트 — 선택사항</small></div>
+    <div class="frame">
+      <div class="sbar"><span>9:41</span><span style="display:flex;gap:6px;align-items:center;font-size:13px;"><i class="ti ti-signal-5g"></i><i class="ti ti-wifi"></i><i class="ti ti-battery-3"></i></span></div>
+      <div class="hdr"><i class="ti ti-chevron-left" style="font-size:22px;"></i><span style="font-size:15px;font-weight:500;">회원 탈퇴</span></div>
+      <div class="ttl"><div class="h1">떠나는 이유를 알려주세요</div><div class="sb">더 나은 모이자를 만드는 데 도움이 돼요. (선택사항)</div></div>
+      <div class="body">
+        <div class="rd"><div class="o"></div><span class="lb">동네 모임이 별로 없어요</span></div>
+        <div class="rd"><div class="o"></div><span class="lb">사용이 어려워요</span></div>
+        <div class="rd"><div class="o"></div><span class="lb">알림이 너무 많아요</span></div>
+        <div class="rd on"><div class="o"></div><span class="lb">부적절한 사용자가 있어요</span></div>
+        <div class="rd"><div class="o"></div><span class="lb">개인정보가 걱정돼요</span></div>
+        <div class="rd"><div class="o"></div><span class="lb">기타</span></div>
+        <div style="margin-top:8px;border:1px solid var(--bd);border-radius:11px;padding:11px 13px;font-size:12.5px;color:var(--t3);background:var(--sub);">자세한 내용 (선택)</div>
+      </div>
+      <div class="cta"><div class="btn pr">다음</div></div>
+    </div>
+  </div>
+
+  <!-- 2 최종 확인 (인증번호 받기 전) -->
+  <div class="device">
+    <div class="cap">2 · 최종 확인 → 인증번호 받기 <small>사라지는 것 + 30일 + 본인 확인 시작</small></div>
+    <div class="frame">
+      <div class="sbar"><span>9:41</span><span style="display:flex;gap:6px;align-items:center;font-size:13px;"><i class="ti ti-signal-5g"></i><i class="ti ti-wifi"></i><i class="ti ti-battery-3"></i></span></div>
+      <div class="hdr"><i class="ti ti-chevron-left" style="font-size:22px;"></i><span style="font-size:15px;font-weight:500;">회원 탈퇴</span></div>
+      <div class="ttl"><div class="h1">탈퇴 전 꼭 확인해주세요</div><div class="sb">한 번 탈퇴하면 되돌릴 수 없어요.</div></div>
+      <div class="body">
+        <div style="background:var(--cream);border-radius:13px;padding:13px;">
+          <div style="font-size:12px;font-weight:500;color:var(--t2);margin-bottom:4px;">탈퇴하면 사라져요</div>
+          <div class="lose"><div class="ic" style="background:var(--bgi);"><i class="ti ti-diamond" style="color:var(--di);font-size:16px;"></i></div><span class="nm">남은 다이아 (소멸)</span><span class="v">1,000개</span></div>
+          <div class="lose"><div class="ic" style="background:var(--bgs);"><i class="ti ti-star" style="color:var(--su);font-size:16px;"></i></div><span class="nm">매너점수 · 활동 이력</span><span class="v">★ 4.7 · 14회</span></div>
+          <div class="lose"><div class="ic" style="background:var(--bgr);"><i class="ti ti-shield" style="color:var(--dg);font-size:16px;"></i></div><span class="nm">차단·신고 목록</span><span class="v">3건</span></div>
+          <div class="lose"><div class="ic" style="background:var(--bgw);"><i class="ti ti-calendar" style="color:var(--wn);font-size:16px;"></i></div><span class="nm">참가 중 모임</span><span class="v">3개</span></div>
+        </div>
+
+        <div class="danger">
+          <i class="ti ti-crown lf"></i>
+          <div class="tt"><b>방장으로 운영 중인 모임이 있어요</b><p>탈퇴 전 다른 멤버에게 <b>방장을 위임</b>하거나 모임을 닫아야 해요.</p><span class="go">방장 위임 진행 ›</span></div>
+        </div>
+
+        <div class="warn">
+          <div class="ti"><i class="ti ti-shield-lock" style="font-size:16px;"></i>탈퇴 후 30일 동안 같은 전화번호로 다시 가입할 수 없어요</div>
+          <p>차단된 사용자가 새 계정으로 우회하는 것을 막기 위한 정책이에요. 또한 매너점수·차단·신고 이력은 30일 후 재가입하더라도 <b>같은 번호 계정에 그대로 따라와요</b>.</p>
+        </div>
+
+        <div style="margin-top:18px;background:var(--sub);border-radius:13px;padding:13px;">
+          <div style="font-size:12.5px;font-weight:500;color:var(--t2);">본인 확인이 필요해요</div>
+          <div style="font-size:11.5px;color:var(--t3);margin-top:4px;line-height:1.5;">등록된 휴대폰 번호 <b>010-1234-5678</b>로 인증번호를 보내드릴게요.</div>
+        </div>
+      </div>
+      <div class="cta">
+        <div class="btn sc">안 할게요</div>
+        <div class="btn pr" style="display:flex;align-items:center;justify-content:center;gap:6px;"><i class="ti ti-message-2-share" style="font-size:18px;"></i>인증번호 받기</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3 본인 확인 (OTP 입력) -->
+  <div class="device">
+    <div class="cap">3 · 본인 확인 (OTP 입력) <small>코드 6자리 + 카운트다운 + 탈퇴 버튼</small></div>
+    <div class="frame">
+      <div class="sbar"><span>9:41</span><span style="display:flex;gap:6px;align-items:center;font-size:13px;"><i class="ti ti-signal-5g"></i><i class="ti ti-wifi"></i><i class="ti ti-battery-3"></i></span></div>
+      <div class="hdr"><i class="ti ti-chevron-left" style="font-size:22px;"></i><span style="font-size:15px;font-weight:500;">본인 확인</span></div>
+      <div class="ttl"><div class="h1">인증번호를 입력해주세요</div><div class="sb"><b>010-1234-5678</b>로 인증번호 6자리를 보냈어요.<br>안 왔으면 스팸함도 한번 확인해주세요.</div></div>
+      <div class="body">
+        <div style="font-size:12.5px;font-weight:500;color:var(--t2);">인증번호 6자리</div>
+        <div class="otp">
+          <div class="d fill">2</div><div class="d fill">8</div><div class="d fill">3</div>
+          <div class="d">_</div><div class="d">_</div><div class="d">_</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;">
+          <span style="font-size:12px;color:var(--co);font-weight:500;">남은 4 : 32</span>
+          <span style="font-size:12px;color:var(--t3);">다시 받기</span>
+        </div>
+
+        <div class="warn" style="margin-top:24px;">
+          <div class="ti"><i class="ti ti-alert-triangle" style="font-size:16px;"></i>마지막 확인</div>
+          <p>인증을 완료하고 <b style="color:var(--dg);">탈퇴하기</b>를 누르면 즉시 탈퇴되고 <b>30일간 같은 번호로 재가입</b>할 수 없어요. 다이아 1,000개와 매너점수·이력도 함께 사라져요.</p>
+        </div>
+      </div>
+      <div class="cta">
+        <div class="btn sc">안 할게요</div>
+        <div class="btn dis">탈퇴하기</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4 탈퇴 완료 -->
+  <div class="device">
+    <div class="cap">4 · 탈퇴 완료 <small>30일 후 재가입 안내</small></div>
+    <div class="frame" style="background:var(--cream);">
+      <div class="sbar"><span>9:41</span><span style="display:flex;gap:6px;align-items:center;font-size:13px;"><i class="ti ti-signal-5g"></i><i class="ti ti-wifi"></i><i class="ti ti-battery-3"></i></span></div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 30px;text-align:center;">
+        <div style="width:88px;height:88px;border-radius:44px;background:#fff;border:0.5px solid var(--bd);display:flex;align-items:center;justify-content:center;margin-bottom:22px;"><i class="ti ti-circle-check" style="font-size:42px;color:var(--t2);"></i></div>
+        <div style="font-size:19px;font-weight:500;">탈퇴가 완료됐어요</div>
+        <div style="font-size:13px;color:var(--t2);margin-top:8px;line-height:1.55;">그동안 함께해주셔서 고마워요.<br>언제든 마음 바뀌면 다시 와주세요.</div>
+
+        <div style="width:100%;margin-top:22px;background:#fff;border:0.5px solid var(--bd);border-radius:13px;padding:13px 14px;display:flex;align-items:flex-start;gap:10px;text-align:left;">
+          <i class="ti ti-calendar-clock" style="font-size:18px;color:var(--wn);flex-shrink:0;margin-top:1px;"></i>
+          <div style="font-size:12.5px;color:var(--tx);line-height:1.55;"><b style="font-weight:500;">30일 후 다시 가입할 수 있어요</b><br><span style="font-size:11.5px;color:var(--t2);">2026년 6월 24일부터 같은 번호로 가능해요.</span></div>
+        </div>
+      </div>
+      <div class="cta" style="background:var(--cream);border-top:none;"><div class="btn pr">앱 종료</div></div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
