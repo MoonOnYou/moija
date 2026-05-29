@@ -25,12 +25,7 @@ class _SignupProfileScreenState extends State<SignupProfileScreen> {
   int get _maxYear => _today - _minAge; // 2012
   int get _minYear => _today - _maxAge; // 1927
 
-  bool get _underAge {
-    if (_birthYear == null) return false;
-    return _birthYear! > _maxYear;
-  }
-
-  bool get _valid => _gender != null && _birthYear != null && !_underAge;
+  bool get _valid => _gender != null && _birthYear != null;
 
   Future<void> _pickYear() async {
     final picked = await showModalBottomSheet<int>(
@@ -42,7 +37,7 @@ class _SignupProfileScreenState extends State<SignupProfileScreen> {
       builder: (_) => _YearPickerSheet(
         initial: _birthYear ?? _maxYear,
         minYear: _minYear,
-        maxYear: _today, // 보여주기는 오늘까지, 미성년 안내는 본문에서 한다.
+        maxYear: _maxYear, // 만 14세 미만 연도는 아예 노출하지 않는다.
       ),
     );
     if (picked != null) {
@@ -67,7 +62,6 @@ class _SignupProfileScreenState extends State<SignupProfileScreen> {
       subtitle: '성별·나이는 모임 추천과 같은 또래 매칭에만 쓰여요.',
       primaryLabel: '다음',
       onPrimary: _valid ? _next : null,
-      bottomHint: const Text('만 14세 미만은 안전을 위해 가입할 수 없어요.'),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -111,10 +105,7 @@ class _SignupProfileScreenState extends State<SignupProfileScreen> {
                 color: AppColors.bgPrimary,
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                    color: _underAge
-                        ? AppColors.textDanger
-                        : AppColors.borderTertiary,
-                    width: _underAge ? 1.0 : 0.6),
+                    color: AppColors.borderTertiary, width: 0.6),
               ),
               child: Row(
                 children: [
@@ -132,7 +123,7 @@ class _SignupProfileScreenState extends State<SignupProfileScreen> {
                       ),
                     ),
                   ),
-                  if (_birthYear != null && !_underAge)
+                  if (_birthYear != null)
                     Text(
                       '만 ${_today - _birthYear!}세',
                       style: const TextStyle(
@@ -148,23 +139,22 @@ class _SignupProfileScreenState extends State<SignupProfileScreen> {
             ),
           ),
           const SizedBox(height: 10),
-          if (_underAge)
-            Row(
-              children: const [
-                Icon(Icons.error_outline_rounded,
-                    size: 14, color: AppColors.textDanger),
-                SizedBox(width: 4),
-                Expanded(
-                  child: Text(
-                    '만 14세 미만은 가입할 수 없어요.',
-                    style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textDanger),
-                  ),
+          Row(
+            children: const [
+              Icon(Icons.info_outline_rounded,
+                  size: 14, color: AppColors.textTertiary),
+              SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  '만 14세 미만은 사용 불가예요.',
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textTertiary),
                 ),
-              ],
-            ),
+              ),
+            ],
+          ),
           const SizedBox(height: 22),
           const _WarningCard(),
         ],

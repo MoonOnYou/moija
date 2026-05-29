@@ -202,7 +202,16 @@ class _OtpBoxes extends StatelessWidget {
           ),
         ),
         GestureDetector(
-          onTap: () => focusNode.requestFocus(),
+          // 키보드가 시스템에 의해 내려가도 FocusNode는 포커스를 유지하므로
+          // requestFocus만으론 키보드가 다시 안 뜬다. 이미 포커스가 있으면
+          // 플랫폼에 직접 키보드 표시를 요청한다.
+          onTap: () {
+            if (focusNode.hasFocus) {
+              SystemChannels.textInput.invokeMethod<void>('TextInput.show');
+            } else {
+              focusNode.requestFocus();
+            }
+          },
           behavior: HitTestBehavior.opaque,
           child: AnimatedBuilder(
             animation: controller,

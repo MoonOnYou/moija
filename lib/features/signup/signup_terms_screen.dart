@@ -82,9 +82,9 @@ class _SignupTermsScreenState extends State<SignupTermsScreen> {
   }
 
   void _next() {
-    Navigator.of(context).push(signupRoute(
-      (_) => SignupPhoneScreen(session: widget.session),
-    ));
+    Navigator.of(
+      context,
+    ).push(signupRoute((_) => SignupPhoneScreen(session: widget.session)));
   }
 
   @override
@@ -99,38 +99,14 @@ class _SignupTermsScreenState extends State<SignupTermsScreen> {
       bottomHint: const Text('필수 항목 4개에 동의해야 가입을 진행할 수 있어요.'),
       child: Column(
         children: [
-          _AllAgreeRow(
-            on: _allOn,
-            onChanged: () => _setAll(!_allOn),
-          ),
-          const SizedBox(height: 12),
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.bgPrimary,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                  color: AppColors.borderTertiary, width: 0.5),
+          _AllAgreeRow(on: _allOn, onChanged: () => _setAll(!_allOn)),
+          const SizedBox(height: 6),
+          for (final item in _items)
+            _TermRow(
+              item: item,
+              onTap: () => _toggle(item),
+              onDetail: () => _showDetail(item),
             ),
-            child: Column(
-              children: [
-                for (int i = 0; i < _items.length; i++) ...[
-                  _TermRow(
-                    item: _items[i],
-                    onTap: () => _toggle(_items[i]),
-                    onDetail: () => _showDetail(_items[i]),
-                  ),
-                  if (i != _items.length - 1)
-                    const Divider(
-                      height: 0.5,
-                      thickness: 0.5,
-                      indent: 18,
-                      endIndent: 18,
-                      color: AppColors.borderTertiary,
-                    ),
-                ],
-              ],
-            ),
-          ),
         ],
       ),
     );
@@ -161,28 +137,22 @@ class _AllAgreeRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onChanged,
-      borderRadius: BorderRadius.circular(14),
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(16, 16, 18, 16),
-        decoration: BoxDecoration(
-          color: on ? AppColors.bgCoral : AppColors.bgSecondary,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: on ? AppColors.coral : AppColors.borderTertiary,
-            width: 0.8,
-          ),
-        ),
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(2, 14, 6, 14),
         child: Row(
           children: [
             _Check(on: on, big: true),
             const SizedBox(width: 12),
             const Expanded(
-              child: Text('전체 동의 (선택 항목 포함)',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                  )),
+              child: Text(
+                '전체 동의 (선택 항목 포함)',
+                style: TextStyle(
+                  fontSize: 15.5,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
+              ),
             ),
           ],
         ),
@@ -208,7 +178,7 @@ class _TermRow extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 14, 6, 14),
+        padding: const EdgeInsets.fromLTRB(2, 12, 6, 12),
         child: Row(
           children: [
             _Check(on: on),
@@ -216,21 +186,25 @@ class _TermRow extends StatelessWidget {
             Expanded(
               child: Row(
                 children: [
-                  Text(item.required ? '[필수] ' : '[선택] ',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: item.required
-                            ? AppColors.coral
-                            : AppColors.textTertiary,
-                      )),
+                  Text(
+                    item.required ? '[필수] ' : '[선택] ',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: item.required
+                          ? AppColors.coral
+                          : AppColors.textTertiary,
+                    ),
+                  ),
                   Flexible(
-                    child: Text(item.label,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.textPrimary,
-                        )),
+                    child: Text(
+                      item.label,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -241,10 +215,11 @@ class _TermRow extends StatelessWidget {
                 style: TextButton.styleFrom(
                   foregroundColor: AppColors.textTertiary,
                   minimumSize: const Size(40, 36),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
                   textStyle: const TextStyle(
-                      fontSize: 12, fontWeight: FontWeight.w500),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
                 child: const Text('보기 ›'),
               )
@@ -276,9 +251,11 @@ class _Check extends StatelessWidget {
           width: 1.2,
         ),
       ),
-      child: Icon(Icons.check_rounded,
-          size: big ? 15 : 13,
-          color: on ? Colors.white : AppColors.textTertiary),
+      child: Icon(
+        Icons.check_rounded,
+        size: big ? 15 : 13,
+        color: on ? Colors.white : AppColors.textTertiary,
+      ),
     );
   }
 }
@@ -311,9 +288,13 @@ class _TermsSheet extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 14),
-              Text(label,
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.w700)),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
               const SizedBox(height: 12),
               Expanded(
                 child: SingleChildScrollView(
