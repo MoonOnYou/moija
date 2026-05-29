@@ -97,7 +97,8 @@ class _ChatScreenState extends State<ChatScreen> {
                 physics: const AlwaysScrollableScrollPhysics(),
                 children: [
                   if (pending.isNotEmpty) ...[
-                    const _SectionHeader('신청 대기중'),
+                    const _SectionHeader(
+                        '신청 대기중', Icons.hourglass_top_rounded),
                     for (final m in pending)
                       _PendingMeetingCell(
                         meeting: m,
@@ -105,7 +106,8 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                   ],
                   if (ongoing.isNotEmpty) ...[
-                    const _SectionHeader('진행중인 모임'),
+                    const _SectionHeader(
+                        '진행중인 모임', Icons.play_circle_outline_rounded),
                     for (final m in ongoing)
                       ChatRoomCell(
                         meeting: m,
@@ -115,7 +117,8 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                   ],
                   if (upcoming.isNotEmpty) ...[
-                    const _SectionHeader('다가오는 모임'),
+                    const _SectionHeader(
+                        '다가오는 모임', Icons.event_rounded),
                     for (final m in upcoming) ...[
                       ChatRoomCell(
                         meeting: m,
@@ -133,7 +136,8 @@ class _ChatScreenState extends State<ChatScreen> {
                     ],
                   ],
                   if (ended.isNotEmpty) ...[
-                    const _SectionHeader('종료된 모임'),
+                    const _SectionHeader(
+                        '종료된 모임', Icons.check_circle_outline_rounded),
                     for (final m in ended) ...[
                       ChatRoomCell(
                         meeting: m,
@@ -218,20 +222,35 @@ class _ChatScreenState extends State<ChatScreen> {
 }
 
 class _SectionHeader extends StatelessWidget {
-  const _SectionHeader(this.title);
+  const _SectionHeader(this.title, this.icon);
   final String title;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 6),
-      child: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-          color: AppColors.textSecondary,
-        ),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: AppColors.textSecondary),
+          const SizedBox(width: 6),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Divider(
+              height: 0.6,
+              thickness: 0.6,
+              color: AppColors.borderTertiary,
+            ),
+          ),
+        ],
       ),
     );
   }

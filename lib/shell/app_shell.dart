@@ -54,66 +54,73 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
       animation: Listenable.merge([selectedTab, myMeetingsRevision]),
       builder: (context, _) {
         final index = selectedTab.value;
-        final unread =
-            myMeetingsBadgeTotal(_repository, DateTime.now());
+        final unread = myMeetingsBadgeTotal(_repository, DateTime.now());
 
         // 모든 탭 위젯을 IndexedStack에 살려둬, 탭 전환 후 돌아와도
         // HomeScreen의 저장소·선택 날짜 같은 상태가 보존되도록 한다.
-        return Scaffold(
-          body: IndexedStack(
-            index: index,
-            children: [
-              HomeScreen(repository: _repository),
-              ChatScreen(repository: _repository),
-              const ProfileScreen(),
-            ],
-          ),
-          bottomNavigationBar: Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              border: Border(
-                top: BorderSide(color: AppColors.borderTertiary, width: 0.5),
-              ),
-            ),
-            child: NavigationBarTheme(
-              data: const NavigationBarThemeData(
-                backgroundColor: Colors.white,
-                surfaceTintColor: Colors.transparent,
-                // 눌림 효과 제거 — 아이콘 outlined↔rounded 전환만 보이도록.
-                indicatorColor: Colors.transparent,
-                overlayColor: WidgetStatePropertyAll(Colors.transparent),
-                elevation: 0,
-                labelTextStyle: WidgetStatePropertyAll(
-                  TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
-                ),
-              ),
-              child: NavigationBar(
-                height: 64,
-                selectedIndex: index,
-                onDestinationSelected: (i) => selectedTab.value = i,
-                destinations: [
-                const NavigationDestination(
-                  icon: Icon(Icons.home_rounded),
-                  selectedIcon: Icon(Icons.home_rounded),
-                  label: '홈',
-                ),
-                NavigationDestination(
-                  icon: _BadgedIcon(
-                    icon: Icons.groups_rounded,
-                    count: unread,
-                  ),
-                  selectedIcon: _BadgedIcon(
-                    icon: Icons.groups_rounded,
-                    count: unread,
-                  ),
-                  label: '내모임',
-                ),
-                const NavigationDestination(
-                  icon: Icon(Icons.person_outline_rounded),
-                  selectedIcon: Icon(Icons.person_rounded),
-                  label: '프로필',
-                ),
+        return PopScope(
+          // 첫 탭이 아니면 뒤로가기로 앱을 끄지 않고 첫 탭(홈)으로 돌아간다.
+          canPop: index == 0,
+          onPopInvokedWithResult: (didPop, result) {
+            if (didPop) return;
+            if (index != 0) selectedTab.value = 0;
+          },
+          child: Scaffold(
+            body: IndexedStack(
+              index: index,
+              children: [
+                HomeScreen(repository: _repository),
+                ChatScreen(repository: _repository),
+                const ProfileScreen(),
               ],
+            ),
+            bottomNavigationBar: Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                border: Border(
+                  top: BorderSide(color: AppColors.borderTertiary, width: 0.5),
+                ),
+              ),
+              child: NavigationBarTheme(
+                data: const NavigationBarThemeData(
+                  backgroundColor: Colors.white,
+                  surfaceTintColor: Colors.transparent,
+                  // 눌림 효과 제거 — 아이콘 outlined↔rounded 전환만 보이도록.
+                  indicatorColor: Colors.transparent,
+                  overlayColor: WidgetStatePropertyAll(Colors.transparent),
+                  elevation: 0,
+                  labelTextStyle: WidgetStatePropertyAll(
+                    TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                  ),
+                ),
+                child: NavigationBar(
+                  height: 64,
+                  selectedIndex: index,
+                  onDestinationSelected: (i) => selectedTab.value = i,
+                  destinations: [
+                    const NavigationDestination(
+                      icon: Icon(Icons.home_rounded),
+                      selectedIcon: Icon(Icons.home_rounded),
+                      label: '홈',
+                    ),
+                    NavigationDestination(
+                      icon: _BadgedIcon(
+                        icon: Icons.groups_rounded,
+                        count: unread,
+                      ),
+                      selectedIcon: _BadgedIcon(
+                        icon: Icons.groups_rounded,
+                        count: unread,
+                      ),
+                      label: '내모임',
+                    ),
+                    const NavigationDestination(
+                      icon: Icon(Icons.person_outline_rounded),
+                      selectedIcon: Icon(Icons.person_rounded),
+                      label: '프로필',
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -140,4 +147,3 @@ class _BadgedIcon extends StatelessWidget {
     );
   }
 }
-
