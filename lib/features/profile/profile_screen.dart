@@ -4,6 +4,7 @@ import '../../models/member.dart';
 import '../../theme/app_colors.dart';
 import '../meeting/diamond_recharge_screen.dart';
 import '../signup/signup_start_screen.dart';
+import 'block_list_screen.dart';
 import 'edit_text_screen.dart';
 
 /// 프로필 메인 화면.
@@ -131,7 +132,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _MenuTile(
               icon: Icons.block_rounded,
               label: '차단 목록',
-              onTap: () => _stub('차단 목록')),
+              onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => const BlockListScreen()))),
           _MenuTile(
               icon: Icons.notifications_none_rounded,
               label: '알림 설정',
