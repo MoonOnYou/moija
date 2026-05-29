@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'shell/app_shell.dart';
+import 'shell/connectivity_gate.dart';
 import 'theme/app_colors.dart';
 
 Future<void> main() async {
@@ -49,6 +50,9 @@ class MoijaApp extends StatelessWidget {
         fontFamily: 'Pretendard',
       ),
       home: const AppShell(),
+      // 모든 화면 위에 네트워크 오류 오버레이를 덮을 수 있도록 Navigator를 감싼다.
+      builder: (context, child) =>
+          ConnectivityGate(child: child ?? const SizedBox.shrink()),
     );
   }
 }

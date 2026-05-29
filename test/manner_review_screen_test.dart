@@ -88,12 +88,10 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    // 차단 → 사유 입력 화면 → 사유 선택 → 차단하기 → 카드 dismiss
+    // 차단 → 차단 화면(나만 보는 메모) → 차단하기 → 카드 dismiss
     await tester.tap(find.text('차단').first);
     await tester.pumpAndSettle();
-    expect(find.text('차단 사유 메모'), findsOneWidget);
-    await tester.tap(find.text('욕설·폭언'));
-    await tester.pumpAndSettle();
+    expect(find.textContaining('차단할까요'), findsOneWidget);
     await tester.tap(find.widgetWithText(FilledButton, '차단하기'));
     await tester.pumpAndSettle();
     expect(find.text('매너 평가 1명'), findsOneWidget);

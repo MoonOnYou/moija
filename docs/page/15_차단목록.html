@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>모이자 — 차단 목록 (설정) (#15)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
+<style>
+  :root { --color-background-primary:#fff; --color-background-secondary:#f7f6f3; --color-background-tertiary:#f1efe8; --color-background-info:#e6f1fb; --color-background-danger:#fcebeb; --color-text-primary:#2c2c2a; --color-text-secondary:#5f5e5a; --color-text-tertiary:#888780; --color-text-info:#185fa5; --color-text-danger:#a32d2d; --color-border-tertiary:rgba(0,0,0,0.15); }
+  body { margin:0; background:var(--color-background-tertiary); font-family:-apple-system,"Apple SD Gothic Neo",sans-serif; color:var(--color-text-primary); padding:32px 0; }
+  .av { width:42px; height:42px; border-radius:21px; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:600; flex-shrink:0; }
+  .memo { font-size:11.5px; color:var(--color-text-secondary); background:var(--color-background-secondary); border-radius:8px; padding:7px 10px; margin-top:8px; display:flex; gap:6px; align-items:flex-start; line-height:1.45; }
+  .unblock { font-size:12px; color:var(--color-text-secondary); border:0.5px solid var(--color-border-tertiary); border-radius:9px; padding:7px 12px; flex-shrink:0; }
+  .card { border:0.5px solid var(--color-border-tertiary); border-radius:14px; padding:13px; margin-bottom:10px; }
+</style>
+</head>
+<body>
+<div style="background:var(--color-background-secondary); padding:32px 0; max-width:680px; margin:0 auto; border-radius:12px;">
+  <div style="margin:0 auto; width:360px; height:720px; background:var(--color-background-primary); border-radius:28px; border:0.5px solid var(--color-border-tertiary); overflow:hidden; position:relative;">
+    <div style="position:absolute; top:0; left:0; right:0; height:32px; display:flex; align-items:center; justify-content:space-between; padding:0 24px; font-size:12px; font-weight:500;"><span>9:41</span><span style="display:flex; gap:6px; align-items:center; font-size:13px;"><i class="ti ti-signal-5g"></i><i class="ti ti-wifi"></i><i class="ti ti-battery-3"></i></span></div>
+    <div style="position:absolute; top:32px; left:0; right:0; height:52px; display:flex; align-items:center; padding:0 16px; border-bottom:0.5px solid var(--color-border-tertiary);"><i class="ti ti-arrow-left" style="font-size:22px;"></i><div style="flex:1; text-align:center; font-size:16px; font-weight:500;">차단 목록</div><div style="width:22px;"></div></div>
+
+    <div style="position:absolute; top:84px; left:0; right:0; bottom:0; overflow-y:auto; padding:16px 18px;">
+      <div style="font-size:12px; color:var(--color-text-tertiary); margin-bottom:12px;">차단한 사용자는 같은 모임·채팅에 함께 나타나지 않아요. 메모는 나만 볼 수 있어요.</div>
+
+      <div class="card">
+        <div style="display:flex; gap:11px; align-items:center;">
+          <div class="av" style="background:var(--color-background-info); color:var(--color-text-info);">방</div>
+          <div style="flex:1; min-width:0;"><div style="font-size:14px; font-weight:500;">방탈마스터</div><div style="font-size:11px; color:var(--color-text-tertiary);">2026.05.20 차단 · 무례·매너</div></div>
+          <div class="unblock">차단 해제</div>
+        </div>
+        <div class="memo"><i class="ti ti-note" style="font-size:13px; color:var(--color-text-tertiary); margin-top:1px;"></i><span>모임에서 무례했어요. 자꾸 시간 안 지킴.</span></div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex; gap:11px; align-items:center;">
+          <div class="av" style="background:var(--color-background-secondary); color:var(--color-text-secondary);">J</div>
+          <div style="flex:1; min-width:0;"><div style="font-size:14px; font-weight:500;">jin_92</div><div style="font-size:11px; color:var(--color-text-tertiary);">2026.05.12 차단 · 사기·금전</div></div>
+          <div class="unblock">차단 해제</div>
+        </div>
+        <div class="memo"><i class="ti ti-note" style="font-size:13px; color:var(--color-text-tertiary); margin-top:1px;"></i><span>정산하고 돈 안 줬음. 조심.</span></div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex; gap:11px; align-items:center;">
+          <div class="av" style="background:var(--color-background-secondary); color:var(--color-text-secondary);">수</div>
+          <div style="flex:1; min-width:0;"><div style="font-size:14px; font-weight:500;">수영러버</div><div style="font-size:11px; color:var(--color-text-tertiary);">2026.04.30 차단 · 메모 없음</div></div>
+          <div class="unblock">차단 해제</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
