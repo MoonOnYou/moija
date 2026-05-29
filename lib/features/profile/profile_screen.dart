@@ -3,6 +3,7 @@ import '../../data/wallet.dart';
 import '../../models/member.dart';
 import '../../theme/app_colors.dart';
 import '../meeting/diamond_recharge_screen.dart';
+import '../signup/signup_start_screen.dart';
 import 'edit_text_screen.dart';
 
 /// 프로필 메인 화면.
@@ -165,6 +166,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               trailing: '1.0.0'),
           const SizedBox(height: 20),
           const _SectionTitle('계정'),
+          _MenuTile(
+              key: const Key('signup-entry'),
+              icon: Icons.login_rounded,
+              label: '로그인 · 회원가입 (테스트 진입)',
+              onTap: () => SignupStartScreen.start(context)),
           _MenuTile(
               icon: Icons.logout_rounded,
               label: '로그아웃',
@@ -410,6 +416,7 @@ class _SectionTitle extends StatelessWidget {
 
 class _MenuTile extends StatelessWidget {
   const _MenuTile({
+    super.key,
     required this.icon,
     required this.label,
     this.onTap,
