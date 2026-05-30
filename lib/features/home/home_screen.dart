@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 import '../../data/filter_storage.dart';
 import '../../data/meeting_repository.dart';
 import '../../data/wallet.dart';
-import '../../models/meeting.dart';
 import '../../models/meeting_filter.dart';
 import '../../shell/app_navigation.dart';
 import '../../theme/app_colors.dart';
@@ -183,17 +182,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.coral,
         foregroundColor: AppColors.bgPrimary,
-        onPressed: () async {
-          final created = await Navigator.push<Meeting>(
+        onPressed: () {
+          Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => CreateMeetingScreen(repository: _repository),
+              builder: (_) => const CreateMeetingScreen(),
             ),
           );
-          if (created != null && mounted) {
-            _goToDay(created.startTime);
-            setState(() {});
-          }
         },
         child: const Icon(Icons.add_rounded),
       ),
