@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:moija/data/meeting_repository.dart';
 import 'package:moija/features/meeting/create_meeting_screen.dart';
 import 'package:moija/features/meeting/diamond_recharge_screen.dart';
+import 'package:moija/models/meeting.dart';
 import 'package:moija/shell/app_navigation.dart';
 
 void main() {
@@ -60,9 +60,8 @@ void main() {
   }
 
   testWidgets('필수 미완성이면 버튼 비활성, 채우면 활성', (tester) async {
-    final repo = MeetingRepository();
     await tester.pumpWidget(MaterialApp(
-      home: CreateMeetingScreen(repository: repo, currentDiamonds: 1000),
+      home: CreateMeetingScreen(currentDiamonds: 1000),
     ));
     await tester.pumpAndSettle();
 
@@ -76,9 +75,8 @@ void main() {
   });
 
   testWidgets('지역 단독 선택("광주 전체")이 화면 라벨에 반영된다', (tester) async {
-    final repo = MeetingRepository();
     await tester.pumpWidget(MaterialApp(
-      home: CreateMeetingScreen(repository: repo, currentDiamonds: 1000),
+      home: CreateMeetingScreen(currentDiamonds: 1000),
     ));
     await tester.pumpAndSettle();
 
@@ -95,9 +93,8 @@ void main() {
   });
 
   testWidgets('노선 단독 선택("2호선 전체")이 화면 라벨에 반영된다', (tester) async {
-    final repo = MeetingRepository();
     await tester.pumpWidget(MaterialApp(
-      home: CreateMeetingScreen(repository: repo, currentDiamonds: 1000),
+      home: CreateMeetingScreen(currentDiamonds: 1000),
     ));
     await tester.pumpAndSettle();
 
@@ -116,9 +113,8 @@ void main() {
   });
 
   testWidgets('구체적인 장소가 비면 버튼 비활성', (tester) async {
-    final repo = MeetingRepository();
     await tester.pumpWidget(MaterialApp(
-      home: CreateMeetingScreen(repository: repo, currentDiamonds: 1000),
+      home: CreateMeetingScreen(currentDiamonds: 1000),
     ));
     await tester.pumpAndSettle();
 
@@ -135,9 +131,8 @@ void main() {
     expect(button.onPressed, isNull); // 장소가 비면 비활성
   });
 
-  testWidgets('잔액 충분: 저장소에 추가되고 pop', (tester) async {
-    final repo = MeetingRepository();
-    final before = repo.allMeetings.length;
+  testWidgets('잔액 충분: API 호출 후 화면 닫히고 채팅 탭 이동', (tester) async {
+    Meeting? captured;
     await tester.pumpWidget(MaterialApp(
       home: Builder(
         builder: (context) => Scaffold(
@@ -147,7 +142,9 @@ void main() {
                 context,
                 MaterialPageRoute(
                   builder: (_) => CreateMeetingScreen(
-                      repository: repo, currentDiamonds: 1000),
+                    currentDiamonds: 1000,
+                    onCreateMeeting: (m) async => captured = m,
+                  ),
                 ),
               ),
               child: const Text('open'),
@@ -163,14 +160,13 @@ void main() {
     await tester.ensureVisible(find.byKey(const Key('submit')));
     await tester.tap(find.byKey(const Key('submit')));
     await tester.pumpAndSettle();
-    // 안내(#22) 동의해야 실제로 생성된다.
     await tester.tap(find.byKey(const Key('notice-agree')));
     await tester.pumpAndSettle();
 
     expect(find.byType(CreateMeetingScreen), findsNothing);
-    expect(repo.allMeetings.length, before + 1);
-    expect(repo.allMeetings.last.title, '주말 카페 모임');
-    expect(selectedTab.value, 1); // 채팅 탭으로 이동
+    expect(captured, isNotNull);
+    expect(captured!.title, '주말 카페 모임');
+    expect(selectedTab.value, 1);
   });
 
   testWidgets('전체보기에서 enum에 없는 라벨 선택 → customCategory로 저장된다',
@@ -180,9 +176,10 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    final repo = MeetingRepository();
+    Meeting? captured;
     await tester.pumpWidget(MaterialApp(
-      home: CreateMeetingScreen(repository: repo, currentDiamonds: 1000),
+      home: CreateMeetingScreen(
+          currentDiamonds: 1000, onCreateMeeting: (m) async => captured = m),
     ));
     await tester.pumpAndSettle();
     await fillRequired(tester); // 맛집 선택됨
@@ -209,14 +206,15 @@ void main() {
     await tester.tap(find.byKey(const Key('notice-agree')));
     await tester.pumpAndSettle();
 
-    expect(repo.allMeetings.last.customCategory, '배드민턴');
-    expect(repo.allMeetings.last.categoryLabel, '배드민턴');
+    expect(captured!.customCategory, '배드민턴');
+    expect(captured!.categoryLabel, '배드민턴');
   });
 
   testWidgets('인원: 직접 입력 가능하고 99 초과는 99로 잘린다', (tester) async {
-    final repo = MeetingRepository();
+    Meeting? captured;
     await tester.pumpWidget(MaterialApp(
-      home: CreateMeetingScreen(repository: repo, currentDiamonds: 1000),
+      home: CreateMeetingScreen(
+          currentDiamonds: 1000, onCreateMeeting: (m) async => captured = m),
     ));
     await tester.pumpAndSettle();
     await fillRequired(tester);
@@ -239,13 +237,14 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('notice-agree')));
     await tester.pumpAndSettle();
-    expect(repo.allMeetings.last.maxMembers, 8);
+    expect(captured!.maxMembers, 8);
   });
 
   testWidgets('비용: 기타 선택 후 직접 입력값이 저장된다', (tester) async {
-    final repo = MeetingRepository();
+    Meeting? captured;
     await tester.pumpWidget(MaterialApp(
-      home: CreateMeetingScreen(repository: repo, currentDiamonds: 1000),
+      home: CreateMeetingScreen(
+          currentDiamonds: 1000, onCreateMeeting: (m) async => captured = m),
     ));
     await tester.pumpAndSettle();
     await fillRequired(tester); // 더치페이 선택됨
@@ -266,13 +265,12 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('notice-agree')));
     await tester.pumpAndSettle();
-    expect(repo.allMeetings.last.cost.display, '연구실에서 갹출');
+    expect(captured!.cost.display, '연구실에서 갹출');
   });
 
   testWidgets('잔액 부족: 충전 화면으로 이동', (tester) async {
-    final repo = MeetingRepository();
     await tester.pumpWidget(MaterialApp(
-      home: CreateMeetingScreen(repository: repo, currentDiamonds: 30),
+      home: CreateMeetingScreen(currentDiamonds: 30),
     ));
     await tester.pumpAndSettle();
     await fillRequired(tester);
@@ -284,10 +282,44 @@ void main() {
     expect(find.byType(DiamondRechargeScreen), findsOneWidget);
   });
 
-  testWidgets('온라인 토글 ON 시 지역 선택이 사라진다', (tester) async {
-    final repo = MeetingRepository();
+  testWidgets('API 실패: 오류 스낵바, 화면 유지', (tester) async {
     await tester.pumpWidget(MaterialApp(
-      home: CreateMeetingScreen(repository: repo, currentDiamonds: 1000),
+      home: Builder(
+        builder: (context) => Scaffold(
+          body: Center(
+            child: ElevatedButton(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => CreateMeetingScreen(
+                    currentDiamonds: 1000,
+                    onCreateMeeting: (_) async => throw Exception('network error'),
+                  ),
+                ),
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    ));
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await fillRequired(tester);
+    await tester.ensureVisible(find.byKey(const Key('submit')));
+    await tester.tap(find.byKey(const Key('submit')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('notice-agree')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(CreateMeetingScreen), findsOneWidget);
+    expect(find.text('모임 생성에 실패했어요'), findsOneWidget);
+  });
+
+  testWidgets('온라인 토글 ON 시 지역 선택이 사라진다', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: CreateMeetingScreen(currentDiamonds: 1000),
     ));
     await tester.pumpAndSettle();
 
