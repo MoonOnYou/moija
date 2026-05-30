@@ -279,8 +279,9 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
       messenger.showSnackBar(const SnackBar(content: Text('모임이 생성됐어요')));
     } catch (_) {
       if (!mounted) return;
-      setState(() => _loading = false);
       messenger.showSnackBar(const SnackBar(content: Text('모임 생성에 실패했어요')));
+    } finally {
+      if (mounted) setState(() => _loading = false);
     }
   }
 
