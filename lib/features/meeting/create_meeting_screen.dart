@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../data/category_catalog.dart';
 import '../../data/location_catalog.dart';
-import '../../data/meeting_repository.dart';
+import '../../data/api/meeting_api.dart';
 import '../../data/wallet.dart';
 import '../../models/join_method.dart';
 import '../../models/meeting.dart';
@@ -20,12 +20,13 @@ const int _createCost = 300;
 class CreateMeetingScreen extends StatefulWidget {
   const CreateMeetingScreen({
     super.key,
-    required this.repository,
     this.currentDiamonds = Wallet.myDiamonds,
+    @visibleForTesting this.onCreateMeeting,
   });
 
-  final MeetingRepository repository;
   final int currentDiamonds;
+  @visibleForTesting
+  final Future<void> Function(Meeting)? onCreateMeeting;
 
   @override
   State<CreateMeetingScreen> createState() => _CreateMeetingScreenState();
@@ -49,6 +50,7 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
   final _costEtc = TextEditingController();
   final _description = TextEditingController();
   JoinMethod _joinMethod = JoinMethod.approval;
+  bool _loading = false;
 
   static const _maxMembers = 99;
   static const _minMembers = 2;
@@ -233,14 +235,12 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
       );
       return;
     }
-    // 실제 생성 전에 안내 화면을 띄우고, 동의해야 만들어진다.
     final agreed = await navigator.push<bool>(
       MaterialPageRoute(builder: (_) => Notices.createMeeting()),
     );
     if (agreed != true || !mounted) return;
     final start = DateTime(
         _date!.year, _date!.month, _date!.day, _time!.hour, _time!.minute);
-    // region·노선·역 모두 displayLabel로 일관 처리(예: "광주 전체", "2호선", "2호선 강남").
     final placeText = _place.text.trim();
     final locLabel =
         _online ? '' : LocationCatalog.displayLabel(_locationId!);
@@ -251,7 +251,6 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
       title: _title.text.trim(),
       category: _category!,
       customCategory: _customCategory ?? '',
-      // 전체보기에서 고른(enum에 없는) 카테고리는 해당 그룹 대표 아이콘으로.
       customIcon: (_customCategory != null && _customCategory!.isNotEmpty)
           ? CategoryCatalog.iconForLabel(_customCategory!)
           : null,
@@ -270,13 +269,19 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
       cost: _buildCost(),
       joinMethod: _joinMethod,
     );
-    widget.repository.add(meeting);
-    // 채팅 탭으로 이동하지만, 홈 캘린더는 새 모임 날짜로 자동 이동시켜
-    // 다시 홈으로 돌아왔을 때 만들어진 모임이 바로 보이도록 한다.
-    pendingFocusDay.value = start;
-    selectedTab.value = 1; // 채팅 탭(2번째)으로 이동
-    navigator.popUntil((r) => r.isFirst);
-    messenger.showSnackBar(const SnackBar(content: Text('모임이 생성됐어요')));
+    setState(() => _loading = true);
+    try {
+      await (widget.onCreateMeeting ?? createMeeting)(meeting);
+      if (!mounted) return;
+      pendingFocusDay.value = start;
+      selectedTab.value = 1;
+      navigator.popUntil((r) => r.isFirst);
+      messenger.showSnackBar(const SnackBar(content: Text('모임이 생성됐어요')));
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+      messenger.showSnackBar(const SnackBar(content: Text('모임 생성에 실패했어요')));
+    }
   }
 
   @override
@@ -465,10 +470,19 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
                     disabledForegroundColor: AppColors.textTertiary,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
-                  onPressed: _valid ? _submit : null,
-                  child: const Text('모임 만들기',
-                      style: TextStyle(
-                          fontSize: 15, fontWeight: FontWeight.w600)),
+                  onPressed: (_valid && !_loading) ? _submit : null,
+                  child: _loading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.bgPrimary,
+                          ),
+                        )
+                      : const Text('모임 만들기',
+                          style: TextStyle(
+                              fontSize: 15, fontWeight: FontWeight.w600)),
                 ),
               ),
             ],
