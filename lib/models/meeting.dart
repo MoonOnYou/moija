@@ -22,6 +22,53 @@ class Meeting {
     this.joinMethod = JoinMethod.approval,
   });
 
+  /// 서버 응답(JSON)을 Meeting으로 변환한다. 알 수 없는 enum 값은 안전한
+  /// 기본값으로 대체한다(category→etc, joinMethod→approval, cost→split).
+  factory Meeting.fromJson(Map<String, dynamic> json) {
+    MeetingCategory parseCategory(Object? name) {
+      for (final c in MeetingCategory.values) {
+        if (c.name == name) return c;
+      }
+      return MeetingCategory.etc;
+    }
+
+    JoinMethod parseJoin(Object? name) {
+      for (final j in JoinMethod.values) {
+        if (j.name == name) return j;
+      }
+      return JoinMethod.approval;
+    }
+
+    CostType parseCost(Object? name) {
+      for (final t in CostType.values) {
+        if (t.name == name) return t;
+      }
+      return CostType.split;
+    }
+
+    final customText = (json['cost_custom_text'] as String?) ?? '';
+    return Meeting(
+      id: json['id'].toString(),
+      title: (json['title'] as String?) ?? '',
+      category: parseCategory(json['category']),
+      customCategory: (json['custom_category'] as String?) ?? '',
+      startTime: DateTime.parse(json['start_time'] as String).toLocal(),
+      location: (json['location'] as String?) ?? '',
+      region: (json['region'] as String?) ?? '',
+      locationId: (json['location_id'] as String?) ?? '',
+      currentMembers: (json['current_members'] as num?)?.toInt() ?? 0,
+      maxMembers: (json['max_members'] as num?)?.toInt() ?? 0,
+      description: (json['description'] as String?) ?? '',
+      nearestStation: (json['nearest_station'] as String?) ?? '',
+      cost: MeetingCost(
+        parseCost(json['cost_type']),
+        amountWon: (json['cost_amount_won'] as num?)?.toInt(),
+        customText: customText.isEmpty ? null : customText,
+      ),
+      joinMethod: parseJoin(json['join_method']),
+    );
+  }
+
   final String id;
   final String title;
   final MeetingCategory category;
