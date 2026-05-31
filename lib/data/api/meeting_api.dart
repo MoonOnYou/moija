@@ -3,7 +3,14 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../../models/meeting.dart';
 
-const _baseUrl = 'http://localhost:8000';
+/// 서버 베이스 URL. 빌드 시 `--dart-define=API_BASE_URL=...`로 덮어쓸 수 있다.
+/// 안드로이드 실기기/에뮬레이터에서 Mac의 로컬 서버에 붙으려면
+/// `adb reverse tcp:8000 tcp:8000` 후 기본값(localhost)을 그대로 쓰거나,
+/// 에뮬레이터는 `--dart-define=API_BASE_URL=http://10.0.2.2:8000`을 쓴다.
+const _baseUrl = String.fromEnvironment(
+  'API_BASE_URL',
+  defaultValue: 'http://localhost:8000',
+);
 
 Future<void> createMeeting(Meeting m, {@visibleForTesting http.Client? client}) async {
   final c = client ?? http.Client();
