@@ -10,13 +10,17 @@ import 'package:moija/features/home/widgets/day_meetings_pager.dart';
 import 'package:moija/features/meeting/diamond_recharge_screen.dart';
 import 'package:moija/models/meeting.dart';
 import 'package:moija/models/meeting_category.dart';
+import 'package:moija/shell/app_navigation.dart';
 
 void main() {
   setUpAll(() async {
     await initializeDateFormatting('ko_KR');
   });
 
-  setUp(() => SharedPreferences.setMockInitialValues({}));
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+    pendingFocusDay.value = null;
+  });
 
   Future<void> pump(WidgetTester tester) async {
     tester.view.physicalSize = const Size(390, 844);
@@ -151,6 +155,50 @@ void main() {
     expect(find.text('퇴근 후 볼링'), findsNothing);
     // 목록 1개로 요약된다.
     expect(find.text('필터 0개 · 모임 1개'), findsOneWidget);
+  });
+
+  testWidgets('모임 생성 신호(pendingFocusDay)가 오면 홈이 서버에서 다시 로드된다',
+      (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    var calls = 0;
+    Meeting onDay(String id, String title) => Meeting(
+          id: id,
+          title: title,
+          category: MeetingCategory.cafe,
+          startTime: DateTime(2026, 5, 16, 15, 0),
+          location: '강남',
+          region: '강남',
+          locationId: 'seoul-line2',
+          currentMembers: 1,
+          maxMembers: 4,
+        );
+
+    await tester.pumpWidget(MaterialApp(
+      home: HomeScreen(
+        today: DateTime(2026, 5, 16),
+        loadMeetings: (from, to) async {
+          calls++;
+          // 첫 로드: 기존 모임만. 재로드: 방금 만든 모임이 추가됨.
+          return calls == 1
+              ? [onDay('m1', '기존 모임')]
+              : [onDay('m1', '기존 모임'), onDay('new', '방금 만든 모임')];
+        },
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(calls, 1);
+    expect(find.text('방금 만든 모임'), findsNothing);
+
+    // 생성 흐름이 보내는 신호를 모사한다.
+    pendingFocusDay.value = DateTime(2026, 5, 16, 15, 0);
+    await tester.pumpAndSettle();
+
+    expect(calls, 2);
+    expect(find.text('방금 만든 모임'), findsOneWidget);
   });
 
   testWidgets('loadMeetings 실패 시 오류 스낵바 노출', (tester) async {

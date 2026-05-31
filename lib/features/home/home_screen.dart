@@ -125,12 +125,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   /// 외부(예: 모임 생성 흐름)에서 요청한 날짜로 캘린더를 이동시킨 뒤
-  /// 신호를 비워둔다(중복 처리를 막기 위함).
+  /// 신호를 비워둔다(중복 처리를 막기 위함). 새 모임이 막 만들어졌다는
+  /// 뜻이므로 서버에서 목록을 다시 받아 방금 생성한 모임이 보이게 한다.
   void _consumePendingFocus() {
     final day = pendingFocusDay.value;
     if (day == null) return;
     _goToDay(day);
     pendingFocusDay.value = null;
+    _loadMeetings();
   }
 
   Future<void> _loadFilter() async {
