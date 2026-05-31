@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../../data/filter_storage.dart';
 import '../../data/meeting_repository.dart';
 import '../../data/wallet.dart';
+import '../../models/meeting.dart';
 import '../../models/meeting_filter.dart';
 import '../../shell/app_navigation.dart';
 import '../../theme/app_colors.dart';
@@ -17,7 +18,12 @@ import 'widgets/selected_day_summary.dart';
 import 'widgets/two_week_calendar.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, this.today, this.repository});
+  const HomeScreen({
+    super.key,
+    this.today,
+    this.repository,
+    this.loadMeetings,
+  });
 
   /// 기준 "오늘". 미지정 시 실제 현재 날짜를 사용한다(테스트에서 주입).
   final DateTime? today;
@@ -25,6 +31,12 @@ class HomeScreen extends StatefulWidget {
   /// 외부에서 공유할 모임 저장소. 미지정 시 자체 인스턴스를 생성한다.
   /// (AppShell이 홈/채팅에 같은 인스턴스를 넘겨 두 화면이 같은 데이터를 본다.)
   final MeetingRepository? repository;
+
+  /// 주어진 날짜 범위의 모임을 서버에서 불러오는 함수. 주입되면 진입 시·
+  /// 새로고침 시 호출해 [repository]의 브라우즈 목록을 교체한다. null이면
+  /// 저장소의 기존(시드) 데이터를 그대로 쓴다(오프라인/테스트용).
+  final Future<List<Meeting>> Function(DateTime from, DateTime to)?
+      loadMeetings;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -40,15 +52,41 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   late DateTime _windowStart = weekStartOf(_today);
   late DateTime _selectedDay = _today;
   MeetingFilter _filter = const MeetingFilter.empty();
+  bool _loading = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _loadFilter();
+    _loadMeetings();
     pendingFocusDay.addListener(_consumePendingFocus);
     // 위젯이 살아있는 동안 누적된 요청이 있으면 마운트 직후 1회 처리.
     _consumePendingFocus();
+  }
+
+  /// 서버에서 브라우즈 범위(오늘~오늘+[kCalendarMaxAheadDays]일)를 한 번에
+  /// 받아 저장소에 반영한다. 실패해도 기존 데이터를 유지한다.
+  Future<void> _loadMeetings() async {
+    final load = widget.loadMeetings;
+    if (load == null) return;
+    setState(() => _loading = true);
+    try {
+      final from = _today;
+      final to = _today.add(const Duration(days: kCalendarMaxAheadDays));
+      final meetings = await load(from, to);
+      if (!mounted) return;
+      _repository.replaceBrowse(meetings);
+      setState(() {});
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('모임을 불러오지 못했어요')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   @override
@@ -114,6 +152,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _refresh() async {
+    if (widget.loadMeetings != null) {
+      await _loadMeetings();
+      return;
+    }
     await Future<void>.delayed(const Duration(milliseconds: 400));
     if (mounted) setState(() {});
   }
@@ -152,6 +194,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             ),
             const SizedBox(height: 8),
             FilterBar(activeCount: _filter.activeCount, onTap: _openFilter),
+            SizedBox(
+              height: 2,
+              child: _loading
+                  ? const LinearProgressIndicator(
+                      minHeight: 2,
+                      backgroundColor: Colors.transparent,
+                      color: AppColors.coral,
+                    )
+                  : null,
+            ),
             TwoWeekCalendar(
               windowStart: _windowStart,
               selectedDay: _selectedDay,

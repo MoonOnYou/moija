@@ -8,6 +8,8 @@ import 'package:moija/features/filter/filter_screen.dart';
 import 'package:moija/features/home/home_screen.dart';
 import 'package:moija/features/home/widgets/day_meetings_pager.dart';
 import 'package:moija/features/meeting/diamond_recharge_screen.dart';
+import 'package:moija/models/meeting.dart';
+import 'package:moija/models/meeting_category.dart';
 
 void main() {
   setUpAll(() async {
@@ -116,5 +118,55 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('모임 만들기'), findsWidgets);
+  });
+
+  testWidgets('loadMeetings 주입 시 API 모임이 달력·목록에 반영된다', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final apiMeeting = Meeting(
+      id: 'api-home-1',
+      title: 'API에서 온 모임',
+      category: MeetingCategory.cafe,
+      startTime: DateTime(2026, 5, 16, 15, 0),
+      location: '서면 카페',
+      region: '서면',
+      locationId: 'busan-line2',
+      currentMembers: 2,
+      maxMembers: 4,
+    );
+
+    await tester.pumpWidget(MaterialApp(
+      home: HomeScreen(
+        today: DateTime(2026, 5, 16),
+        loadMeetings: (from, to) async => [apiMeeting],
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    // API 모임이 선택일(5/16) 목록에 보인다.
+    expect(find.text('API에서 온 모임'), findsOneWidget);
+    // 시드 모임은 교체되어 사라진다.
+    expect(find.text('퇴근 후 볼링'), findsNothing);
+    // 목록 1개로 요약된다.
+    expect(find.text('필터 0개 · 모임 1개'), findsOneWidget);
+  });
+
+  testWidgets('loadMeetings 실패 시 오류 스낵바 노출', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(MaterialApp(
+      home: HomeScreen(
+        today: DateTime(2026, 5, 16),
+        loadMeetings: (from, to) async => throw Exception('network'),
+      ),
+    ));
+    await tester.pump(); // initState 로드 시작
+    await tester.pump(const Duration(milliseconds: 50));
+
+    expect(find.text('모임을 불러오지 못했어요'), findsOneWidget);
   });
 }

@@ -83,6 +83,25 @@ class MeetingRepository {
     _myHostedIds.add(m.id);
   }
 
+  /// 내가 참가/방장/대기 중인 모임 id 전체(브라우즈 교체 시 보존 대상).
+  Set<String> get _myIds => {..._myJoinedIds, ..._myHostedIds, ..._myPendingIds};
+
+  /// 홈 달력·목록에 노출되는 "브라우즈 모임"을 [meetings]로 통째 교체한다.
+  /// 내 모임(joined/hosted/pending)은 채팅·내모임 탭이 참조하므로 보존한다.
+  /// API에서 받은 목록을 반영할 때 사용한다.
+  void replaceBrowse(List<Meeting> meetings) {
+    final keep = _myIds;
+    _all.removeWhere((m) => !keep.contains(m.id));
+    for (final list in _byDay.values) {
+      list.removeWhere((m) => !keep.contains(m.id));
+    }
+    for (final m in meetings) {
+      _all.add(m);
+      _byDay.putIfAbsent(_key(m.startTime), () => []).add(m);
+    }
+    _byDay.removeWhere((_, list) => list.isEmpty);
+  }
+
   /// 해당 날짜 모임을 시작 시각 오름차순으로 반환한다.
   List<Meeting> meetingsOn(DateTime day) {
     final list = [...?_byDay[_key(day)]];

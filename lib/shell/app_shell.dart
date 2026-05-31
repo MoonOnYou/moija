@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../data/api/meeting_api.dart';
 import '../data/meeting_repository.dart';
 import '../features/chat/chat_preview.dart';
 import '../features/chat/chat_screen.dart';
@@ -69,7 +70,11 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
             body: IndexedStack(
               index: index,
               children: [
-                HomeScreen(repository: _repository),
+                HomeScreen(
+                  repository: _repository,
+                  loadMeetings: (from, to) =>
+                      fetchMeetings(dateFrom: from, dateTo: to),
+                ),
                 ChatScreen(repository: _repository),
                 const ProfileScreen(),
               ],
