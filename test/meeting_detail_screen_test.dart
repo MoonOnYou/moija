@@ -170,4 +170,54 @@ void main() {
     expect(find.byType(MeetingDetailScreen), findsNothing);
     expect(selectedTab.value, 1);
   });
+
+  testWidgets('fetchDetail 주입 시 서버 최신값으로 갱신된다', (tester) async {
+    final repo = MeetingRepository();
+    final base = repo.allMeetings.firstWhere((m) => m.id == 't1');
+    final fresh = Meeting(
+      id: base.id,
+      title: '서버에서 갱신된 제목',
+      category: base.category,
+      startTime: base.startTime,
+      location: base.location,
+      region: base.region,
+      locationId: base.locationId,
+      currentMembers: base.currentMembers,
+      maxMembers: base.maxMembers,
+      description: base.description,
+      nearestStation: base.nearestStation,
+      cost: base.cost,
+      joinMethod: base.joinMethod,
+    );
+
+    await tester.pumpWidget(MaterialApp(
+      home: MeetingDetailScreen(
+        meeting: base,
+        repository: repo,
+        fetchDetail: (id) async => fresh,
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.text('서버에서 갱신된 제목'), findsOneWidget);
+    expect(find.text('퇴근 후 볼링'), findsNothing);
+  });
+
+  testWidgets('fetchDetail 실패 시 전달받은 모임으로 폴백한다', (tester) async {
+    final repo = MeetingRepository();
+    final base = repo.allMeetings.firstWhere((m) => m.id == 't1');
+
+    await tester.pumpWidget(MaterialApp(
+      home: MeetingDetailScreen(
+        meeting: base,
+        repository: repo,
+        fetchDetail: (id) async => throw Exception('network'),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    // 실패해도 목록에서 받은 정보가 그대로 보인다.
+    expect(find.text('퇴근 후 볼링'), findsOneWidget);
+    expect(find.text('참가자 4명'), findsOneWidget);
+  });
 }

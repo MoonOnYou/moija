@@ -74,6 +74,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
                   repository: _repository,
                   loadMeetings: (from, to) =>
                       fetchMeetings(dateFrom: from, dateTo: to),
+                  fetchDetail: fetchMeetingDetail,
                 ),
                 ChatScreen(repository: _repository),
                 const ProfileScreen(),

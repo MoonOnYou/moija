@@ -84,13 +84,13 @@ void main() {
 
   // --- 목록 조회 (fetchMeetings) ---
 
-  http.Response _jsonResponse(Object data, int status) => http.Response(
+  http.Response jsonResponse(Object data, int status) => http.Response(
         jsonEncode(data),
         status,
         headers: {'content-type': 'application/json; charset=utf-8'},
       );
 
-  Map<String, dynamic> _serverItem({
+  Map<String, dynamic> serverItem({
     String id = 'srv-1',
     String title = '강남 보드게임',
     String category = 'boardGame',
@@ -120,9 +120,9 @@ void main() {
       };
 
   test('fetchMeetings: JSON 배열을 Meeting 리스트로 파싱', () async {
-    final client = MockClient((_) async => _jsonResponse([
-          _serverItem(),
-          _serverItem(
+    final client = MockClient((_) async => jsonResponse([
+          serverItem(),
+          serverItem(
               id: 'srv-2',
               title: '유료 방탈출',
               category: 'escapeRoom',
@@ -152,7 +152,7 @@ void main() {
     late Uri requested;
     final client = MockClient((req) async {
       requested = req.url;
-      return _jsonResponse(const [], 200);
+      return jsonResponse(const [], 200);
     });
 
     await fetchMeetings(
@@ -170,7 +170,7 @@ void main() {
     late Uri requested;
     final client = MockClient((req) async {
       requested = req.url;
-      return _jsonResponse(const [], 200);
+      return jsonResponse(const [], 200);
     });
 
     await fetchMeetings(date: DateTime(2026, 6, 5), client: client);
@@ -193,7 +193,7 @@ void main() {
     late Uri requested;
     final client = MockClient((req) async {
       requested = req.url;
-      return _jsonResponse(_serverItem(id: 'abc-123', title: '상세 모임'), 200);
+      return jsonResponse(serverItem(id: 'abc-123', title: '상세 모임'), 200);
     });
 
     final m = await fetchMeetingDetail('abc-123', client: client);

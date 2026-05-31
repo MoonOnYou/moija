@@ -23,6 +23,7 @@ class HomeScreen extends StatefulWidget {
     this.today,
     this.repository,
     this.loadMeetings,
+    this.fetchDetail,
   });
 
   /// 기준 "오늘". 미지정 시 실제 현재 날짜를 사용한다(테스트에서 주입).
@@ -37,6 +38,10 @@ class HomeScreen extends StatefulWidget {
   /// 저장소의 기존(시드) 데이터를 그대로 쓴다(오프라인/테스트용).
   final Future<List<Meeting>> Function(DateTime from, DateTime to)?
       loadMeetings;
+
+  /// 모임 상세 조회 함수(서버 연동). 상세 화면으로 전달한다. null이면 목록에서
+  /// 받은 모임을 그대로 보여준다.
+  final Future<Meeting> Function(String id)? fetchDetail;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -226,6 +231,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 filter: _filter,
                 onRefresh: _refresh,
                 onDayChanged: _goToDay,
+                fetchDetail: widget.fetchDetail,
               ),
             ),
           ],

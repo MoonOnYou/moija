@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../data/meeting_repository.dart';
+import '../../../models/meeting.dart';
 import '../../../models/meeting_filter.dart';
 import '../../../theme/app_colors.dart';
 import '../../meeting/meeting_detail_screen.dart';
@@ -20,6 +21,7 @@ class DayMeetingsPager extends StatefulWidget {
     this.filter = const MeetingFilter.empty(),
     this.onRefresh,
     required this.onDayChanged,
+    this.fetchDetail,
   });
 
   final DateTime selectedDay;
@@ -28,6 +30,10 @@ class DayMeetingsPager extends StatefulWidget {
   final MeetingFilter filter;
   final Future<void> Function()? onRefresh;
   final ValueChanged<DateTime> onDayChanged;
+
+  /// 상세 화면에 전달할 모임 상세 조회 함수(서버 연동). null이면 목록에서
+  /// 받은 모임을 그대로 보여준다.
+  final Future<Meeting> Function(String id)? fetchDetail;
 
   @override
   State<DayMeetingsPager> createState() => _DayMeetingsPagerState();
@@ -104,7 +110,10 @@ class _DayMeetingsPagerState extends State<DayMeetingsPager> {
                         context,
                         MaterialPageRoute(
                           builder: (_) => MeetingDetailScreen(
-                              meeting: m, repository: widget.repository),
+                            meeting: m,
+                            repository: widget.repository,
+                            fetchDetail: widget.fetchDetail,
+                          ),
                         ),
                       ),
                     ),
