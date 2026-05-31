@@ -40,6 +40,24 @@ void main() {
     expect(t1.nearestStation, isNotEmpty);
   });
 
+  test('meetingsOn은 내 모임 시드를 포함하지 않는다(allMeetings에는 있음)', () {
+    final r = MeetingRepository(baseTime: DateTime(2026, 5, 31, 12));
+    // me-up1-host 는 내일(6/1) 08:00 시작인 내 모임 시드.
+    expect(r.meetingsOn(DateTime(2026, 6, 1)).any((m) => m.id == 'me-up1-host'),
+        isFalse);
+    expect(r.allMeetings.any((m) => m.id == 'me-up1-host'), isTrue);
+  });
+
+  test('browseSeed:false 면 브라우즈 시드 없이 내 모임만 보존된다', () {
+    final r =
+        MeetingRepository(baseTime: DateTime(2026, 5, 31, 12), browseSeed: false);
+    // 홈 달력/목록은 비어 있다(서버 데이터로만 채워질 것).
+    expect(r.meetingsOn(DateTime(2026, 5, 20)), isEmpty);
+    expect(r.allMeetings.any((m) => m.id == 't1'), isFalse);
+    // 내 모임(채팅)은 보존된다.
+    expect(r.myJoinedIds, isNotEmpty);
+  });
+
   test('replaceBrowse: 시드 브라우즈 모임을 API 모임으로 교체한다', () {
     final r = MeetingRepository();
     // 교체 전: 5/20에 시드 모임이 여러 개 있다.

@@ -9,16 +9,22 @@ import '../models/member.dart';
 class MeetingRepository {
   /// [baseTime] 기준으로 "내가 참가/방장/대기 중인" 모임을 상대 시각으로 시드한다.
   /// 테스트는 baseTime을 고정해 결정성을 확보한다.
-  MeetingRepository({DateTime? baseTime}) {
+  MeetingRepository({DateTime? baseTime, bool browseSeed = true}) {
     final now = baseTime ?? DateTime.now();
     final my = _buildMySeed(now);
     _myJoinedIds = my.joinedIds;
     _myHostedIds = my.hostedIds;
     _myPendingIds = my.pendingIds;
 
-    _all = [..._seed, ...my.meetings];
+    // _seed 는 홈 달력/목록에 노출되는 하드코딩 mock(브라우즈 시드)이다.
+    // 서버 연동 앱은 browseSeed:false 로 끄고 API 데이터만 보여준다.
+    final browse = browseSeed ? _seed : const <Meeting>[];
+    // 내 모임 시드는 채팅/내모임용으로 allMeetings 에만 두고, 날짜 인덱스
+    // (_byDay → meetingsOn)에는 넣지 않는다. 그래야 홈 달력/목록에는
+    // 하드코딩된 내 모임이 섞여 보이지 않고 서버 데이터만 나온다.
+    _all = [...browse, ...my.meetings];
     _byDay = {};
-    for (final m in _all) {
+    for (final m in browse) {
       _byDay.putIfAbsent(_key(m.startTime), () => []).add(m);
     }
   }

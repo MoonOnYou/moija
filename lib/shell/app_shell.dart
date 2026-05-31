@@ -21,7 +21,9 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
   // 홈과 내모임이 같은 모임 데이터를 공유하도록 한 인스턴스를 셸에서 보유한다.
-  final MeetingRepository _repository = MeetingRepository();
+  // browseSeed:false — 홈 달력/목록의 브라우즈 데이터는 서버(API)에서만 채운다.
+  // 내 모임(채팅) 시드는 아직 서버 엔드포인트가 없어 그대로 유지된다.
+  final MeetingRepository _repository = MeetingRepository(browseSeed: false);
 
   @override
   void initState() {
