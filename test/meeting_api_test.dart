@@ -49,6 +49,21 @@ void main() {
     expect(body.containsKey('cost_amount_won'), isFalse);
   });
 
+  test('host 페이로드 포함 (로그인 전 임시 사용자)', () async {
+    late Map<String, dynamic> body;
+    final client = MockClient((req) async {
+      body = jsonDecode(req.body) as Map<String, dynamic>;
+      return http.Response('{}', 201);
+    });
+    await createMeeting(_m(), client: client);
+
+    final host = body['host'];
+    expect(host, isA<Map<String, dynamic>>());
+    expect(host['nickname'], isNotEmpty);
+    expect(host['birth_year'], isA<int>());
+    expect(host['gender'], anyOf('male', 'female'));
+  });
+
   test('paid 비용이면 cost_amount_won 포함', () async {
     late Map<String, dynamic> body;
     final client = MockClient((req) async {
