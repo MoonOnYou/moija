@@ -6,6 +6,7 @@ import 'package:moija/data/meeting_repository.dart';
 import 'package:moija/features/chat/chat_room_screen.dart';
 import 'package:moija/models/meeting.dart';
 import 'package:moija/models/meeting_category.dart';
+import 'package:moija/theme/app_colors.dart';
 
 Meeting _m(
   String id,
@@ -314,5 +315,26 @@ void main() {
     expect(find.textContaining('년생'), findsAtLeastNWidgets(1));
     expect(find.textContaining('활동'), findsAtLeastNWidgets(1));
     expect(find.textContaining('나와'), findsAtLeastNWidgets(1));
+  });
+
+  testWidgets('말풍선 시간 옆에 안 읽은 사람 수(앰버 숫자)가 노출된다', (tester) async {
+    final m = _m('chat-unread', '안읽음 표기', DateTime(2026, 5, 25, 18, 0),
+        currentMembers: 3);
+    final repo = MeetingRepository.test(meetings: [m], joined: {'chat-unread'});
+
+    await tester.pumpWidget(_wrap(
+      ChatRoomScreen(repository: repo, meeting: m),
+    ));
+    await tester.pumpAndSettle();
+
+    // 앰버색 작은 숫자(_UnreadCount)가 최근 말풍선들에 붙는다.
+    final amberNumbers = find.byWidgetPredicate(
+      (w) => w is Text && w.style?.color == AppColors.amber,
+    );
+    expect(amberNumbers, findsAtLeastNWidgets(1));
+
+    // 표시되는 텍스트는 숫자다.
+    final firstText = tester.widgetList<Text>(amberNumbers).first;
+    expect(int.tryParse(firstText.data ?? ''), isNotNull);
   });
 }

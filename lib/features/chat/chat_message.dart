@@ -32,6 +32,33 @@ class ChatMessage {
 /// 채팅 미리보기·말풍선 양쪽에서 가리키는 "나"의 닉네임. mock 일관성용.
 const String kMyNickname = '나';
 
+/// 각 사용자 메시지의 "안 읽은 사람 수"(카카오톡식)를 결정적으로 계산한다.
+///
+/// 실제 읽음 상태가 없으므로 "최신 메시지일수록 아직 안 읽은 사람이 많고,
+/// 오래된 메시지는 모두 읽음"이라는 규칙으로 만든다. [ordered]는 오래된→최신
+/// 순으로 정렬된 메시지, [participantCount]는 나를 제외한 참가자 수.
+///
+/// 메시지를 최신순(0,1,2…)으로 세어 `cap - 순위`를 보여 준다.
+/// - cap = 내 메시지면 참가자 수, 상대 메시지면 참가자 수 − 1 (보낸 사람·나 제외).
+/// - 0 이하이면 지도에 넣지 않아 말풍선에서 숨겨진다.
+/// 시스템 메시지는 순위에서 제외한다.
+Map<String, int> unreadCountsFor(
+    List<ChatMessage> ordered, int participantCount) {
+  final out = <String, int>{};
+  var rank = 0; // 최신 사용자 메시지부터 0,1,2…
+  for (var i = ordered.length - 1; i >= 0; i--) {
+    final msg = ordered[i];
+    if (msg.isSystem) continue;
+    final cap = msg.mine ? participantCount : participantCount - 1;
+    if (cap > 0) {
+      final count = cap - rank;
+      if (count > 0) out[msg.id] = count;
+    }
+    rank++;
+  }
+  return out;
+}
+
 const List<String> _chatLines = <String>[
   '안녕하세요! 잘 부탁드려요',
   '어디서 만날까요?',

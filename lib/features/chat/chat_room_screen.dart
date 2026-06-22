@@ -65,6 +65,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     final participants = widget.repository.participantsOf(m);
     final messages = <ChatMessage>[...mockMessagesFor(m, participants), ..._sent];
 
+    // 카카오톡식 "안 읽은 사람 수"(말풍선당). 0이면 지도에 없다.
+    final unread = unreadCountsFor(messages, participants.length);
+
     // 날짜가 바뀔 때마다 _DateDivider 한 줄을 끼워 넣어 펼친다.
     final items = <Widget>[];
     DateTime? lastDay;
@@ -77,9 +80,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       if (msg.isSystem) {
         items.add(_SystemLine(text: msg.text));
       } else if (msg.mine) {
-        items.add(_MyBubble(message: msg));
+        items.add(_MyBubble(message: msg, unreadCount: unread[msg.id] ?? 0));
       } else {
-        items.add(_OtherBubble(message: msg));
+        items.add(_OtherBubble(message: msg, unreadCount: unread[msg.id] ?? 0));
       }
     }
 
@@ -181,10 +184,28 @@ class _SystemLine extends StatelessWidget {
   }
 }
 
+/// 시간 옆에 붙는 작은 "안 읽은 사람 수"(카카오톡식 노란 숫자). 0이면 그리지 않는다.
+class _UnreadCount extends StatelessWidget {
+  const _UnreadCount(this.count);
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    if (count <= 0) return const SizedBox.shrink();
+    return Text('$count',
+        style: const TextStyle(
+            fontSize: 10,
+            height: 1.0,
+            fontWeight: FontWeight.w700,
+            color: AppColors.amber));
+  }
+}
+
 /// 좌측 정렬되는 타인 메시지(닉네임 + 말풍선 + 시간).
 class _OtherBubble extends StatelessWidget {
-  const _OtherBubble({required this.message});
+  const _OtherBubble({required this.message, this.unreadCount = 0});
   final ChatMessage message;
+  final int unreadCount;
 
   @override
   Widget build(BuildContext context) {
@@ -230,6 +251,10 @@ class _OtherBubble extends StatelessWidget {
               Text(time,
                   style: const TextStyle(
                       fontSize: 10, color: AppColors.textTertiary)),
+              if (unreadCount > 0) ...[
+                const SizedBox(width: 4),
+                _UnreadCount(unreadCount),
+              ],
             ],
           ),
         ],
@@ -240,8 +265,9 @@ class _OtherBubble extends StatelessWidget {
 
 /// 우측 정렬되는 내 메시지(시간 + 말풍선).
 class _MyBubble extends StatelessWidget {
-  const _MyBubble({required this.message});
+  const _MyBubble({required this.message, this.unreadCount = 0});
   final ChatMessage message;
+  final int unreadCount;
 
   @override
   Widget build(BuildContext context) {
@@ -252,6 +278,10 @@ class _MyBubble extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
+          if (unreadCount > 0) ...[
+            _UnreadCount(unreadCount),
+            const SizedBox(width: 4),
+          ],
           Text(time,
               style: const TextStyle(
                   fontSize: 10, color: AppColors.textTertiary)),
