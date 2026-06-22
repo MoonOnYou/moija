@@ -37,7 +37,7 @@ class _SignupCategoriesScreenState extends State<SignupCategoriesScreen> {
     final count = _selected.length;
     return SignupScaffold(
       step: 7,
-      totalSteps: 8,
+      totalSteps: 9,
       title: '어떤 모임에 관심 있어요?',
       subtitle: '관심사에 맞춰 모임을 추천해드려요.\n끌리는 것 모두 골라 보세요.',
       primaryLabel: count == 0 ? '1개 이상 골라 주세요' : '$count개 선택 · 다음',

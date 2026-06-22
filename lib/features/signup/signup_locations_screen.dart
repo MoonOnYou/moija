@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import '../../data/location_catalog.dart';
 import '../../theme/app_colors.dart';
 import '../filter/location_picker_screen.dart';
-import 'signup_complete_screen.dart';
 import 'signup_flow.dart';
+import 'signup_intro_screen.dart';
 import 'signup_scaffold.dart';
 import 'signup_session.dart';
 
@@ -44,8 +44,8 @@ class _SignupLocationsScreenState extends State<SignupLocationsScreen> {
   }
 
   void _next() {
-    Navigator.of(context).pushReplacement(signupRoute(
-      (_) => SignupCompleteScreen(session: widget.session),
+    Navigator.of(context).push(signupRoute(
+      (_) => SignupIntroScreen(session: widget.session),
     ));
   }
 
@@ -55,7 +55,7 @@ class _SignupLocationsScreenState extends State<SignupLocationsScreen> {
     final count = ids.length;
     return SignupScaffold(
       step: 8,
-      totalSteps: 8,
+      totalSteps: 9,
       title: '주로 어디서 만나요?',
       subtitle: '관심 동네에서 열리는 모임을 먼저 보여드려요.\n노선·지역 단위로도 고를 수 있어요.',
       primaryLabel: count == 0 ? '1개 이상 골라 주세요' : '$count곳 선택 · 완료',

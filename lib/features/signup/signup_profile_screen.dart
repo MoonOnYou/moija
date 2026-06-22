@@ -57,7 +57,7 @@ class _SignupProfileScreenState extends State<SignupProfileScreen> {
   Widget build(BuildContext context) {
     return SignupScaffold(
       step: 6,
-      totalSteps: 8,
+      totalSteps: 9,
       title: '나에 대해 알려 주세요',
       subtitle: '성별·나이는 모임 추천과 같은 또래 매칭에만 쓰여요.',
       primaryLabel: '다음',

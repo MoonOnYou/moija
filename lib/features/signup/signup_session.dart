@@ -22,6 +22,7 @@ class SignupSession {
   String nickname = '';
   Gender? gender;
   int? birthYear;
+  String intro = ''; // 자기소개 (선택)
 
   // 관심사 / 동네
   final Set<String> interestCategories = <String>{};

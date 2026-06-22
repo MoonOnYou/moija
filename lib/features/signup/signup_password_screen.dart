@@ -61,7 +61,7 @@ class _SignupPasswordScreenState extends State<SignupPasswordScreen> {
     final confirmError = _confirm.text.isNotEmpty && !_confirmMatch;
     return SignupScaffold(
       step: 4,
-      totalSteps: 8,
+      totalSteps: 9,
       title: '비밀번호를 설정해 주세요',
       subtitle: '다음에 로그인할 때 사용할 비밀번호예요.',
       primaryLabel: '다음',

@@ -87,7 +87,7 @@ class _SignupOtpScreenState extends State<SignupOtpScreen> {
     final timeout = _remaining <= 0;
     return SignupScaffold(
       step: 3,
-      totalSteps: 8,
+      totalSteps: 9,
       title: '인증번호 6자리를 입력해 주세요',
       subtitle: '${_formatPhone(widget.session.phone)} 으로 보냈어요.',
       primaryLabel: '인증 완료',
