@@ -57,13 +57,14 @@
 - [ ] 🔴 신청 거절 — `POST /api/me/meetings/{id}/applicants/{userId}/reject/`
   - 앱: `lib/features/meeting/applicant_review_screen.dart` (`_seedApplicants` mock)
 
-### 채팅
-- [ ] 🔴 채팅 히스토리 — `GET /api/meetings/{id}/messages/`
-- [ ] 🔴 메시지 전송 — `POST /api/meetings/{id}/messages/`
-- [ ] 🔴 채팅 미리보기 목록 — `GET /api/me/messages/preview/` (미읽음 배지 포함)
-- [ ] 🔴 읽음 표시 — `PATCH /api/meetings/{id}/messages/{messageId}/read/`
-  - 앱: `lib/features/chat/` (`mockMessagesFor`, `ChatPreview.forMeeting`)
-  - 참고: 실시간 필요 시 WebSocket(Django Channels) 검토
+### 채팅 *(서버 `apps.chat` 구현 완료 · 앱 라이브 모드 배선 완료 — 인증 전까지 개발용 브리지)*
+- [x] 🟢 채팅 히스토리 — `GET /api/meetings/{id}/messages/` *(앱: `lib/data/api/chat_api.dart` `fetchMessages`)*
+- [x] 🟢 메시지 전송 — `POST /api/meetings/{id}/messages/` *(REST `sendMessage` + WebSocket `send`)*
+- [x] 🟢 읽음 표시 — `PATCH /api/meetings/{id}/read/` body `{last_read_message_id}` *(REST `markRead` + WebSocket `read`)*
+- [x] 🟢 실시간 — WebSocket `ws://<host>/ws/meetings/{id}/?participant_id=<id>` *(앱: `lib/data/chat/chat_socket.dart`, `message.new`/`read.update` 구독)*
+- [ ] 🟠 채팅 미리보기 목록 — `GET /api/me/messages/preview/` (미읽음 배지 포함)
+  - 서버는 구현됨. 앱 채팅 리스트(`ChatScreen`)는 아직 `ChatPreview.forMeeting` mock 사용 → 라이브 배선 미완.
+- **참고(중요):** 앱에 아직 로그인·"내 모임" API가 없어 현재 사용자의 `participant_id`를 알 수 없다. 개발용 브리지 `lib/data/chat/chat_dev_config.dart`가 `--dart-define`(`CHAT_LIVE_MEETING_ID`/`CHAT_LIVE_PARTICIPANT_ID`/`CHAT_LIVE_NICKNAME`)으로 특정 서버 모임에 붙는다. 세 값이 없으면 기존 mock 채팅으로 동작(회귀 0). 인증·내모임 연동 시 이 브리지를 제거하고 각 방의 실제 서버 모임 id로 배선한다.
 
 ### 프로필
 - [ ] 🔴 내 프로필 조회 — `GET /api/me/`
