@@ -7,31 +7,30 @@
 > - 🟠 **서버 일부** — 엔드포인트는 있으나 필드/기능 보강 필요
 > - 🔴 **서버 미구현** — 서버 + 앱 양쪽 모두 작업 필요
 >
-> 현재 서버 구현: `GET/POST /api/meetings/`, `GET /api/meetings/{id}/` 만 존재. 인증·사용자·채팅·지갑·신고·탈퇴 도메인은 미구현.
+> 현재 서버 구현: 모임(`GET/POST /api/meetings/`, `GET /api/meetings/{id}/`) + 채팅(히스토리·전송·읽음·실시간 WebSocket·기기등록) + 인증(`apps.accounts`: OTP·회원가입·로그인·JWT·프로필·탈퇴). 지갑·신고·모임멤버/참가 REST는 미구현.
 
 ---
 
 ## Phase 1 — 기본 기능 (앱 핵심 동작)
 
 ### 모임 조회
-- [ ] 🟢 모임 목록 조회 — `GET /api/meetings/?date=YYYY-MM-DD` (또는 `date_from`/`date_to`, `categories`, `location_ids`, `time_bands`)
-  - 앱: `lib/data/meeting_repository.dart`의 `allMeetings`/`meetingsOn()` mock 교체
+- [x] 🟢 모임 목록 조회 — `GET /api/meetings/?date=YYYY-MM-DD` (또는 `date_from`/`date_to`, `categories`, `location_ids`, `time_bands`) *(완료: `app_shell.dart` loadMeetings → `home_screen.dart`)*
   - 서버 필터링 로직 이미 구현됨 (날짜·카테고리·지역·시간대)
-- [ ] 🟢 모임 상세 조회 — `GET /api/meetings/{id}/`
-  - 앱: `lib/features/meeting/meeting_detail_screen.dart`
+- [x] 🟢 모임 상세 조회 — `GET /api/meetings/{id}/` *(완료: `app_shell.dart` fetchDetail)*
 - [x] 🟢 모임 생성 — `POST /api/meetings/` *(완료: `lib/data/api/meeting_api.dart`)*
 
-### 인증 (서버 전체 미구현)
-- [ ] 🔴 OTP 발송 — `POST /api/auth/send-otp/`
-  - 앱: `lib/features/signup/signup_phone_screen.dart`
-- [ ] 🔴 OTP 검증 — `POST /api/auth/verify-otp/`
-  - 앱: `lib/features/signup/signup_otp_screen.dart` (현재 아무 6자리나 통과)
-- [ ] 🔴 회원가입 완료 — `POST /api/auth/register/`
-  - 앱: `lib/features/signup/signup_complete_screen.dart` + `SignupSession` 전체 페이로드
-- [ ] 🔴 로그인 — `POST /api/auth/login/`
-- [ ] 🔴 로그아웃 — `POST /api/auth/logout/`
+### 인증 *(서버 `apps.accounts` 구현 완료 — 앱 연동 남음)*
+- [ ] 🟢 OTP 발송 — `POST /api/auth/send-otp/` `{phone}` → `{detail, dev_code(DEBUG)}`
+  - 앱: `lib/features/signup/signup_phone_screen.dart`. 개발 중엔 응답 `dev_code`로 자동입력 가능.
+- [ ] 🟢 OTP 검증 — `POST /api/auth/verify-otp/` `{phone, code, purpose}` → `{verification_token}`
+  - 앱: `lib/features/signup/signup_otp_screen.dart` (현재 아무 6자리나 통과 → 실제 검증으로 교체)
+- [ ] 🟢 회원가입 — `POST /api/auth/register/` (SignupSession 전체 + `verification_token`) → `{access, refresh, user}`
+  - 앱: `signup_complete_screen.dart` 또는 `signup_intro_screen.dart._next`가 연동 지점. 필드: phone, password, nickname, gender(male/female), birth_year, intro, interest_categories[], interest_locations[], agreed_* 5개
+- [ ] 🟢 로그인 — `POST /api/auth/login/` `{phone, password}` → `{access, refresh, user}`
+  - 앱: 전용 로그인 화면 신규 필요(현재 없음). `signup_start_screen`의 "이미 계정이 있어요" 자리.
+- [ ] 🟢 로그아웃 — `POST /api/auth/logout/` `{refresh}` (블랙리스트)
   - 앱: `lib/features/profile/profile_screen.dart` (현재 stub)
-- [ ] 🔴 토큰 인증 체계 (JWT 등) — 이후 모든 `/api/me/*` 호출에 필요
+- [ ] 🟢 JWT 토큰 체계 — `Authorization: Bearer <access>`. 앱: access/refresh를 SharedPreferences 저장 + API 헤더 주입 계층 신설 (현재 chat의 `X-Participant-Id`를 대체)
 
 ### 내 모임 / 참가
 - [ ] 🔴 내 모임 목록 — `GET /api/me/meetings/?status=joined|hosted|pending`
@@ -57,19 +56,20 @@
 - [ ] 🔴 신청 거절 — `POST /api/me/meetings/{id}/applicants/{userId}/reject/`
   - 앱: `lib/features/meeting/applicant_review_screen.dart` (`_seedApplicants` mock)
 
-### 채팅
-- [ ] 🔴 채팅 히스토리 — `GET /api/meetings/{id}/messages/`
-- [ ] 🔴 메시지 전송 — `POST /api/meetings/{id}/messages/`
-- [ ] 🔴 채팅 미리보기 목록 — `GET /api/me/messages/preview/` (미읽음 배지 포함)
-- [ ] 🔴 읽음 표시 — `PATCH /api/meetings/{id}/messages/{messageId}/read/`
-  - 앱: `lib/features/chat/` (`mockMessagesFor`, `ChatPreview.forMeeting`)
-  - 참고: 실시간 필요 시 WebSocket(Django Channels) 검토
+### 채팅 *(서버 `apps.chat` 구현 완료 · 앱 라이브 모드 배선 완료 — 인증 전까지 개발용 브리지)*
+- [x] 🟢 채팅 히스토리 — `GET /api/meetings/{id}/messages/` *(앱: `lib/data/api/chat_api.dart` `fetchMessages`)*
+- [x] 🟢 메시지 전송 — `POST /api/meetings/{id}/messages/` *(REST `sendMessage` + WebSocket `send`)*
+- [x] 🟢 읽음 표시 — `PATCH /api/meetings/{id}/read/` body `{last_read_message_id}` *(REST `markRead` + WebSocket `read`)*
+- [x] 🟢 실시간 — WebSocket `ws://<host>/ws/meetings/{id}/?participant_id=<id>` *(앱: `lib/data/chat/chat_socket.dart`, `message.new`/`read.update` 구독)*
+- [ ] 🟠 채팅 미리보기 목록 — `GET /api/me/messages/preview/` (미읽음 배지 포함)
+  - 서버는 구현됨. 앱 채팅 리스트(`ChatScreen`)는 아직 `ChatPreview.forMeeting` mock 사용 → 라이브 배선 미완.
+- **참고(중요):** 앱에 아직 로그인·"내 모임" API가 없어 현재 사용자의 `participant_id`를 알 수 없다. 개발용 브리지 `lib/data/chat/chat_dev_config.dart`가 `--dart-define`(`CHAT_LIVE_MEETING_ID`/`CHAT_LIVE_PARTICIPANT_ID`/`CHAT_LIVE_NICKNAME`)으로 특정 서버 모임에 붙는다. 세 값이 없으면 기존 mock 채팅으로 동작(회귀 0). 인증·내모임 연동 시 이 브리지를 제거하고 각 방의 실제 서버 모임 id로 배선한다.
 
-### 프로필
-- [ ] 🔴 내 프로필 조회 — `GET /api/me/`
-- [ ] 🔴 닉네임 수정 — `PATCH /api/me/profile/nickname/`
-- [ ] 🔴 자기소개 수정 — `PATCH /api/me/profile/intro/`
-  - 앱: `lib/features/profile/profile_screen.dart` (mock 프로필 상수)
+### 프로필 *(서버 완료 — 앱 연동 남음)*
+- [ ] 🟢 내 프로필 조회 — `GET /api/me/` (인증 필요) → nickname, birth_year, gender, manner_score, total_activities, intro, interest_*
+- [ ] 🟢 프로필 수정(닉네임·자기소개) — `PATCH /api/me/` `{nickname?, intro?}`
+  - 앱: `lib/features/profile/profile_screen.dart` (mock 프로필 상수 교체)
+  - 참고: 서버는 닉네임/자기소개 통합 PATCH. 매너점수·활동수는 read-only.
 
 ---
 
@@ -95,9 +95,9 @@
 - [ ] 🔴 차단 해제 — `DELETE /api/me/blocked-users/{userId}/`
   - 앱: `lib/features/profile/block_list_screen.dart`, `lib/features/common/block_screen.dart`
 
-### 회원 탈퇴
-- [ ] 🔴 탈퇴 OTP 검증 — `POST /api/auth/verify-otp/` (재사용)
-- [ ] 🔴 탈퇴 실행 — `POST /api/me/withdraw/`
+### 회원 탈퇴 *(서버 완료 — 앱 연동 남음)*
+- [ ] 🟢 탈퇴 OTP 검증 — `POST /api/auth/verify-otp/` `purpose=withdraw` (재사용)
+- [ ] 🟢 탈퇴 실행 — `POST /api/me/withdraw/` `{reasons[], detail}` (인증 필요, soft delete + 30일 재가입 제한)
   - 앱: `lib/features/withdrawal/` (현재 최종 탈퇴 호출 없음)
 
 ---
@@ -113,6 +113,7 @@
 
 ## 선행 작업 (모든 `/api/me/*`의 전제)
 
-- [ ] 🔴 서버: 사용자(User) 모델 + 인증 앱(`apps/accounts`) 신설
-- [ ] 🔴 서버: `Meeting`에 host/members 관계 추가 (멤버·신청자·채팅의 기반)
-- [ ] 앱: 공통 API 클라이언트 정리 — base URL 환경 분기(현재 `meeting_api.dart`에 `localhost:8000` 하드코딩), 인증 헤더 주입, 에러 처리 통일
+- [x] 🟢 서버: 사용자(User) 모델 + 인증 앱(`apps/accounts`) 신설 *(완료: 전화번호 커스텀 User + JWT)*
+- [ ] 🟠 서버: `Meeting`에 host/members 관계 추가 (멤버·신청자·채팅의 기반)
+  - `MeetingParticipant` 모델은 존재하나 아직 User FK 없음(값 스냅샷). 인증 연동 시 User 연결 + 멤버/참가 REST 노출 필요.
+- [ ] 앱: 공통 API 클라이언트 정리 — base URL 환경 분기(현재 `meeting_api.dart`/`chat_api.dart`에 `localhost:8000`), **JWT 토큰 저장(SharedPreferences) + `Authorization: Bearer` 헤더 주입 계층 신설**, 에러 처리 통일. chat의 `X-Participant-Id`도 이때 토큰 기반으로 대체.

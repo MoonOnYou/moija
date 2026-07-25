@@ -13,6 +13,7 @@ class ChatMessage {
     required this.sentAt,
     this.sender,
     this.mine = false,
+    this.unreadCount = 0,
   });
 
   final String id;
@@ -26,7 +27,46 @@ class ChatMessage {
   /// 내가 보낸 메시지면 true → 화면 우측 정렬.
   final bool mine;
 
+  /// 이 메시지를 아직 안 읽은 인원 수(보낸 사람 제외). 서버가 권위 있게 계산해 준다.
+  /// mock 모드에서는 [unreadCountsFor]로 별도 계산하므로 0으로 둔다.
+  final int unreadCount;
+
   bool get isSystem => type == ChatMessageType.system;
+
+  ChatMessage copyWith({int? unreadCount}) => ChatMessage(
+        id: id,
+        type: type,
+        text: text,
+        sentAt: sentAt,
+        sender: sender,
+        mine: mine,
+        unreadCount: unreadCount ?? this.unreadCount,
+      );
+
+  /// 서버 메시지 JSON을 앱 모델로 변환한다.
+  ///
+  /// 서버 필드: `{id(int), type("user"|"system"), text, sent_at(ISO8601),
+  /// sender(닉네임 문자열 or null), unread_count(int)}`.
+  /// 서버는 sender를 닉네임으로만 주므로 [myNickname]과 비교해 [mine]을 유도한다.
+  factory ChatMessage.fromJson(
+    Map<String, dynamic> json, {
+    required String myNickname,
+  }) {
+    final rawType = json['type'] as String?;
+    final type = rawType == 'system'
+        ? ChatMessageType.system
+        : ChatMessageType.user;
+    final sender = json['sender'] as String?;
+    return ChatMessage(
+      id: json['id'].toString(),
+      type: type,
+      text: (json['text'] ?? '') as String,
+      sentAt: DateTime.parse(json['sent_at'] as String).toLocal(),
+      sender: sender,
+      mine: type == ChatMessageType.user && sender == myNickname,
+      unreadCount: (json['unread_count'] as int?) ?? 0,
+    );
+  }
 }
 
 /// 채팅 미리보기·말풍선 양쪽에서 가리키는 "나"의 닉네임. mock 일관성용.

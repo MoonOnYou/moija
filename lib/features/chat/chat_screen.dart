@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../data/chat/chat_dev_config.dart';
 import '../../data/meeting_repository.dart';
 import '../../models/join_method.dart';
 import '../../models/meeting.dart';
@@ -185,10 +186,20 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _openChatRoom(Meeting m) async {
+    // 개발용 라이브 브리지: 설정이 있으면 어떤 방을 눌러도 실제 서버 테스트 모임에
+    // 붙어 REST+WebSocket 실동작을 확인한다. 설정이 없으면 기존 mock 채팅.
+    // TODO(auth): 인증·"내 모임" API 연동 시 이 브리지를 제거하고, 각 방의 실제
+    // 서버 모임 id와 로그인 사용자 participant로 연결한다.
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) =>
-            ChatRoomScreen(repository: widget.repository, meeting: m),
+        builder: (_) => ChatRoomScreen(
+          repository: widget.repository,
+          meeting: m,
+          liveMeetingId: ChatDevConfig.isLive ? ChatDevConfig.meetingId : null,
+          liveParticipantId:
+              ChatDevConfig.isLive ? ChatDevConfig.participantId : null,
+          liveNickname: ChatDevConfig.isLive ? ChatDevConfig.nickname : null,
+        ),
       ),
     );
     // 채팅방에서 모임 나가기 했을 수 있으니 리스트 갱신.
