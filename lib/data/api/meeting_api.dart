@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../../models/meeting.dart';
+import '../auth/auth_store.dart';
 import '../current_user.dart';
 
 /// 서버 베이스 URL. 빌드 시 `--dart-define=API_BASE_URL=...`로 덮어쓸 수 있다.
@@ -31,9 +32,9 @@ Future<void> createMeeting(Meeting m, {@visibleForTesting http.Client? client}) 
       'cost_type': m.cost.type.name,
       if (m.cost.amountWon != null) 'cost_amount_won': m.cost.amountWon,
       'cost_custom_text': m.cost.customText ?? '',
-      // 로그인 전까지 임시 사용자를 방장으로 보낸다. 서버는 host를 필수로 요구한다.
-      // TODO(auth): 실제 로그인 사용자 프로필로 교체.
-      'host': CurrentUser.hostPayload,
+      // 로그인 사용자를 방장으로 보낸다. 서버는 host를 필수로 요구한다.
+      // 미로그인 시에는 임시 사용자(CurrentUser)로 폴백한다.
+      'host': AuthStore.instance.user?.hostPayload ?? CurrentUser.hostPayload,
     };
     final response = await c.post(
       Uri.parse('$_baseUrl/api/meetings/'),

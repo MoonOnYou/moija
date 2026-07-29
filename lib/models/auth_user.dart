@@ -56,6 +56,17 @@ class AuthUser {
         'interest_locations': interestLocations,
       };
 
+  /// 모임 생성 API(`POST /api/meetings/`)의 host 페이로드.
+  /// 서버 HostInputSerializer 필드명(snake_case)에 맞춘다.
+  Map<String, dynamic> get hostPayload => {
+        'nickname': nickname,
+        'birth_year': birthYear,
+        'gender': gender.name,
+        'manner_score': mannerScore,
+        'total_activities': totalActivities,
+        'intro': intro,
+      };
+
   AuthUser copyWith({String? nickname, String? intro}) => AuthUser(
         id: id,
         phone: phone,

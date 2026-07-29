@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../data/api/auth_api.dart' show logout;
+import '../../data/api/me_api.dart';
 import '../../data/auth/auth_store.dart';
 import '../../data/wallet.dart';
 import '../../models/auth_user.dart';
@@ -29,6 +30,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
   static const double _mannerScore = 4.7;
   static const int _totalActivities = 12;
 
+  @override
+  void initState() {
+    super.initState();
+    _refreshMe();
+  }
+
+  /// 로그인 상태면 서버에서 최신 프로필(매너점수·활동수 등)을 받아 갱신한다.
+  Future<void> _refreshMe() async {
+    if (AuthStore.instance.user == null) return;
+    try {
+      final me = await fetchMe();
+      await AuthStore.instance.updateUser(me);
+    } catch (_) {
+      // 실패 시 저장된 프로필을 유지한다.
+    }
+  }
+
+  void _toast(String msg) => ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(msg), duration: const Duration(seconds: 2)),
+      );
+
   Future<void> _editNickname() async {
     final user = AuthStore.instance.user;
     final result = await EditTextScreen.show(
@@ -40,8 +62,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
     if (result == null || result.isEmpty || !mounted) return;
     if (user != null) {
-      // TODO(auth): 서버 PATCH /api/me/ 연동(Phase B). 지금은 로컬 세션만 갱신.
-      await AuthStore.instance.updateUser(user.copyWith(nickname: result));
+      try {
+        final updated = await updateProfile(nickname: result);
+        await AuthStore.instance.updateUser(updated);
+      } catch (_) {
+        if (mounted) _toast('닉네임 수정에 실패했어요');
+      }
     } else {
       setState(() => _nickname = result);
     }
@@ -59,8 +85,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
     if (result == null || !mounted) return;
     if (user != null) {
-      // TODO(auth): 서버 PATCH /api/me/ 연동(Phase B).
-      await AuthStore.instance.updateUser(user.copyWith(intro: result));
+      try {
+        final updated = await updateProfile(intro: result);
+        await AuthStore.instance.updateUser(updated);
+      } catch (_) {
+        if (mounted) _toast('자기소개 수정에 실패했어요');
+      }
     } else {
       setState(() => _intro = result);
     }
