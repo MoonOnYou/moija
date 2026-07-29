@@ -2,17 +2,19 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../data/api/auth_api.dart';
 import '../../theme/app_colors.dart';
 import 'signup_flow.dart';
 import 'signup_password_screen.dart';
 import 'signup_scaffold.dart';
 import 'signup_session.dart';
 
-/// 6자리 인증번호 입력. 모킹이므로 아무 6자리나 통과한다.
-/// 3분 카운트다운 + 재전송 버튼.
+/// 6자리 인증번호 입력. 서버 verify-otp로 실제 검증한다.
+/// 3분 카운트다운 + 재전송 버튼. [devCode]가 있으면(개발 서버) 자동입력한다.
 class SignupOtpScreen extends StatefulWidget {
-  const SignupOtpScreen({super.key, required this.session});
+  const SignupOtpScreen({super.key, required this.session, this.devCode});
   final SignupSession session;
+  final String? devCode;
 
   @override
   State<SignupOtpScreen> createState() => _SignupOtpScreenState();
@@ -25,10 +27,16 @@ class _SignupOtpScreenState extends State<SignupOtpScreen> {
   Timer? _timer;
   int _remaining = _initialSeconds;
 
+  bool _verifying = false;
+
   @override
   void initState() {
     super.initState();
     _startTimer();
+    // 개발 서버가 내려준 인증번호를 자동입력한다(실서버에선 null).
+    if (widget.devCode != null && widget.devCode!.isNotEmpty) {
+      _controller.text = widget.devCode!;
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) => _focus.requestFocus());
   }
 
@@ -57,11 +65,26 @@ class _SignupOtpScreenState extends State<SignupOtpScreen> {
 
   bool get _valid => _controller.text.length == 6;
 
-  void _next() {
-    Navigator.of(context).push(signupRoute(
-      (_) => SignupPasswordScreen(session: widget.session),
-    ));
+  Future<void> _next() async {
+    setState(() => _verifying = true);
+    try {
+      final token = await verifyOtp(widget.session.phone, _controller.text);
+      widget.session.verificationToken = token;
+      if (!mounted) return;
+      Navigator.of(context).push(signupRoute(
+        (_) => SignupPasswordScreen(session: widget.session),
+      ));
+    } on AuthException catch (e) {
+      if (mounted) _toast(e.message);
+    } catch (_) {
+      if (mounted) _toast('네트워크 오류가 발생했어요. 잠시 후 다시 시도해 주세요.');
+    } finally {
+      if (mounted) setState(() => _verifying = false);
+    }
   }
+
+  void _toast(String msg) => ScaffoldMessenger.of(context)
+      .showSnackBar(SnackBar(content: Text(msg)));
 
   @override
   void dispose() {
@@ -91,7 +114,8 @@ class _SignupOtpScreenState extends State<SignupOtpScreen> {
       title: '인증번호 6자리를 입력해 주세요',
       subtitle: '${_formatPhone(widget.session.phone)} 으로 보냈어요.',
       primaryLabel: '인증 완료',
-      onPrimary: _valid && !timeout ? _next : null,
+      onPrimary: _valid && !timeout && !_verifying ? _next : null,
+      primaryLoading: _verifying,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

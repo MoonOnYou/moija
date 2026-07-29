@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/moija_logo.dart';
+import '../auth/login_screen.dart';
 import 'signup_flow.dart';
 import 'signup_session.dart';
 import 'signup_terms_screen.dart';
@@ -88,7 +89,9 @@ class SignupStartScreen extends StatelessWidget {
               const SizedBox(height: 12),
               Center(
                 child: TextButton(
-                  onPressed: () => Navigator.of(context).maybePop(),
+                  onPressed: () => Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  ),
                   style: TextButton.styleFrom(
                     foregroundColor: AppColors.textSecondary,
                     textStyle: const TextStyle(

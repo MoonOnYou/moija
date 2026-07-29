@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../data/api/auth_api.dart';
 import '../../theme/app_colors.dart';
 import 'signup_flow.dart';
 import 'signup_otp_screen.dart';
@@ -44,12 +45,30 @@ class _SignupPhoneScreenState extends State<SignupPhoneScreen> {
           _digits.startsWith('018') ||
           _digits.startsWith('019'));
 
-  void _next() {
+  bool _sending = false;
+
+  Future<void> _next() async {
     widget.session.phone = _digits;
-    Navigator.of(context).push(signupRoute(
-      (_) => SignupOtpScreen(session: widget.session),
-    ));
+    setState(() => _sending = true);
+    try {
+      final res = await sendOtp(_digits);
+      if (!mounted) return;
+      // DEBUG 서버는 dev_code를 내려주며, OTP 화면에서 자동입력에 쓴다.
+      final devCode = res['dev_code'] as String?;
+      Navigator.of(context).push(signupRoute(
+        (_) => SignupOtpScreen(session: widget.session, devCode: devCode),
+      ));
+    } on AuthException catch (e) {
+      if (mounted) _toast(e.message);
+    } catch (_) {
+      if (mounted) _toast('네트워크 오류가 발생했어요. 잠시 후 다시 시도해 주세요.');
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
   }
+
+  void _toast(String msg) => ScaffoldMessenger.of(context)
+      .showSnackBar(SnackBar(content: Text(msg)));
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +78,8 @@ class _SignupPhoneScreenState extends State<SignupPhoneScreen> {
       title: '전화번호를 알려 주세요',
       subtitle: '문자로 인증번호를 보내드려요.\n번호는 본인 확인과 알림 외에는 쓰이지 않아요.',
       primaryLabel: '인증번호 받기',
-      onPrimary: _valid ? _next : null,
+      onPrimary: _valid && !_sending ? _next : null,
+      primaryLoading: _sending,
       bottomHint: const Text(
           'SKT · KT · LGU+ 알뜰폰 모두 가능해요.\n해외 번호는 아직 지원하지 않아요.'),
       child: Column(

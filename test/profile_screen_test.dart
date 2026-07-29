@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:moija/data/auth/auth_store.dart';
 import 'package:moija/features/profile/profile_screen.dart';
+import 'package:moija/models/auth_user.dart';
+import 'package:moija/models/member.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 Widget _wrap() => const MaterialApp(home: ProfileScreen());
 
@@ -68,7 +72,8 @@ void main() {
       '커뮤니티 가이드 · 신고 정책',
       '고객센터 · 문의하기',
       '앱 버전',
-      '로그아웃',
+      // 비로그인 상태에서는 로그인 진입 메뉴가 노출된다(로그인 시 '로그아웃'으로 바뀜).
+      '로그인 · 회원가입',
       '회원 탈퇴',
     ];
     for (final label in must) {
@@ -76,7 +81,7 @@ void main() {
     }
   });
 
-  testWidgets('회원 탈퇴 → 확인 다이얼로그', (tester) async {
+  testWidgets('회원 탈퇴 → 탈퇴 사유 화면으로 이동', (tester) async {
     await tester.pumpWidget(_wrap());
     await tester.pumpAndSettle();
 
@@ -90,8 +95,39 @@ void main() {
     await tester.tap(find.text('회원 탈퇴'));
     await tester.pumpAndSettle();
 
-    // AlertDialog 제목과 본문이 노출되어야 한다.
-    expect(find.widgetWithText(AlertDialog, '회원 탈퇴'), findsOneWidget);
-    expect(find.textContaining('정말 탈퇴할까요?'), findsOneWidget);
+    // 탈퇴 플로우 첫 화면(사유 선택)으로 진입한다.
+    expect(find.text('떠나는 이유를 알려주세요'), findsOneWidget);
+  });
+
+  testWidgets('로그인 상태에서는 프로필과 로그아웃 메뉴가 노출된다', (tester) async {
+    tester.view.physicalSize = const Size(400, 1800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    SharedPreferences.setMockInitialValues({});
+    await AuthStore.instance.save(
+      access: 'a',
+      refresh: 'r',
+      user: const AuthUser(
+        id: 1,
+        phone: '01011112222',
+        nickname: '온유',
+        birthYear: 1996,
+        gender: Gender.male,
+        mannerScore: 4.5,
+        totalActivities: 3,
+        intro: '반가워요',
+      ),
+    );
+    addTearDown(() async => AuthStore.instance.clear());
+
+    await tester.pumpWidget(_wrap());
+    await tester.pumpAndSettle();
+
+    // 로그인 사용자 프로필 + 로그아웃(로그인 진입 메뉴는 숨김).
+    expect(find.text('온유'), findsAtLeastNWidgets(1));
+    expect(find.text('로그아웃'), findsOneWidget);
+    expect(find.text('로그인 · 회원가입'), findsNothing);
   });
 }

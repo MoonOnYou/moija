@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../data/api/auth_api.dart';
+import '../../data/auth/auth_store.dart';
 import '../../theme/app_colors.dart';
 import 'signup_complete_screen.dart';
 import 'signup_flow.dart';
@@ -39,12 +41,36 @@ class _SignupIntroScreenState extends State<SignupIntroScreen> {
   String get _value => _controller.text.trim();
   bool get _hasText => _value.isNotEmpty;
 
-  void _next() {
+  bool _submitting = false;
+
+  Future<void> _next() async {
     widget.session.intro = _value;
-    Navigator.of(context).pushReplacement(signupRoute(
-      (_) => SignupCompleteScreen(session: widget.session),
-    ));
+    final token = widget.session.verificationToken;
+    if (token == null || token.isEmpty) {
+      _toast('전화번호 인증이 필요해요. 처음부터 다시 시도해 주세요.');
+      return;
+    }
+    setState(() => _submitting = true);
+    try {
+      final result = await register(widget.session, token);
+      await AuthStore.instance.save(
+        access: result.access, refresh: result.refresh, user: result.user,
+      );
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(signupRoute(
+        (_) => SignupCompleteScreen(session: widget.session),
+      ));
+    } on AuthException catch (e) {
+      if (mounted) _toast(e.message);
+    } catch (_) {
+      if (mounted) _toast('네트워크 오류가 발생했어요. 잠시 후 다시 시도해 주세요.');
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
   }
+
+  void _toast(String msg) => ScaffoldMessenger.of(context)
+      .showSnackBar(SnackBar(content: Text(msg)));
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +81,8 @@ class _SignupIntroScreenState extends State<SignupIntroScreen> {
       subtitle: '모임에서 다른 사람에게 보여요. 비워둬도 괜찮아요.',
       // 선택 단계라 항상 진행 가능. 비어 있으면 "건너뛰기"로 안내한다.
       primaryLabel: _hasText ? '완료' : '건너뛰기',
-      onPrimary: _next,
+      onPrimary: _submitting ? null : _next,
+      primaryLoading: _submitting,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

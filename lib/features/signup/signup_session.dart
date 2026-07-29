@@ -15,6 +15,9 @@ class SignupSession {
   // 전화번호 · 인증
   String phone = ''; // 숫자만 (예: 01012345678)
 
+  /// OTP 검증 성공 시 서버가 발급한 토큰. register 호출에 사용한다.
+  String? verificationToken;
+
   // 로그인 비밀번호 (영문+숫자 8자 이상)
   String password = '';
 

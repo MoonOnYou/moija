@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'data/auth/auth_store.dart';
 import 'features/splash/splash_screen.dart';
 import 'shell/connectivity_gate.dart';
 import 'theme/app_colors.dart';
@@ -8,6 +9,8 @@ import 'theme/app_colors.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('ko_KR');
+  // 저장된 로그인 세션(JWT + 사용자)을 복원한다.
+  await AuthStore.instance.load();
   runApp(const MoijaApp());
 }
 

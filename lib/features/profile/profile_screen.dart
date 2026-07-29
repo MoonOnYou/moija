@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import '../../data/api/auth_api.dart' show logout;
+import '../../data/auth/auth_store.dart';
 import '../../data/wallet.dart';
+import '../../models/auth_user.dart';
 import '../../models/member.dart';
 import '../../theme/app_colors.dart';
+import '../auth/login_screen.dart';
 import '../meeting/diamond_recharge_screen.dart';
-import '../signup/signup_start_screen.dart';
 import '../withdrawal/withdrawal_flow.dart';
 import 'block_list_screen.dart';
 import 'edit_text_screen.dart';
@@ -27,29 +30,56 @@ class _ProfileScreenState extends State<ProfileScreen> {
   static const int _totalActivities = 12;
 
   Future<void> _editNickname() async {
+    final user = AuthStore.instance.user;
     final result = await EditTextScreen.show(
       context,
       title: '닉네임 수정',
-      initial: _nickname,
+      initial: user?.nickname ?? _nickname,
       hint: '닉네임을 입력해 주세요',
       maxLength: 12,
     );
-    if (result != null && result.isNotEmpty && mounted) {
+    if (result == null || result.isEmpty || !mounted) return;
+    if (user != null) {
+      // TODO(auth): 서버 PATCH /api/me/ 연동(Phase B). 지금은 로컬 세션만 갱신.
+      await AuthStore.instance.updateUser(user.copyWith(nickname: result));
+    } else {
       setState(() => _nickname = result);
     }
   }
 
   Future<void> _editIntro() async {
+    final user = AuthStore.instance.user;
     final result = await EditTextScreen.show(
       context,
       title: '자기소개 수정',
-      initial: _intro,
+      initial: user?.intro ?? _intro,
       hint: '함께하는 모임에서 나를 소개해 주세요',
       maxLength: 200,
       multiline: true,
     );
-    if (result != null && mounted) {
+    if (result == null || !mounted) return;
+    if (user != null) {
+      // TODO(auth): 서버 PATCH /api/me/ 연동(Phase B).
+      await AuthStore.instance.updateUser(user.copyWith(intro: result));
+    } else {
       setState(() => _intro = result);
+    }
+  }
+
+  Future<void> _openLogin() async {
+    await LoginScreen.show(context);
+    // 로그인 성공 시 userNotifier가 갱신되어 화면이 자동으로 다시 그려진다.
+  }
+
+  Future<void> _logout() async {
+    final refresh = AuthStore.instance.refreshToken;
+    if (refresh != null) await logout(refresh);
+    await AuthStore.instance.clear();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('로그아웃되었어요'),
+        duration: Duration(seconds: 2),
+      ));
     }
   }
 
@@ -65,8 +95,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     WithdrawalFlow.start(
       context,
       session: WithdrawalSession(
-        // 등록된 휴대폰 번호(목). 추후 백엔드 사용자 정보로 교체.
-        phone: '01012345678',
+        // 로그인 사용자의 번호(없으면 mock).
+        phone: AuthStore.instance.user?.phone ?? '01012345678',
         diamonds: Wallet.myDiamonds,
         mannerScore: _mannerScore,
         activities: _totalActivities,
@@ -87,7 +117,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return ValueListenableBuilder<AuthUser?>(
+      valueListenable: AuthStore.instance.userNotifier,
+      builder: (context, user, _) {
+        // 로그인 사용자가 있으면 서버 프로필을, 없으면 mock을 표시한다.
+        final nickname = user?.nickname ?? _nickname;
+        final intro = user?.intro ?? _intro;
+        final birthYear = user?.birthYear ?? _birthYear;
+        final gender = user?.gender ?? _gender;
+        final mannerScore = user?.mannerScore ?? _mannerScore;
+        final totalActivities = user?.totalActivities ?? _totalActivities;
+        return Scaffold(
       backgroundColor: AppColors.bgPrimary,
       appBar: AppBar(
         backgroundColor: AppColors.bgPrimary,
@@ -102,15 +142,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
         padding: const EdgeInsets.symmetric(vertical: 16),
         children: [
           _ProfileHeader(
-            nickname: _nickname,
-            birthYear: _birthYear,
-            gender: _gender,
-            mannerScore: _mannerScore,
-            totalActivities: _totalActivities,
+            nickname: nickname,
+            birthYear: birthYear,
+            gender: gender,
+            mannerScore: mannerScore,
+            totalActivities: totalActivities,
             onEditNickname: _editNickname,
           ),
           const SizedBox(height: 12),
-          _IntroCard(intro: _intro, onEdit: _editIntro),
+          _IntroCard(intro: intro, onEdit: _editIntro),
           const SizedBox(height: 12),
           _DiamondCard(
             diamonds: Wallet.myDiamonds,
@@ -161,15 +201,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
               trailing: '1.0.0'),
           const SizedBox(height: 20),
           const _SectionTitle('계정'),
-          _MenuTile(
-              key: const Key('signup-entry'),
-              icon: Icons.login_rounded,
-              label: '로그인 · 회원가입 (테스트 진입)',
-              onTap: () => SignupStartScreen.start(context)),
-          _MenuTile(
-              icon: Icons.logout_rounded,
-              label: '로그아웃',
-              onTap: () => _stub('로그아웃')),
+          if (user == null)
+            _MenuTile(
+                key: const Key('signup-entry'),
+                icon: Icons.login_rounded,
+                label: '로그인 · 회원가입',
+                onTap: _openLogin)
+          else
+            _MenuTile(
+                icon: Icons.logout_rounded,
+                label: '로그아웃',
+                onTap: _logout),
           _MenuTile(
               icon: Icons.person_remove_rounded,
               label: '회원 탈퇴',
@@ -178,6 +220,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: 24),
         ],
       ),
+        );
+      },
     );
   }
 }
