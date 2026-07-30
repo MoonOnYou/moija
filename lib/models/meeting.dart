@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'join_method.dart';
 import 'meeting_category.dart';
 import 'meeting_cost.dart';
+import 'member.dart';
 
 class Meeting {
   const Meeting({
@@ -20,6 +21,7 @@ class Meeting {
     this.nearestStation = '',
     this.cost = const MeetingCost(CostType.split),
     this.joinMethod = JoinMethod.approval,
+    this.participants = const [],
   });
 
   /// 서버 응답(JSON)을 Meeting으로 변환한다. 알 수 없는 enum 값은 안전한
@@ -66,6 +68,12 @@ class Meeting {
         customText: customText.isEmpty ? null : customText,
       ),
       joinMethod: parseJoin(json['join_method']),
+      // 상세 조회(MeetingDetailSerializer) 응답의 참가자 목록(방장 우선 정렬).
+      // 목록 응답엔 없으므로 빈 리스트가 된다.
+      participants: [
+        for (final p in (json['participants'] as List? ?? const []))
+          Member.fromJson(p as Map<String, dynamic>),
+      ],
     );
   }
 
@@ -97,6 +105,17 @@ class Meeting {
   final String nearestStation;
   final MeetingCost cost;
   final JoinMethod joinMethod;
+
+  /// 서버 상세 조회의 참가자 목록(방장 우선 정렬). 목록 응답엔 비어 있다.
+  final List<Member> participants;
+
+  /// 방장(참가자 중 is_host). 서버 정렬상 보통 첫 번째다. 없으면 null.
+  Member? get host {
+    for (final p in participants) {
+      if (p.isHost) return p;
+    }
+    return participants.isNotEmpty ? participants.first : null;
+  }
 
   /// 칩·달력에 표시할 카테고리 이름. 직접 입력값이 있으면 그걸 우선한다.
   String get categoryLabel =>

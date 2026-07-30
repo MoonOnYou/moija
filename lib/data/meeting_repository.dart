@@ -129,8 +129,10 @@ class MeetingRepository {
   /// 멤버 풀 전체(읽기 전용). 신청자 mock 생성 등 외부 헬퍼가 참조한다.
   List<Member> get memberPool => List.unmodifiable(_memberPool);
 
-  /// 모임 참가자(결정적). 첫 번째가 호스트.
+  /// 모임 참가자. 서버 상세 조회로 받은 실제 참가자(방장 우선)가 있으면 그것을
+  /// 쓰고, 없으면(목록/서버 미연동 모임) 결정적 mock으로 채운다.
   List<Member> participantsOf(Meeting m) {
+    if (m.participants.isNotEmpty) return m.participants;
     final n = m.currentMembers.clamp(0, _memberPool.length);
     final offset = m.id.hashCode.abs() % _memberPool.length;
     return List.unmodifiable([
