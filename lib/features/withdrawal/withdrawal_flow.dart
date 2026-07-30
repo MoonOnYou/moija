@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../models/meeting.dart';
+import '../../models/member.dart';
 import '../../theme/app_colors.dart';
 import 'withdrawal_reason_screen.dart';
 
@@ -28,7 +30,9 @@ class WithdrawalSession {
     required this.activities,
     required this.blockCount,
     required this.joinedCount,
-    this.hostsMeeting = true,
+    this.hostedMeetings = const [],
+    this.candidatesOf,
+    this.onDelegate,
   });
 
   /// 등록된 휴대폰 번호(숫자만, 예: 01012345678).
@@ -41,8 +45,37 @@ class WithdrawalSession {
   final int blockCount;
   final int joinedCount;
 
-  /// 방장으로 운영 중인 모임이 있는지 — 있으면 위임 안내를 띄운다.
-  final bool hostsMeeting;
+  /// 내가 방장으로 운영 중인 모임들. 비어 있지 않으면 위임 화면을 거쳐야 한다.
+  final List<Meeting> hostedMeetings;
+
+  /// 모임별 위임 후보(나를 제외한 참가자). 주입이 없으면 넘길 대상이 없는 것으로 본다.
+  final List<Member> Function(Meeting meeting)? candidatesOf;
+
+  /// 위임을 실제 데이터에 반영하는 훅. 저장소를 가진 쪽(프로필)이 주입한다.
+  final void Function(Meeting meeting, Member newHost)? onDelegate;
+
+  /// 위임을 마친 모임(id → 새 방장). 위임 화면에서 "완료"를 눌러야 채워진다.
+  final Map<String, Member> handovers = {};
+
+  /// 넘길 멤버가 있는 모임 — 탈퇴 전 위임해야 하는 대상이다.
+  /// 참가자가 나뿐인 모임은 넘길 사람이 없어 여기서 빠지고, 탈퇴를 막지 않는다.
+  List<Meeting> get delegatableMeetings => [
+        for (final m in hostedMeetings)
+          if ((candidatesOf?.call(m) ?? const []).isNotEmpty) m,
+      ];
+
+  /// 멤버가 나뿐이라 위임할 수 없는 모임 — 탈퇴 시 함께 정리된다.
+  List<Meeting> get soloHostedMeetings => [
+        for (final m in hostedMeetings)
+          if ((candidatesOf?.call(m) ?? const []).isEmpty) m,
+      ];
+
+  /// 아직 방장 자리를 넘기지 않은 모임들.
+  List<Meeting> get unresolvedHostedMeetings =>
+      [for (final m in delegatableMeetings) if (!handovers.containsKey(m.id)) m];
+
+  /// 위임이 남아 있는지 — 있으면 탈퇴를 진행할 수 없다.
+  bool get hostsMeeting => unresolvedHostedMeetings.isNotEmpty;
 
   /// 떠나는 이유(선택, 복수 선택 가능). 화면 1에서 채워진다.
   final List<String> reasons = [];
@@ -208,6 +241,8 @@ class WithdrawalButton extends StatelessWidget {
           disabledForegroundColor: fg,
           elevation: 0,
           shadowColor: Colors.transparent,
+          // 기본 패딩(24)이면 좁은 화면에서 아이콘+라벨이 넘친다.
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           textStyle:
@@ -215,13 +250,17 @@ class WithdrawalButton extends StatelessWidget {
         ),
         onPressed: onPressed,
         child: icon == null
-            ? Text(label)
+            ? Text(label, maxLines: 1, overflow: TextOverflow.ellipsis)
             : Row(
                 mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(icon, size: 18),
                   const SizedBox(width: 6),
-                  Text(label),
+                  Flexible(
+                    child: Text(label,
+                        maxLines: 1, overflow: TextOverflow.ellipsis),
+                  ),
                 ],
               ),
       ),

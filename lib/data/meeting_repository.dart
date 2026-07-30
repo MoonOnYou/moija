@@ -77,6 +77,11 @@ class MeetingRepository {
     _myHostedIds.remove(meetingId);
   }
 
+  /// 방장 자리를 다른 멤버에게 넘긴다. 나는 일반 참가자로 남는다.
+  void delegateHost(String meetingId) {
+    _myHostedIds.remove(meetingId);
+  }
+
   bool isHost(Meeting m) => _myHostedIds.contains(m.id);
   bool isPending(Meeting m) => _myPendingIds.contains(m.id);
   bool isJoined(Meeting m) => _myJoinedIds.contains(m.id);

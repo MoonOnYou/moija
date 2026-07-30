@@ -99,6 +99,10 @@
 - [ ] 🟢 탈퇴 OTP 검증 — `POST /api/auth/verify-otp/` `purpose=withdraw` (재사용)
 - [ ] 🟢 탈퇴 실행 — `POST /api/me/withdraw/` `{reasons[], detail}` (인증 필요, soft delete + 30일 재가입 제한)
   - 앱: `lib/features/withdrawal/` (현재 최종 탈퇴 호출 없음)
+- [ ] 🔴 방장 위임 — `POST /api/me/meetings/{id}/transfer-host/` `{new_host_id}`
+  - 앱: `lib/features/withdrawal/host_delegation_screen.dart` → `MeetingRepository.delegateHost()` (현재 로컬 mock)
+  - 서버: 멤버 모델 + 호스트 관계가 먼저 필요(위 "모임 멤버" 항목)
+  - 방장이 모임을 닫는 동작은 제공하지 않는다. 멤버가 방장뿐인 모임은 탈퇴 시 서버가 함께 정리한다.
 
 ---
 

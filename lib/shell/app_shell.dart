@@ -79,7 +79,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
                   fetchDetail: fetchMeetingDetail,
                 ),
                 ChatScreen(repository: _repository),
-                const ProfileScreen(),
+                ProfileScreen(repository: _repository),
               ],
             ),
             bottomNavigationBar: Container(

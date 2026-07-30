@@ -115,4 +115,17 @@ void main() {
     expect(r.meetingsOn(DateTime(2026, 7, 1)).length, before + 1);
     expect(r.allMeetings.any((m) => m.id == 'new-1'), isTrue);
   });
+
+  test('delegateHost 하면 방장에서만 빠지고 참가 상태는 유지된다', () {
+    final r = MeetingRepository();
+    final hosted = r.myHostedIds.first;
+    expect(r.myJoinedIds.contains(hosted), isTrue);
+
+    r.delegateHost(hosted);
+
+    expect(r.myHostedIds.contains(hosted), isFalse);
+    expect(r.myJoinedIds.contains(hosted), isTrue);
+    expect(r.allMeetings.any((m) => m.id == hosted), isTrue);
+  });
+
 }

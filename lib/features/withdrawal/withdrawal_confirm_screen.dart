@@ -1,18 +1,27 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
+import 'host_delegation_screen.dart';
 import 'withdrawal_flow.dart';
 import 'withdrawal_otp_screen.dart';
 
 /// 2단계 — 탈퇴 전 최종 확인. 사라지는 것 + 방장 위임 안내 + 30일 정책 + 본인 확인 시작.
-class WithdrawalConfirmScreen extends StatelessWidget {
+class WithdrawalConfirmScreen extends StatefulWidget {
   const WithdrawalConfirmScreen({super.key, required this.session});
   final WithdrawalSession session;
 
+  @override
+  State<WithdrawalConfirmScreen> createState() =>
+      _WithdrawalConfirmScreenState();
+}
+
+class _WithdrawalConfirmScreenState extends State<WithdrawalConfirmScreen> {
+  WithdrawalSession get session => widget.session;
+
   void _sendCode(BuildContext context) {
-    // 방장으로 운영 중인 모임이 있으면 위임/종료 전까지 탈퇴를 진행할 수 없다.
+    // 방장으로 운영 중인 모임이 있으면 위임 전까지 탈퇴를 진행할 수 없다.
     if (session.hostsMeeting) {
       ScaffoldMessenger.maybeOf(context)?.showSnackBar(const SnackBar(
-        content: Text('운영 중인 모임의 방장을 먼저 위임하거나 모임을 닫아주세요'),
+        content: Text('운영 중인 모임의 방장을 먼저 위임해주세요'),
         duration: Duration(seconds: 2),
       ));
       return;
@@ -26,11 +35,12 @@ class WithdrawalConfirmScreen extends StatelessWidget {
     ));
   }
 
-  void _delegateHost(BuildContext context) {
-    ScaffoldMessenger.maybeOf(context)?.showSnackBar(const SnackBar(
-      content: Text('방장 위임은 준비 중이에요'),
-      duration: Duration(seconds: 2),
+  /// 방장 정리 화면으로. 돌아오면 세션의 위임 결과를 반영해 다시 그린다.
+  Future<void> _delegateHost(BuildContext context) async {
+    await Navigator.of(context).push(withdrawalRoute(
+      (_) => HostDelegationScreen(session: session),
     ));
+    if (mounted) setState(() {});
   }
 
   String _comma(int n) {
@@ -116,7 +126,7 @@ class WithdrawalConfirmScreen extends StatelessWidget {
             ),
           ),
 
-          // 방장으로 운영 중인 모임 — 위임 안내
+          // 방장으로 운영 중인 모임 — 위임 안내(남은 게 있을 때)
           if (session.hostsMeeting) ...[
             const SizedBox(height: 11),
             Container(
@@ -136,8 +146,10 @@ class WithdrawalConfirmScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('방장으로 운영 중인 모임이 있어요',
-                            style: TextStyle(
+                        Text(
+                            '방장으로 운영 중인 모임 '
+                            '${session.unresolvedHostedMeetings.length}개가 있어요',
+                            style: const TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.textDanger)),
@@ -149,15 +161,28 @@ class WithdrawalConfirmScreen extends StatelessWidget {
                                 text: '방장을 위임',
                                 style: TextStyle(
                                     fontWeight: FontWeight.w700)),
-                            TextSpan(text: '하거나 모임을 닫아야 해요.'),
+                            TextSpan(text: '해야 해요.'),
                           ]),
                           style: TextStyle(
                               fontSize: 11.5,
                               height: 1.5,
                               color: AppColors.textSecondary),
                         ),
+                        const SizedBox(height: 7),
+                        for (final m in session.unresolvedHostedMeetings)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 2),
+                            child: Text('· ${m.title}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                    fontSize: 11.5,
+                                    height: 1.45,
+                                    color: AppColors.textPrimary)),
+                          ),
                         const SizedBox(height: 9),
                         GestureDetector(
+                          key: const Key('go-delegate'),
                           onTap: () => _delegateHost(context),
                           child: Container(
                             padding: const EdgeInsets.symmetric(
@@ -173,6 +198,52 @@ class WithdrawalConfirmScreen extends StatelessWidget {
                                     color: Colors.white)),
                           ),
                         ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ]
+          // 방장 정리 완료 — 무엇을 어떻게 넘겼는지 요약
+          else if (session.handovers.isNotEmpty) ...[
+            const SizedBox(height: 11),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.bgSuccess,
+                borderRadius: BorderRadius.circular(13),
+                border: Border.all(color: AppColors.mint),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.check_circle_rounded,
+                      size: 20, color: AppColors.textSuccess),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('방장을 모두 위임했어요',
+                            style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textSuccess)),
+                        const SizedBox(height: 5),
+                        for (final m in session.hostedMeetings)
+                          if (session.handovers[m.id] != null)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 2),
+                              child: Text(
+                                  '· ${m.title} → ${session.handovers[m.id]!.nickname}님',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                      fontSize: 11.5,
+                                      height: 1.45,
+                                      color: AppColors.textSecondary)),
+                            ),
                       ],
                     ),
                   ),

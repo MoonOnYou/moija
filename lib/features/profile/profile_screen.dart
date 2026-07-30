@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import '../../data/api/auth_api.dart' show logout;
 import '../../data/api/me_api.dart';
 import '../../data/auth/auth_store.dart';
+import '../../data/meeting_repository.dart';
 import '../../data/wallet.dart';
 import '../../models/auth_user.dart';
+import '../../models/meeting.dart';
 import '../../models/member.dart';
+import '../../shell/app_navigation.dart';
 import '../../theme/app_colors.dart';
 import '../auth/login_screen.dart';
 import '../meeting/diamond_recharge_screen.dart';
@@ -15,7 +18,11 @@ import 'edit_text_screen.dart';
 /// 프로필 메인 화면.
 /// 헤더(편집) · 자기소개(편집) · 다이아 충전 카드 · 정책/계정 메뉴.
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  const ProfileScreen({super.key, this.repository});
+
+  /// 탈퇴 시 방장 모임을 확인·위임하는 데 쓴다. 주입이 없으면(테스트/오프라인)
+  /// 방장 모임이 없는 것으로 보고 위임 단계를 건너뛴다.
+  final MeetingRepository? repository;
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -121,7 +128,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ));
   }
 
+  /// 내가 방장인 모임들(탈퇴 전 위임 대상).
+  List<Meeting> get _hostedMeetings {
+    final repo = widget.repository;
+    if (repo == null) return const [];
+    return [
+      for (final m in repo.allMeetings)
+        if (repo.myHostedIds.contains(m.id)) m,
+    ]..sort((a, b) => a.startTime.compareTo(b.startTime));
+  }
+
+  /// 위임 후보 — 모임 참가자 중 방장(첫 번째 = 나)을 뺀 멤버들.
+  List<Member> _handoverCandidates(Meeting m) {
+    final repo = widget.repository;
+    if (repo == null) return const [];
+    final participants = repo.participantsOf(m);
+    return participants.length <= 1 ? const [] : participants.sublist(1);
+  }
+
   void _leaveAccount() {
+    final repo = widget.repository;
+    final hosted = _hostedMeetings;
     WithdrawalFlow.start(
       context,
       session: WithdrawalSession(
@@ -132,6 +159,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
         activities: _totalActivities,
         blockCount: 3,
         joinedCount: 3,
+        hostedMeetings: hosted,
+        candidatesOf: _handoverCandidates,
+        // 위임은 확정 즉시 저장소에 반영한다(내모임·채팅 탭에 바로 보인다).
+        onDelegate: (meeting, _) {
+          repo?.delegateHost(meeting.id);
+          myMeetingsRevision.value++;
+        },
       ),
     );
   }
