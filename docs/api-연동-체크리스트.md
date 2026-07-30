@@ -19,18 +19,16 @@
 - [x] 🟢 모임 상세 조회 — `GET /api/meetings/{id}/` *(완료: `app_shell.dart` fetchDetail)*
 - [x] 🟢 모임 생성 — `POST /api/meetings/` *(완료: `lib/data/api/meeting_api.dart`)*
 
-### 인증 *(서버 `apps.accounts` 구현 완료 — 앱 연동 남음)*
-- [ ] 🟢 OTP 발송 — `POST /api/auth/send-otp/` `{phone}` → `{detail, dev_code(DEBUG)}`
-  - 앱: `lib/features/signup/signup_phone_screen.dart`. 개발 중엔 응답 `dev_code`로 자동입력 가능.
-- [ ] 🟢 OTP 검증 — `POST /api/auth/verify-otp/` `{phone, code, purpose}` → `{verification_token}`
-  - 앱: `lib/features/signup/signup_otp_screen.dart` (현재 아무 6자리나 통과 → 실제 검증으로 교체)
-- [ ] 🟢 회원가입 — `POST /api/auth/register/` (SignupSession 전체 + `verification_token`) → `{access, refresh, user}`
-  - 앱: `signup_complete_screen.dart` 또는 `signup_intro_screen.dart._next`가 연동 지점. 필드: phone, password, nickname, gender(male/female), birth_year, intro, interest_categories[], interest_locations[], agreed_* 5개
-- [ ] 🟢 로그인 — `POST /api/auth/login/` `{phone, password}` → `{access, refresh, user}`
-  - 앱: 전용 로그인 화면 신규 필요(현재 없음). `signup_start_screen`의 "이미 계정이 있어요" 자리.
-- [ ] 🟢 로그아웃 — `POST /api/auth/logout/` `{refresh}` (블랙리스트)
-  - 앱: `lib/features/profile/profile_screen.dart` (현재 stub)
-- [ ] 🟢 JWT 토큰 체계 — `Authorization: Bearer <access>`. 앱: access/refresh를 SharedPreferences 저장 + API 헤더 주입 계층 신설 (현재 chat의 `X-Participant-Id`를 대체)
+### 인증 *(서버 `apps.accounts` + 앱 연동 완료)*
+- [x] 🟢 가입 가능 번호 확인 — `POST /api/auth/check-phone/` `{phone}` → `{available, reason(registered|cooldown|null), detail}` *(완료: `signup_phone_screen.dart` — 번호 입력 직후 디바운스 확인)*
+  - 중복/쿨다운을 마지막 단계(register)가 아니라 전화번호 화면에서 바로 알려 준다. `send-otp`·`register`도 같은 판정으로 다시 막는다.
+- [x] 🟢 OTP 발송 — `POST /api/auth/send-otp/` `{phone}` → `{detail, dev_code(DEBUG)}` *(완료: `signup_phone_screen.dart`)*
+  - 가입 불가 번호(중복·쿨다운)에는 코드를 보내지 않고 400 `{detail, reason}`을 준다.
+- [x] 🟢 OTP 검증 — `POST /api/auth/verify-otp/` `{phone, code, purpose}` → `{verification_token}` *(완료: `signup_otp_screen.dart`)*
+- [x] 🟢 회원가입 — `POST /api/auth/register/` (SignupSession 전체 + `verification_token`) → `{access, refresh, user}` *(완료: `signup_intro_screen.dart._next`)*
+- [x] 🟢 로그인 — `POST /api/auth/login/` `{phone, password}` → `{access, refresh, user}` *(완료: `lib/features/auth/login_screen.dart`)*
+- [x] 🟢 로그아웃 — `POST /api/auth/logout/` `{refresh}` (블랙리스트) *(완료: `profile_screen.dart._logout`)*
+- [x] 🟢 JWT 토큰 체계 — `Authorization: Bearer <access>` *(완료: `lib/data/auth/auth_store.dart` + API 헤더 주입)*
 
 ### 내 모임 / 참가
 - [ ] 🔴 내 모임 목록 — `GET /api/me/meetings/?status=joined|hosted|pending`

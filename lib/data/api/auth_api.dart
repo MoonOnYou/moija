@@ -46,6 +46,48 @@ void _ensureOk(http.Response r) {
   throw AuthException(msg);
 }
 
+/// 번호 사용 가능 여부. `reason`은 `registered`(이미 가입) / `cooldown`(탈퇴 쿨다운) / null.
+class PhoneAvailability {
+  const PhoneAvailability({
+    required this.available,
+    required this.detail,
+    this.reason,
+  });
+
+  final bool available;
+  final String detail;
+  final String? reason;
+
+  /// 이미 가입된 번호 — 로그인 안내를 함께 띄울 수 있다.
+  bool get isRegistered => reason == 'registered';
+
+  factory PhoneAvailability.fromJson(Map<String, dynamic> json) =>
+      PhoneAvailability(
+        available: json['available'] == true,
+        detail: json['detail'] as String? ?? '',
+        reason: json['reason'] as String?,
+      );
+}
+
+/// 가입 가능한 번호인지 확인. 전화번호 입력 직후 호출해 중복 가입을 즉시 알린다.
+Future<PhoneAvailability> checkPhone(
+  String phone, {
+  @visibleForTesting http.Client? client,
+}) async {
+  final c = client ?? http.Client();
+  try {
+    final r = await c.post(
+      Uri.parse('$_baseUrl/api/auth/check-phone/'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'phone': phone}),
+    );
+    _ensureOk(r);
+    return PhoneAvailability.fromJson(_decode(r));
+  } finally {
+    if (client == null) c.close();
+  }
+}
+
 /// OTP 발송. 응답에는 `detail`과 (DEBUG 서버 한정) `dev_code`가 포함된다.
 Future<Map<String, dynamic>> sendOtp(
   String phone, {
