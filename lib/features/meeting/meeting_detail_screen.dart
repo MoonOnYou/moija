@@ -151,27 +151,94 @@ class _MeetingDetailScreenState extends State<MeetingDetailScreen> {
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
-          child: SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.coral,
-                foregroundColor: AppColors.bgPrimary,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-              onPressed: () => _onApply(context),
-              child: Text(
-                _meeting.joinMethod == JoinMethod.firstCome
-                    ? '모임 참가하기'
-                    : '참가 신청하기',
-                style:
-                    const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-              ),
-            ),
-          ),
+          // 이미 신청한 모임이면 다시 신청할 수 없고 취소만 가능하다.
+          child: widget.repository.isPending(_meeting)
+              ? _pendingActions()
+              : SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.coral,
+                      foregroundColor: AppColors.bgPrimary,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    onPressed: () => _onApply(context),
+                    child: Text(
+                      _meeting.joinMethod == JoinMethod.firstCome
+                          ? '모임 참가하기'
+                          : '참가 신청하기',
+                      style: const TextStyle(
+                          fontSize: 15, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ),
         ),
       ),
     );
+  }
+
+  /// 신청 대기중 모임의 하단 영역. 대기 상태 표시 + 신청 취소 버튼.
+  Widget _pendingActions() => Row(
+        children: [
+          const Expanded(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.hourglass_top_rounded,
+                      size: 16, color: AppColors.textSecondary),
+                  SizedBox(width: 6),
+                  Text('승인 대기중',
+                      style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary)),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: OutlinedButton(
+              onPressed: _confirmCancelPending,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.textDanger,
+                side: const BorderSide(color: AppColors.borderTertiary),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+              child: const Text('신청 취소',
+                  style:
+                      TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+            ),
+          ),
+        ],
+      );
+
+  Future<void> _confirmCancelPending() async {
+    final navigator = Navigator.of(context);
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('신청 취소'),
+        content: Text('"${_meeting.title}" 신청을 취소할까요?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('아니오'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.textDanger),
+            child: const Text('취소하기'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    widget.repository.cancelPending(_meeting.id);
+    myMeetingsRevision.value++;
+    navigator.pop();
   }
 
   Widget _categoryChip() => Container(

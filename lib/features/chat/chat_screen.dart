@@ -7,6 +7,7 @@ import '../../shell/app_navigation.dart';
 import '../../theme/app_colors.dart';
 import '../meeting/applicant_review_screen.dart';
 import '../meeting/manner_review_screen.dart';
+import '../meeting/meeting_detail_screen.dart';
 import 'chat_preview.dart';
 import 'chat_room_cell.dart';
 import 'chat_room_screen.dart';
@@ -103,6 +104,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     for (final m in pending)
                       _PendingMeetingCell(
                         meeting: m,
+                        onTap: () => _openDetail(m),
                         onCancel: () => _confirmCancel(m),
                       ),
                   ],
@@ -183,6 +185,18 @@ class _ChatScreenState extends State<ChatScreen> {
             MannerReviewScreen(repository: widget.repository, meeting: m),
       ),
     );
+  }
+
+  /// 신청 대기중 모임은 아직 채팅방이 없으므로 모임 상세를 연다.
+  Future<void> _openDetail(Meeting m) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) =>
+            MeetingDetailScreen(repository: widget.repository, meeting: m),
+      ),
+    );
+    // 상세에서 신청을 취소했을 수 있으니 리스트 갱신.
+    if (mounted) setState(() {});
   }
 
   Future<void> _openChatRoom(Meeting m) async {
@@ -268,82 +282,92 @@ class _SectionHeader extends StatelessWidget {
 }
 
 /// 신청 대기중 셀. 오른쪽 안읽음 배지 자리에 "신청 취소" 버튼이 들어간다.
+/// 셀을 탭하면 모임 상세로 이동한다.
 class _PendingMeetingCell extends StatelessWidget {
-  const _PendingMeetingCell({required this.meeting, required this.onCancel});
+  const _PendingMeetingCell({
+    required this.meeting,
+    required this.onTap,
+    required this.onCancel,
+  });
 
   final Meeting meeting;
+  final VoidCallback onTap;
   final VoidCallback onCancel;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: AppColors.bgSecondary,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              meeting.icon,
-              size: 24,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  meeting.title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  meeting.description.isNotEmpty
-                      ? meeting.description
-                      : meeting.placeLabel,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textSecondary,
-                    height: 1.35,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          OutlinedButton(
-            onPressed: onCancel,
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.textDanger,
-              side: const BorderSide(color: AppColors.borderTertiary),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              minimumSize: const Size(0, 32),
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: AppColors.bgSecondary,
+                borderRadius: BorderRadius.circular(12),
               ),
-              textStyle: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
+              child: Icon(
+                meeting.icon,
+                size: 24,
+                color: AppColors.textPrimary,
               ),
             ),
-            child: const Text('신청 취소'),
-          ),
-        ],
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    meeting.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    meeting.description.isNotEmpty
+                        ? meeting.description
+                        : meeting.placeLabel,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                      height: 1.35,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            OutlinedButton(
+              onPressed: onCancel,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.textDanger,
+                side: const BorderSide(color: AppColors.borderTertiary),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                minimumSize: const Size(0, 32),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                textStyle: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              child: const Text('신청 취소'),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -4,6 +4,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:moija/data/meeting_repository.dart';
 import 'package:moija/features/chat/chat_preview.dart';
 import 'package:moija/features/chat/chat_screen.dart';
+import 'package:moija/features/meeting/meeting_detail_screen.dart';
 import 'package:moija/models/join_method.dart';
 import 'package:moija/models/meeting.dart';
 import 'package:moija/models/meeting_category.dart';
@@ -105,6 +106,62 @@ void main() {
     expect(find.text('잠실 야구 직관'), findsOneWidget);
     expect(find.text('같이 응원해요. 자리는 미리 예약돼 있어요!'), findsOneWidget);
     expect(find.text('신청 취소'), findsOneWidget);
+  });
+
+  testWidgets('신청 대기 셀을 탭하면 모임 상세가 열린다', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final now = DateTime(2026, 5, 25, 12, 0);
+    final pending = _m('p1', '잠실 야구 직관', now.add(const Duration(days: 2)));
+    final repo = MeetingRepository.test(
+      meetings: [pending],
+      pending: {'p1'},
+    );
+
+    await tester.pumpWidget(MaterialApp(
+      home: ChatScreen(repository: repo, now: now),
+    ));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('잠실 야구 직관'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MeetingDetailScreen), findsOneWidget);
+    // 이미 신청한 모임이므로 재신청 버튼 대신 대기 상태가 보인다.
+    expect(find.text('승인 대기중'), findsOneWidget);
+    expect(find.text('참가 신청하기'), findsNothing);
+  });
+
+  testWidgets('상세에서 신청을 취소하면 내모임 목록에서 사라진다', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final now = DateTime(2026, 5, 25, 12, 0);
+    final pending = _m('p1', '잠실 야구 직관', now.add(const Duration(days: 2)));
+    final repo = MeetingRepository.test(
+      meetings: [pending],
+      pending: {'p1'},
+    );
+
+    await tester.pumpWidget(MaterialApp(
+      home: ChatScreen(repository: repo, now: now),
+    ));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('잠실 야구 직관'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(OutlinedButton, '신청 취소'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(TextButton, '취소하기'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MeetingDetailScreen), findsNothing);
+    expect(repo.isPending(pending), isFalse);
+    expect(find.text('아직 참여 중인 모임이 없어요'), findsOneWidget);
   });
 
   testWidgets('신청 취소를 확정하면 해당 셀이 사라진다', (tester) async {
