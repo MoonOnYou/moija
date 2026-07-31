@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import '../features/chat/chat_message.dart';
 import '../models/join_method.dart';
 import '../models/meeting.dart';
 import '../models/meeting_category.dart';
@@ -75,6 +76,19 @@ class MeetingRepository {
   void leave(String meetingId) {
     _myJoinedIds.remove(meetingId);
     _myHostedIds.remove(meetingId);
+    _sentMessages.remove(meetingId);
+  }
+
+  /// mock 채팅방에서 내가 보낸 메시지. 화면 State가 아니라 저장소가 들고 있어야
+  /// 채팅방을 나갔다 와도 남고, 내모임 미리보기에도 같은 내용이 보인다.
+  /// TODO(chat): 채팅 API 연동 시 서버 히스토리로 대체한다.
+  final Map<String, List<ChatMessage>> _sentMessages = {};
+
+  List<ChatMessage> sentMessagesOf(String meetingId) =>
+      List.unmodifiable(_sentMessages[meetingId] ?? const <ChatMessage>[]);
+
+  void addSentMessage(String meetingId, ChatMessage message) {
+    _sentMessages.putIfAbsent(meetingId, () => []).add(message);
   }
 
   /// 방장 자리를 다른 멤버에게 넘긴다. 나는 일반 참가자로 남는다.

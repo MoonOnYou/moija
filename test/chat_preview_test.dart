@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:moija/data/meeting_repository.dart';
+import 'package:moija/features/chat/chat_message.dart';
 import 'package:moija/features/chat/chat_preview.dart';
 import 'package:moija/models/meeting.dart';
 import 'package:moija/models/meeting_category.dart';
@@ -79,5 +81,37 @@ void main() {
     expect(a1.lastSender, a2.lastSender);
     expect(a1.lastMessage, a2.lastMessage);
     expect(a1.unreadCount, a2.unreadCount);
+  });
+
+  test('repository를 주면 미리보기가 채팅방의 마지막 메시지와 같다', () {
+    final m = _m('id-room', DateTime(2026, 5, 23, 19, 0));
+    final repo = MeetingRepository.test(meetings: [m], joined: {'id-room'});
+
+    final last = lastChatMessageOf(m, repo)!;
+    final preview = ChatPreview.forMeeting(m, repository: repo);
+
+    expect(preview.lastMessage, last.text);
+    expect(preview.lastSender, last.sender);
+  });
+
+  test('내가 보낸 메시지가 있으면 그게 미리보기가 된다', () {
+    final m = _m('id-sent', DateTime(2026, 5, 23, 19, 0));
+    final repo = MeetingRepository.test(meetings: [m], joined: {'id-sent'});
+
+    repo.addSentMessage(
+      m.id,
+      ChatMessage(
+        id: 'me-1',
+        type: ChatMessageType.user,
+        text: '이따 봬요!',
+        sentAt: DateTime(2026, 5, 23, 18, 0),
+        sender: kMyNickname,
+        mine: true,
+      ),
+    );
+
+    final preview = ChatPreview.forMeeting(m, repository: repo);
+    expect(preview.lastMessage, '이따 봬요!');
+    expect(preview.lastSender, kMyNickname);
   });
 }

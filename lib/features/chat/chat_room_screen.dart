@@ -7,6 +7,7 @@ import '../../data/meeting_repository.dart';
 import '../../models/meeting.dart';
 import '../../theme/app_colors.dart';
 import 'chat_message.dart';
+import 'chat_preview.dart';
 import 'chat_room_drawer.dart';
 
 /// 모임 채팅방 화면. 리스트에서 채팅 셀을 누르면 진입한다.
@@ -44,7 +45,6 @@ class ChatRoomScreen extends StatefulWidget {
 class _ChatRoomScreenState extends State<ChatRoomScreen> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scroll = ScrollController();
-  final List<ChatMessage> _sent = <ChatMessage>[];
 
   // 라이브 모드 상태.
   final List<ChatMessage> _live = <ChatMessage>[];
@@ -168,14 +168,18 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     }
 
     setState(() {
-      _sent.add(ChatMessage(
-        id: 'me-${DateTime.now().microsecondsSinceEpoch}',
-        type: ChatMessageType.user,
-        text: text,
-        sentAt: DateTime.now(),
-        sender: kMyNickname,
-        mine: true,
-      ));
+      // 저장소에 쌓아 둬야 방을 나갔다 와도 남고, 내모임 미리보기도 같이 갱신된다.
+      widget.repository.addSentMessage(
+        widget.meeting.id,
+        ChatMessage(
+          id: 'me-${DateTime.now().microsecondsSinceEpoch}',
+          type: ChatMessageType.user,
+          text: text,
+          sentAt: DateTime.now(),
+          sender: kMyNickname,
+          mine: true,
+        ),
+      );
       _controller.clear();
     });
     _scrollToBottom();
@@ -193,7 +197,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       unreadOf = (msg) => msg.unreadCount; // 서버 권위 값.
     } else {
       final participants = widget.repository.participantsOf(m);
-      messages = <ChatMessage>[...mockMessagesFor(m, participants), ..._sent];
+      // 미리보기(ChatPreview)와 같은 소스를 써야 마지막 메시지가 어긋나지 않는다.
+      messages = mockRoomMessages(m, widget.repository);
       // 카카오톡식 "안 읽은 사람 수"(말풍선당). 0이면 지도에 없다.
       final unread = unreadCountsFor(messages, participants.length);
       unreadOf = (msg) => unread[msg.id] ?? 0;

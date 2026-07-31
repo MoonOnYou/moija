@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:moija/data/meeting_repository.dart';
+import 'package:moija/features/chat/chat_message.dart';
 import 'package:moija/features/chat/chat_preview.dart';
 import 'package:moija/features/chat/chat_screen.dart';
 import 'package:moija/features/meeting/meeting_detail_screen.dart';
@@ -186,6 +187,60 @@ void main() {
     expect(find.text('잠실 야구 직관'), findsNothing);
     expect(find.text('아직 참여 중인 모임이 없어요'), findsOneWidget);
     expect(repo.isPending(pending), isFalse);
+  });
+
+  testWidgets('셀 미리보기는 채팅방의 마지막 메시지를 보여준다', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final now = DateTime(2026, 5, 25, 12, 0);
+    final joined = _m('u-preview', '미리보기 모임', now.add(const Duration(days: 1)));
+    final repo = MeetingRepository.test(
+      meetings: [joined],
+      joined: {'u-preview'},
+    );
+
+    await tester.pumpWidget(MaterialApp(
+      home: ChatScreen(repository: repo, now: now),
+    ));
+    await tester.pumpAndSettle();
+
+    final last = lastChatMessageOf(joined, repo)!;
+    expect(find.text('${last.sender}: ${last.text}'), findsOneWidget);
+  });
+
+  testWidgets('채팅방에서 메시지를 보내면 셀 미리보기도 갱신된다', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final now = DateTime(2026, 5, 25, 12, 0);
+    final joined = _m('u-send', '전송 모임', now.add(const Duration(days: 1)));
+    final repo = MeetingRepository.test(
+      meetings: [joined],
+      joined: {'u-send'},
+    );
+
+    await tester.pumpWidget(MaterialApp(
+      home: ChatScreen(repository: repo, now: now),
+    ));
+    await tester.pumpAndSettle();
+
+    // 셀 → 채팅방 진입 후 메시지 전송.
+    await tester.tap(find.text('전송 모임'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+        find.byKey(const Key('chat-composer-input')), '조금 늦을 것 같아요');
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('chat-composer-send')));
+    await tester.pumpAndSettle();
+
+    // 뒤로 나오면 미리보기가 방금 보낸 메시지로 바뀌어 있다.
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    expect(find.text('$kMyNickname: 조금 늦을 것 같아요'), findsOneWidget);
   });
 
   testWidgets('방장 다가오는 모임 아래에 신청자 검토 버튼이 노출된다', (tester) async {

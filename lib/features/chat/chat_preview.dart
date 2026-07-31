@@ -2,6 +2,7 @@ import 'package:intl/intl.dart';
 import '../../data/meeting_repository.dart';
 import '../../models/join_method.dart';
 import '../../models/meeting.dart';
+import 'chat_message.dart';
 
 /// 모임 채팅 단계. 채팅 리스트 섹션을 가른다.
 enum MeetingPhase { upcoming, ongoing, ended }
@@ -56,6 +57,22 @@ String endedLabel(Meeting m, DateTime now) {
   return '곧 종료';
 }
 
+/// mock 채팅방이 실제로 보여 주는 메시지 전체(오래된 → 최신).
+/// 채팅방 화면과 미리보기가 같은 함수를 쓰게 해 내용이 어긋나지 않도록 한다.
+List<ChatMessage> mockRoomMessages(Meeting m, MeetingRepository repo) => [
+      ...mockMessagesFor(m, repo.participantsOf(m)),
+      ...repo.sentMessagesOf(m.id),
+    ];
+
+/// 채팅방의 마지막 사용자 메시지(시스템 알림 제외). 없으면 null.
+ChatMessage? lastChatMessageOf(Meeting m, MeetingRepository repo) {
+  final messages = mockRoomMessages(m, repo);
+  for (var i = messages.length - 1; i >= 0; i--) {
+    if (!messages[i].isSystem) return messages[i];
+  }
+  return null;
+}
+
 /// 모임 채팅 미리보기(목 데이터). 모임 id 해시로 결정한다.
 class ChatPreview {
   const ChatPreview({
@@ -85,8 +102,13 @@ class ChatPreview {
     '민지', '재호', '수빈', '도윤', '하늘', '준영', '서연', '태현',
   ];
 
-  /// 모임 id 해시로 결정적인 미리보기를 만든다(목).
-  factory ChatPreview.forMeeting(Meeting m) {
+  /// 미리보기를 만든다.
+  ///
+  /// [repository]를 주면 채팅방과 **같은 소스**(mock 메시지 + 내가 보낸 메시지)의
+  /// 마지막 사용자 메시지를 그대로 쓴다. 주지 않으면(=참가자를 알 수 없는 호출)
+  /// 모임 id 해시 기반 목 문구로 폴백한다.
+  /// 안읽음 수는 아직 읽음 상태 모델이 없어 예전처럼 id 해시로 만든다.
+  factory ChatPreview.forMeeting(Meeting m, {MeetingRepository? repository}) {
     final h = m.id.hashCode.abs();
     // 0이 가장 흔하도록 분포: 5개 중 3개는 0, 1개는 1, 1개는 2~4.
     final unread = switch (h % 5) {
@@ -94,6 +116,16 @@ class ChatPreview {
       3 => 1,
       _ => 2 + (h % 3),
     };
+
+    final last = repository == null ? null : lastChatMessageOf(m, repository);
+    if (last != null) {
+      return ChatPreview(
+        lastSender: last.sender ?? '',
+        lastMessage: last.text,
+        unreadCount: unread,
+      );
+    }
+
     return ChatPreview(
       lastSender: _senders[h % _senders.length],
       lastMessage: _messages[(h ~/ _senders.length) % _messages.length],

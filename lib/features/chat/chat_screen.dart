@@ -114,6 +114,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     for (final m in ongoing)
                       ChatRoomCell(
                         meeting: m,
+                        preview: ChatPreview.forMeeting(m, repository: repo),
                         timeLabel: ongoingLabel(m),
                         isHost: repo.isHost(m),
                         onTap: () => _openChatRoom(m),
@@ -125,6 +126,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     for (final m in upcoming) ...[
                       ChatRoomCell(
                         meeting: m,
+                        preview: ChatPreview.forMeeting(m, repository: repo),
                         timeLabel: upcomingLabel(m, n),
                         isHost: repo.isHost(m),
                         onTap: () => _openChatRoom(m),
@@ -144,6 +146,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     for (final m in ended) ...[
                       ChatRoomCell(
                         meeting: m,
+                        preview: ChatPreview.forMeeting(m, repository: repo),
                         timeLabel: endedLabel(m, n),
                         isHost: repo.isHost(m),
                         onTap: () => _openChatRoom(m),
