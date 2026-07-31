@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../../data/meeting_repository.dart';
 import '../../models/applicant.dart';
@@ -30,11 +32,22 @@ class _ApplicantReviewScreenState extends State<ApplicantReviewScreen> {
 
   static const _dismissDuration = Duration(milliseconds: 380);
 
+  /// 마지막 신청자를 처리한 뒤 빈 상태를 보여주는 시간. 이후 자동으로 닫힌다.
+  static const _autoCloseDelay = Duration(milliseconds: 900);
+
+  Timer? _autoCloseTimer;
+
   @override
   void initState() {
     super.initState();
     _pending =
         _seedApplicants(widget.meeting, widget.repository.memberPool);
+  }
+
+  @override
+  void dispose() {
+    _autoCloseTimer?.cancel();
+    super.dispose();
   }
 
   void _handle(Applicant a, {required bool accepted}) {
@@ -57,13 +70,24 @@ class _ApplicantReviewScreenState extends State<ApplicantReviewScreen> {
     ));
 
     if (_pending.isEmpty) {
-      // 마지막 카드의 슬라이드 애니메이션이 끝난 뒤 빈 상태로 전환.
+      // 마지막 카드의 슬라이드 애니메이션이 끝난 뒤 빈 상태로 전환하고,
+      // 잠깐 보여준 다음 화면을 닫는다.
       Future.delayed(_dismissDuration, () {
-        if (mounted) setState(() {});
+        if (!mounted) return;
+        setState(() {});
+        _autoCloseTimer = Timer(_autoCloseDelay, _closeIfCurrent);
       });
     } else {
       setState(() {}); // AppBar 카운트 갱신
     }
+  }
+
+  /// 이 화면이 최상단일 때만 닫는다(위에 다른 화면이 떠 있으면 건너뛴다).
+  /// [Navigator.maybePop]이라 첫 라우트면 아무 일도 일어나지 않는다.
+  void _closeIfCurrent() {
+    if (!mounted) return;
+    if (ModalRoute.of(context)?.isCurrent != true) return;
+    Navigator.of(context).maybePop();
   }
 
   Widget _animatedItem(Applicant a, Animation<double> animation) {

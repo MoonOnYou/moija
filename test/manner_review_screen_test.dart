@@ -100,5 +100,47 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('모두 평가했어요'), findsOneWidget);
     expect(find.text('매너 평가'), findsOneWidget); // AppBar 제목 fallback
+
+    // 자동 닫힘 타이머를 흘려보낸다(첫 라우트라 실제로 닫히지는 않는다).
+    await tester.pumpAndSettle(const Duration(seconds: 1));
+  });
+
+  testWidgets('모두 평가하면 완료 화면을 잠깐 보여준 뒤 자동으로 닫힌다', (tester) async {
+    final m = _m('m4', '자동 닫힘 모임', currentMembers: 2); // 호스트 제외 1명
+    final repo = MeetingRepository.test(meetings: [m], joined: {'m4'});
+
+    await tester.pumpWidget(_wrap(
+      Builder(
+        builder: (context) => Scaffold(
+          body: Center(
+            child: ElevatedButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) =>
+                      MannerReviewScreen(repository: repo, meeting: m),
+                ),
+              ),
+              child: const Text('평가 열기'),
+            ),
+          ),
+        ),
+      ),
+    ));
+    await tester.tap(find.text('평가 열기'));
+    await tester.pumpAndSettle();
+    expect(find.byType(MannerReviewScreen), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('star-5')));
+    await tester.pump();
+    await tester.tap(find.widgetWithText(FilledButton, '제출'));
+    await tester.pumpAndSettle();
+
+    // 마지막 카드 처리 직후엔 완료 화면이 보인다.
+    expect(find.text('모두 평가했어요'), findsOneWidget);
+
+    // 잠시 뒤 자동으로 닫혀 이전 화면으로 돌아간다.
+    await tester.pumpAndSettle(const Duration(seconds: 1));
+    expect(find.byType(MannerReviewScreen), findsNothing);
+    expect(find.text('평가 열기'), findsOneWidget);
   });
 }

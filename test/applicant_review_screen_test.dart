@@ -66,6 +66,8 @@ void main() {
     } else {
       expect(find.text('신청자 검토'), findsOneWidget);
       expect(find.text('처리할 신청자가 없어요'), findsOneWidget);
+      // 자동 닫힘 타이머를 흘려보낸다(첫 라우트라 실제로 닫히지는 않는다).
+      await tester.pumpAndSettle(const Duration(seconds: 1));
     }
   });
 
@@ -90,5 +92,52 @@ void main() {
 
     expect(find.text('처리할 신청자가 없어요'), findsOneWidget);
     expect(find.text('신청자 검토'), findsOneWidget);
+
+    // 자동 닫힘 타이머를 흘려보낸다(첫 라우트라 실제로 닫히지는 않는다).
+    await tester.pumpAndSettle(const Duration(seconds: 1));
+  });
+
+  testWidgets('모두 처리하면 빈 상태를 잠깐 보여준 뒤 자동으로 닫힌다', (tester) async {
+    final m = _m('rev-4', '자동 닫힘 모임');
+    final repo = MeetingRepository.test(
+      meetings: [m],
+      joined: {'rev-4'},
+      hosted: {'rev-4'},
+    );
+    final initial = pendingApplicantsFor(m);
+
+    await tester.pumpWidget(_wrap(
+      Builder(
+        builder: (context) => Scaffold(
+          body: Center(
+            child: ElevatedButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) =>
+                      ApplicantReviewScreen(repository: repo, meeting: m),
+                ),
+              ),
+              child: const Text('검토 열기'),
+            ),
+          ),
+        ),
+      ),
+    ));
+    await tester.tap(find.text('검토 열기'));
+    await tester.pumpAndSettle();
+    expect(find.byType(ApplicantReviewScreen), findsOneWidget);
+
+    for (var i = 0; i < initial; i++) {
+      await tester.tap(find.text('수락').first);
+      await tester.pumpAndSettle();
+    }
+
+    // 마지막 신청자 처리 직후엔 빈 상태가 보인다.
+    expect(find.text('처리할 신청자가 없어요'), findsOneWidget);
+
+    // 잠시 뒤 자동으로 닫혀 이전 화면으로 돌아간다.
+    await tester.pumpAndSettle(const Duration(seconds: 1));
+    expect(find.byType(ApplicantReviewScreen), findsNothing);
+    expect(find.text('검토 열기'), findsOneWidget);
   });
 }

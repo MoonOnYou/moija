@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../../data/meeting_repository.dart';
 import '../../models/meeting.dart';
@@ -28,12 +30,23 @@ class _MannerReviewScreenState extends State<MannerReviewScreen> {
 
   static const _dismissDuration = Duration(milliseconds: 380);
 
+  /// 마지막 카드를 처리한 뒤 완료 화면을 보여주는 시간. 이후 자동으로 닫힌다.
+  static const _autoCloseDelay = Duration(milliseconds: 900);
+
+  Timer? _autoCloseTimer;
+
   @override
   void initState() {
     super.initState();
     final all = widget.repository.participantsOf(widget.meeting);
     // 호스트(=나) 제외.
     _pending = all.length > 1 ? all.sublist(1).toList() : <Member>[];
+  }
+
+  @override
+  void dispose() {
+    _autoCloseTimer?.cancel();
+    super.dispose();
   }
 
   void _toast(String message) {
@@ -57,12 +70,23 @@ class _MannerReviewScreenState extends State<MannerReviewScreen> {
     if (toast != null) _toast(toast);
 
     if (_pending.isEmpty) {
+      // 마지막 카드가 빠져나간 뒤 완료 화면을 잠깐 보여주고 화면을 닫는다.
       Future.delayed(_dismissDuration, () {
-        if (mounted) setState(() {});
+        if (!mounted) return;
+        setState(() {});
+        _autoCloseTimer = Timer(_autoCloseDelay, _closeIfCurrent);
       });
     } else {
       setState(() {});
     }
+  }
+
+  /// 이 화면이 최상단일 때만 닫는다(차단 화면 등이 위에 떠 있으면 건너뛴다).
+  /// [Navigator.maybePop]이라 첫 라우트면 아무 일도 일어나지 않는다.
+  void _closeIfCurrent() {
+    if (!mounted) return;
+    if (ModalRoute.of(context)?.isCurrent != true) return;
+    Navigator.of(context).maybePop();
   }
 
   Widget _animatedItem(Member m, Animation<double> animation) {
